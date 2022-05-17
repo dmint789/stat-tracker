@@ -1,43 +1,47 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
+  TouchableOpacity,
   StyleSheet,
   FlatList,
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import {TempData} from '../TempData.js';
 import Entry from '../components/Entry.js';
-import AddEntry from '../components/AddEntry.js';
-import Header from '../components/Header.js';
+import MyButton from '../components/MyButton.js';
 
-const Home = ({navigation}) => {
-  const [entries, setEntries] = useState([
-    {
-      id: '1',
-      date: '09.05.2022',
-      stats: [
-        {name: 'Weight', value: '86.2'},
-        {name: 'Pull-ups', value: '1'},
-      ],
-    },
-    {id: '2', date: '08.05.2022', stats: [{name: 'Weight', value: '85.6'}]},
-    {
-      id: '3',
-      date: '07.05.2022',
-      stats: [
-        {name: 'Weight', value: '85.3'},
-        {name: 'Push-ups', value: '20'},
-      ],
-    },
-  ]);
-  const [addEntryOpen, setAddEntryOpen] = useState(false);
+const Home = ({navigation, route}) => {
+  const [entries, setEntries] = useState(TempData);
+  const newEntry = route.params;
+
+  useEffect(() => {
+    if (isValidEntry(newEntry))
+      setEntries(prevEntries => {
+        return [{...newEntry, id: Math.random()}, ...prevEntries];
+      });
+  }, [newEntry]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <MyButton onPress={() => navigation.navigate('AddEditEntry')}>
+          <Icon name="plus" size={24} color="red" />
+        </MyButton>
+      ),
+    });
+  }, [navigation]);
 
   const isValidEntry = entry => {
+    if (Object.keys(newEntry).length === 0) return false;
+
     for (let stat of entry.stats) {
       if (stat.name.length == 0 || stat.value.length == 0) return false;
     }
+
     return true;
   };
 
@@ -50,10 +54,8 @@ const Home = ({navigation}) => {
   const addEntry = entry => {
     if (isValidEntry(entry)) {
       setEntries(prevEntries => {
-        return [{...entry, id: 7}, ...prevEntries];
+        return [{...entry, id: Math.random()}, ...prevEntries];
       });
-
-      setAddEntryOpen(false);
     } else {
       Alert.alert('Error', 'Please fill in all fields', [
         {text: 'Ok', onPress: () => console.log('Alert closed')},
@@ -62,21 +64,18 @@ const Home = ({navigation}) => {
   };
 
   const onOpenAddEntry = () => {
-    navigation.navigate('About');
-    //setAddEntryOpen(prevAddEntryOpen => !prevAddEntryOpen);
+    navigation.navigate('AddEditEntry');
   };
 
   return (
     <TouchableWithoutFeedback
       onPress={() => {
         Keyboard.dismiss();
-        console.log('Dismissed keyboard');
       }}>
       {/* Views in React Native are flexbox components by default. */}
       {/* The items inside are automatically flex items. */}
       <View style={styles.container}>
-        <Header onOpenAddEntry={onOpenAddEntry} />
-        {addEntryOpen && <AddEntry addEntry={addEntry} />}
+        {/*addEntryOpen && <AddEntry addEntry={addEntry} />*/}
         <View style={styles.list}>
           {/* FlatList is better for performance than ScrollView. It also */}
           {/* automatically assigns the key value to each item. */}

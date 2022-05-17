@@ -10,6 +10,9 @@ const Entry = ({entry, deleteEntry}) => {
           {stat.name}: {stat.value}
         </Text>
       ))}
+      {entry.comment != '' && (
+        <Text style={styles.comment}>{entry.comment}</Text>
+      )}
       <View style={styles.bottomRow}>
         <Text style={styles.dateText}>{entry.date}</Text>
         <TouchableOpacity onPress={() => deleteEntry(entry.id)}>
@@ -25,12 +28,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'pink',
     marginBottom: 24,
     marginHorizontal: 10,
-    padding: 30,
+    paddingHorizontal: 30,
+    paddingVertical: 20,
     borderRadius: 10,
   },
   text: {
     color: 'black',
-    fontSize: 24,
+    fontSize: 20,
+    marginBottom: 10,
+  },
+  comment: {
+    color: '#444',
+    fontSize: 18,
+    marginBottom: 10,
   },
   dateText: {
     color: 'grey',
