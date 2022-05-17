@@ -12,7 +12,7 @@ import Entry from '../components/Entry.js';
 import AddEntry from '../components/AddEntry.js';
 import Header from '../components/Header.js';
 
-const Home = () => {
+const Home = ({navigation}) => {
   const [entries, setEntries] = useState([
     {
       id: '1',
@@ -62,7 +62,8 @@ const Home = () => {
   };
 
   const onOpenAddEntry = () => {
-    setAddEntryOpen(prevAddEntryOpen => !prevAddEntryOpen);
+    navigation.navigate('About');
+    //setAddEntryOpen(prevAddEntryOpen => !prevAddEntryOpen);
   };
 
   return (
