@@ -15,14 +15,15 @@ import Entry from '../components/Entry.js';
 import MyButton from '../components/MyButton.js';
 
 const Home = ({navigation, route}) => {
-  const [entries, setEntries] = useState(TempData);
+  const [entries, setEntries] = useState([]);
   const newEntry = route.params;
 
   useEffect(() => {
-    if (isValidEntry(newEntry))
+    if (Object.keys(newEntry).length > 0) {
       setEntries(prevEntries => {
         return [{...newEntry, id: Math.random()}, ...prevEntries];
       });
+    }
   }, [newEntry]);
 
   useEffect(() => {
@@ -35,36 +36,16 @@ const Home = ({navigation, route}) => {
     });
   }, [navigation]);
 
-  const isValidEntry = entry => {
-    if (Object.keys(newEntry).length === 0) return false;
-
-    for (let stat of entry.stats) {
-      if (stat.name.length == 0 || stat.value.length == 0) return false;
-    }
-
-    return true;
-  };
-
   const deleteEntry = id => {
     setEntries(prevEntries => {
-      return prevEntries.filter(entry => entry.id != id);
+      return prevEntries.filter(item => item.id != id);
     });
   };
 
   const addEntry = entry => {
-    if (isValidEntry(entry)) {
-      setEntries(prevEntries => {
-        return [{...entry, id: Math.random()}, ...prevEntries];
-      });
-    } else {
-      Alert.alert('Error', 'Please fill in all fields', [
-        {text: 'Ok', onPress: () => console.log('Alert closed')},
-      ]);
-    }
-  };
-
-  const onOpenAddEntry = () => {
-    navigation.navigate('AddEditEntry');
+    setEntries(prevEntries => {
+      return [{...entry, id: Math.random()}, ...prevEntries];
+    });
   };
 
   return (
@@ -75,10 +56,9 @@ const Home = ({navigation, route}) => {
       {/* Views in React Native are flexbox components by default. */}
       {/* The items inside are automatically flex items. */}
       <View style={styles.container}>
-        {/*addEntryOpen && <AddEntry addEntry={addEntry} />*/}
-        <View style={styles.list}>
-          {/* FlatList is better for performance than ScrollView. It also */}
-          {/* automatically assigns the key value to each item. */}
+        {/* FlatList is better for performance than ScrollView. It also */}
+        {/* automatically assigns the key value to each item. */}
+        {entries.length > 0 ? (
           <FlatList
             numColumns={1}
             keyExtractor={item => item.id}
@@ -86,8 +66,11 @@ const Home = ({navigation, route}) => {
             renderItem={({item}) => (
               <Entry entry={item} deleteEntry={deleteEntry} />
             )}
+            ListFooterComponent={<View style={{height: 20}} />}
           />
-        </View>
+        ) : (
+          <Text style={styles.text}>Press + to add some stat entries</Text>
+        )}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -98,11 +81,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  list: {
-    // This prevents things from going off the screen
-    flex: 1,
-    marginVertical: 20,
-    paddingHorizontal: 20,
+  text: {
+    fontSize: 18,
+    color: 'black',
   },
 });
 

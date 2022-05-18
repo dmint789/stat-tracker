@@ -26,8 +26,8 @@ const Entry = ({entry, deleteEntry}) => {
 const styles = StyleSheet.create({
   item: {
     backgroundColor: 'pink',
-    marginBottom: 24,
-    marginHorizontal: 10,
+    marginTop: 20,
+    marginHorizontal: 20,
     paddingHorizontal: 30,
     paddingVertical: 20,
     borderRadius: 10,
