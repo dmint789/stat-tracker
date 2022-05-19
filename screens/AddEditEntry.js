@@ -43,7 +43,7 @@ const AddEditEntry = ({navigation}) => {
     return (
       date.getDate() +
       '/' +
-      date.getMonth() +
+      (date.getMonth() + 1) +
       '/' +
       date.getFullYear()
     ).toString();
@@ -90,6 +90,10 @@ const AddEditEntry = ({navigation}) => {
     });
   };
 
+  const addField = () => {
+    console.log('Added field');
+  };
+
   const addEntry = () => {
     // Save last entered stat
     if (statName.length > 0 || statValue.length > 0) {
@@ -124,65 +128,69 @@ const AddEditEntry = ({navigation}) => {
     }
   };
 
-  return (
-    <TouchableWithoutFeedback
-      onPress={() => {
-        Keyboard.dismiss();
-      }}>
-      <View style={styles.container}>
-        <ScrollView style={styles.scrollableArea}>
-          {stats.length > 0 && (
-            <WorkingEntryList stats={stats} deleteStat={deleteStat} />
-          )}
-          <TextInput
-            style={styles.input}
-            placeholder="Name"
-            onChangeText={onChangeStatName}
-            value={statName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Value"
-            onChangeText={onChangeStatValue}
-            value={statValue}
-          />
-          <Button onPress={() => addStat()} title="Add Stat" color="grey" />
+  // <TouchableWithoutFeedback
+  //   onPress={() => {
+  //     Keyboard.dismiss();
+  //   }}>
+  // </TouchableWithoutFeedback>
 
-          {/* Comment */}
-          <TextInput
-            style={styles.input}
-            placeholder="Comment"
-            onChangeText={onChangeComment}
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollableArea}>
+        {stats.length > 0 && (
+          <WorkingEntryList stats={stats} deleteStat={deleteStat} />
+        )}
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          onChangeText={onChangeStatName}
+          value={statName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Value"
+          onChangeText={onChangeStatValue}
+          value={statValue}
+        />
+        <View style={styles.statButtons}>
+          {/* <Button onPress={() => addField()} title="Add Field" color="blue" /> */}
+          <Button onPress={() => addStat()} title="Add Stat" color="grey" />
+        </View>
+
+        {/* Comment */}
+        <TextInput
+          style={styles.input}
+          placeholder="Comment"
+          onChangeText={onChangeComment}
+        />
+        {/* Date */}
+        <View style={styles.date}>
+          <Text style={styles.dateText}>{formatDate()}</Text>
+          <Button
+            onPress={() => setDatePickerOpen(true)}
+            title="Edit"
+            color="grey"
           />
-          {/* Date */}
-          <View style={styles.date}>
-            <Text style={styles.dateText}>{formatDate()}</Text>
-            <Button
-              onPress={() => setDatePickerOpen(true)}
-              title="Edit"
-              color="grey"
-            />
-          </View>
-          <DatePicker
-            modal
-            mode="date"
-            open={datePickerOpen}
-            date={date}
-            onConfirm={date => {
-              setDatePickerOpen(false);
-              setDate(date);
-            }}
-            onCancel={() => {
-              setDatePickerOpen(false);
-            }}
-          />
-          {/* Make title conditional (Add Entry or Edit Entry) */}
-          <View style={{marginBottom: 20}}>
-            <Button onPress={() => addEntry()} title="Add Entry" color="red" />
-          </View>
-        </ScrollView>
-      </View>
-    </TouchableWithoutFeedback>
+        </View>
+        <DatePicker
+          modal
+          mode="date"
+          open={datePickerOpen}
+          date={date}
+          onConfirm={date => {
+            setDatePickerOpen(false);
+            setDate(date);
+          }}
+          onCancel={() => {
+            setDatePickerOpen(false);
+          }}
+        />
+        {/* Make title conditional (Add Entry or Edit Entry) */}
+        <View style={{marginBottom: 20}}>
+          <Button onPress={() => addEntry()} title="Add Entry" color="red" />
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -198,16 +206,20 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 18,
     marginBottom: 10,
-    paddingHorizontal: 8,
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  statButtons: {
+    //flexDirection: 'row',
+    //justifyContent: 'center',
+    //alignItems: 'center',
+    marginBottom: 20,
   },
   date: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: 8,
     marginBottom: 10,
   },
   dateText: {
