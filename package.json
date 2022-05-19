@@ -5,8 +5,9 @@
   "scripts": {
     "emulator": "emulator -avd Pixel_2_API_30",
     "android": "react-native run-android",
+    "debug-apk": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res && cd android && ./gradlew assembleDebug",
     "ios": "react-native run-ios",
-    "start": "react-native start",
+    "start": "react-native start --reset-cache",
     "test": "jest",
     "lint": "eslint ."
   },

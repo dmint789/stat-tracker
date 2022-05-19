@@ -143,24 +143,27 @@ const AddEditEntry = ({navigation}) => {
         <TextInput
           style={styles.input}
           placeholder="Name"
+          placeholderTextColor="grey"
           onChangeText={onChangeStatName}
           value={statName}
         />
         <TextInput
           style={styles.input}
           placeholder="Value"
+          placeholderTextColor="grey"
           onChangeText={onChangeStatValue}
           value={statValue}
         />
         <View style={styles.statButtons}>
           {/* <Button onPress={() => addField()} title="Add Field" color="blue" /> */}
-          <Button onPress={() => addStat()} title="Add Stat" color="grey" />
+          <Button onPress={() => addStat()} title="Add Stat" color="gray" />
         </View>
 
         {/* Comment */}
         <TextInput
           style={styles.input}
           placeholder="Comment"
+          placeholderTextColor="grey"
           onChangeText={onChangeComment}
         />
         {/* Date */}
@@ -204,6 +207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   input: {
+    color: 'black',
     fontSize: 18,
     marginBottom: 10,
     paddingVertical: 6,
