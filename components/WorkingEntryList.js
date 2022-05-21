@@ -1,19 +1,25 @@
 import React from 'react';
 import {StyleSheet, View, TouchableOpacity, FlatList, Text} from 'react-native';
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import DeleteButton from './DeleteButton.js';
 
-const WorkingEntryList = ({stats, deleteStat}) => {
+const WorkingEntryList = ({stats, statTypes, deleteStat}) => {
+  // Copied from Entry.js
+  const getUnit = statName => {
+    for (let type of statTypes) {
+      if (type.name === statName) return type.unit;
+    }
+    return '';
+  };
+
   return (
     <View style={styles.container}>
       {stats.map(item => (
         <View style={styles.stat} key={item.id}>
           <Text style={styles.text}>
-            {item.name}: {item.value}
+            {item.name}: {item.value} {getUnit(item.name)}
           </Text>
           {/* This is a copy from Entry.js! Make a component and import it */}
-          <TouchableOpacity onPress={() => deleteStat(item.id)}>
-            <Icon name="remove" size={20} color="red" />
-          </TouchableOpacity>
+          <DeleteButton onPress={() => deleteStat(item.id)} />
         </View>
       ))}
     </View>
@@ -25,7 +31,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   stat: {
-    //flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

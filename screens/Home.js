@@ -15,23 +15,55 @@ import Entry from '../components/Entry.js';
 import MyButton from '../components/MyButton.js';
 
 const Home = ({navigation, route}) => {
+  const mockData = {
+    statTypes: [
+      {name: 'Weight', unit: 'kg'},
+      {name: 'Pull-ups', unit: ''},
+    ],
+    entries: [
+      {
+        id: 1,
+        stats: [
+          {
+            name: 'Weight',
+            value: '85',
+          },
+          {
+            name: 'Weight',
+            value: '84',
+          },
+        ],
+        date: '20/5/2022',
+        comment: 'Hard',
+      },
+    ],
+  };
+
   const [entries, setEntries] = useState([]);
-  const newEntry = route.params;
+  const [statTypes, setStatTypes] = useState([]);
+
+  const returnData = route.params;
 
   useEffect(() => {
-    getData();
+    getDataAsync();
   }, []);
 
   useEffect(() => {
-    // Check that we received a valid entry from the AddEditEntry screen
-    if (Object.keys(newEntry).length > 0) {
+    // Check that we received a valid entry from the AddEditEntry screen and add it
+    if (Object.keys(returnData).length > 0) {
       setEntries(prevEntries => {
-        const newEntries = [{...newEntry, id: Math.random()}, ...prevEntries];
-        setData(newEntries);
+        const newEntries = sortEntries([
+          {...returnData.newEntry, id: Math.random()},
+          ...prevEntries,
+        ]);
+
+        setEntriesAsync(newEntries);
         return newEntries;
       });
+
+      setStatTypes(returnData.statTypes);
     }
-  }, [newEntry]);
+  }, [returnData]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -43,26 +75,40 @@ const Home = ({navigation, route}) => {
     });
   }, [navigation]);
 
-  const getData = async () => {
+  const getDataAsync = async () => {
     try {
+      //await AsyncStorage.removeItem('data');
       const data = await AsyncStorage.getItem('data');
-      if (data.length > 0) setEntries(JSON.parse(data));
+
+      if (data.length > 0) {
+        const parsedData = JSON.parse(data);
+        setEntries(parsedData.entries);
+        setStatTypes(parsedData.statTypes);
+      }
     } catch (err) {
       console.log(err);
     }
   };
 
-  const setData = async data => {
+  const setEntriesAsync = async entries => {
     try {
-      await AsyncStorage.setItem('data', JSON.stringify(data));
-    } catch (err) {
-      console.log(err);
-    }
-  };
+      const newData = {
+        entries,
+        statTypes,
+        lastStatChoice: 0,
+      };
 
-  const deleteData = async () => {
-    try {
-      await AsyncStorage.removeItem('data');
+      try {
+        const data = await AsyncStorage.getItem('data');
+        const parsedData = JSON.parse(data);
+
+        newData.statTypes = parsedData.statTypes;
+        newData.lastStatChoice = parsedData.lastStatChoice;
+      } catch (err) {
+        console.log(err);
+      }
+
+      await AsyncStorage.setItem('data', JSON.stringify(newData));
     } catch (err) {
       console.log(err);
     }
@@ -71,9 +117,13 @@ const Home = ({navigation, route}) => {
   const deleteEntry = id => {
     setEntries(prevEntries => {
       const newEntries = prevEntries.filter(item => item.id != id);
-      setData(newEntries);
+      setEntriesAsync(newEntries);
       return newEntries;
     });
+  };
+
+  const sortEntries = entries => {
+    return entries;
   };
 
   return (
@@ -89,7 +139,11 @@ const Home = ({navigation, route}) => {
           keyExtractor={item => item.id}
           data={entries}
           renderItem={({item}) => (
-            <Entry entry={item} deleteEntry={deleteEntry} />
+            <Entry
+              entry={item}
+              statTypes={statTypes}
+              deleteEntry={deleteEntry}
+            />
           )}
           ListFooterComponent={<View style={{height: 20}} />}
         />

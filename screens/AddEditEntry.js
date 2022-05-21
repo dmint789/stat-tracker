@@ -7,36 +7,96 @@ import {
   FlatList,
   View,
   ScrollView,
-  TouchableWithoutFeedback,
+  Modal,
   Keyboard,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DatePicker from 'react-native-date-picker';
 import WorkingEntryList from '../components/WorkingEntryList.js';
+import ChooseStatModal from '../components/ChooseStatModal.js';
 
-const AddEditEntry = ({navigation}) => {
+const AddEditEntry = ({navigation, route}) => {
   const [stats, setStats] = useState([]);
   const [date, setDate] = useState(new Date());
+  const [statModalOpen, setStatModalOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [statTypes, setStatTypes] = useState([]);
 
-  const [statName, setStatName] = useState('');
+  const [statName, setStatName] = useState('Stat');
+  const [statChoice, setStatChoice] = useState(0);
   const [statValue, setStatValue] = useState('');
   const [comment, setComment] = useState('');
 
-  const onChangeStatName = value => {
-    setStatName(value);
+  useEffect(() => {
+    getStatTypesAsync();
+  }, []);
+
+  const setStatTypesAsync = async (statTypes, lastStatChoice) => {
+    try {
+      let entries = [];
+
+      try {
+        const data = await AsyncStorage.getItem('data');
+        entries = JSON.parse(data).entries;
+      } catch (err) {
+        console.log(err);
+      }
+
+      const newData = {
+        statTypes,
+        lastStatChoice,
+        entries,
+      };
+
+      await AsyncStorage.setItem('data', JSON.stringify(newData));
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  const onChangeStatValue = value => {
-    setStatValue(value);
+  const getStatTypesAsync = async () => {
+    try {
+      const data = await AsyncStorage.getItem('data');
+
+      if (data.length > 0) {
+        const parsedData = JSON.parse(data);
+        setStatTypes(parsedData.statTypes);
+        setStatChoice(parsedData.lastStatChoice);
+
+        if (parsedData.statTypes.length > 0) {
+          setStatName(parsedData.statTypes[parsedData.lastStatChoice].name);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  const onChangeDate = value => {
-    setDate(value);
-  };
+  const deleteStatTypeAsync = async name => {
+    try {
+      let entries = [];
 
-  const onChangeComment = value => {
-    setComment(value);
+      try {
+        const data = await AsyncStorage.getItem('data');
+        entries = JSON.parse(data).entries;
+      } catch (err) {
+        console.log(err);
+      }
+
+      const newStatTypes = statTypes.filter(item => item.name != name);
+      const newData = {
+        entries,
+        statTypes: newStatTypes,
+      };
+
+      await AsyncStorage.setItem('data', JSON.stringify(newData));
+      setStatTypes(newStatTypes);
+
+      if (newStatTypes.length === 0) setStatName('Stat');
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const formatDate = () => {
@@ -62,8 +122,8 @@ const AddEditEntry = ({navigation}) => {
   };
 
   const isValidStat = () => {
-    if (statName.length === 0) {
-      Alert.alert('Error', 'Please fill in the stat name', [{text: 'Ok'}]);
+    if (statTypes.length === 0) {
+      Alert.alert('Error', 'Please create a stat type', [{text: 'Ok'}]);
       return false;
     } else if (statValue.length === 0) {
       Alert.alert('Error', 'Please fill in the stat value', [{text: 'Ok'}]);
@@ -76,10 +136,13 @@ const AddEditEntry = ({navigation}) => {
       setStats(prevStats => {
         return [
           ...prevStats,
-          {name: statName, value: statValue, id: Math.random()},
+          {
+            name: statTypes[statChoice].name,
+            value: statValue,
+            id: Math.random(),
+          },
         ];
       });
-      setStatName('');
       setStatValue('');
     }
   };
@@ -90,13 +153,9 @@ const AddEditEntry = ({navigation}) => {
     });
   };
 
-  const addField = () => {
-    console.log('Added field');
-  };
-
   const addEntry = () => {
     // Save last entered stat
-    if (statName.length > 0 || statValue.length > 0) {
+    if (statValue.length > 0) {
       Alert.alert(
         'Confirmation',
         'Do you want to add your last stat or discard it?',
@@ -113,13 +172,16 @@ const AddEditEntry = ({navigation}) => {
       );
     } else {
       const newEntry = {
-        stats: stats.map(item => ({name: item.name, value: item.value})),
+        stats: stats.map(item => ({
+          name: item.name,
+          value: item.value,
+        })),
         comment,
         date: formatDate(),
       };
 
       if (isValidEntry(newEntry)) {
-        navigation.navigate('Home', newEntry);
+        navigation.navigate('Home', {newEntry, statTypes});
       } else {
         Alert.alert('Error', 'Please fill in all required fields', [
           {text: 'Ok'},
@@ -128,34 +190,57 @@ const AddEditEntry = ({navigation}) => {
     }
   };
 
-  // <TouchableWithoutFeedback
-  //   onPress={() => {
-  //     Keyboard.dismiss();
-  //   }}>
-  // </TouchableWithoutFeedback>
+  const setNewStat = (statChoice, newStatType = null) => {
+    setStatChoice(statChoice);
+
+    if (newStatType != null) {
+      setStatTypes(prevStatTypes => {
+        const newStatTypes = [...prevStatTypes, newStatType];
+        setStatTypesAsync(newStatTypes, statChoice);
+        return newStatTypes;
+      });
+
+      setStatName(newStatType.name);
+    } else {
+      setStatTypesAsync(statTypes, statChoice);
+
+      setStatName(statTypes[statChoice].name);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollableArea}>
         {stats.length > 0 && (
-          <WorkingEntryList stats={stats} deleteStat={deleteStat} />
+          <WorkingEntryList
+            stats={stats}
+            statTypes={statTypes}
+            deleteStat={deleteStat}
+          />
         )}
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          placeholderTextColor="grey"
-          onChangeText={onChangeStatName}
-          value={statName}
+        <View style={styles.name}>
+          <Text style={styles.nameText}>{statName}</Text>
+          <Button
+            onPress={() => setStatModalOpen(true)}
+            title={statTypes.length > 0 ? 'Change Stat' : 'Create Stat'}
+            color={statTypes.length > 0 ? 'blue' : 'green'}
+          />
+        </View>
+        <ChooseStatModal
+          statModalOpen={statModalOpen}
+          setStatModalOpen={setStatModalOpen}
+          statTypes={statTypes}
+          setNewStat={setNewStat}
+          deleteStatType={deleteStatTypeAsync}
         />
         <TextInput
           style={styles.input}
           placeholder="Value"
           placeholderTextColor="grey"
-          onChangeText={onChangeStatValue}
+          onChangeText={value => setStatValue(value)}
           value={statValue}
         />
         <View style={styles.statButtons}>
-          {/* <Button onPress={() => addField()} title="Add Field" color="blue" /> */}
           <Button onPress={() => addStat()} title="Add Stat" color="gray" />
         </View>
 
@@ -164,7 +249,7 @@ const AddEditEntry = ({navigation}) => {
           style={styles.input}
           placeholder="Comment"
           placeholderTextColor="grey"
-          onChangeText={onChangeComment}
+          onChangeText={value => setComment(value)}
         />
         {/* Date */}
         <View style={styles.date}>
@@ -206,9 +291,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
+  name: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 14,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: 'grey',
+  },
+  nameText: {
+    color: 'black',
+    fontSize: 20,
+    marginBottom: 6,
+  },
   input: {
     color: 'black',
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 10,
     paddingVertical: 6,
     borderBottomWidth: 1,

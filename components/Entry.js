@@ -1,13 +1,21 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import DeleteButton from '../components/DeleteButton.js';
 
-const Entry = ({entry, deleteEntry}) => {
+const Entry = ({entry, statTypes, deleteEntry}) => {
+  // Get the unit for the given stat using the list of stat types
+  const getUnit = statName => {
+    for (let type of statTypes) {
+      if (type.name === statName) return type.unit;
+    }
+    return '';
+  };
+
   return (
     <View style={styles.item}>
       {entry.stats.map(stat => (
         <Text style={styles.text} key={Math.random()}>
-          {stat.name}: {stat.value}
+          {stat.name}: {stat.value} {getUnit(stat.name)}
         </Text>
       ))}
       {entry.comment != '' && (
@@ -15,9 +23,7 @@ const Entry = ({entry, deleteEntry}) => {
       )}
       <View style={styles.bottomRow}>
         <Text style={styles.dateText}>{entry.date}</Text>
-        <TouchableOpacity onPress={() => deleteEntry(entry.id)}>
-          <Icon name="remove" size={20} color="red" />
-        </TouchableOpacity>
+        <DeleteButton onPress={() => deleteEntry(entry.id)} />
       </View>
     </View>
   );
