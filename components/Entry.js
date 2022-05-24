@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import DeleteButton from '../components/DeleteButton.js';
 
-const Entry = ({entry, statTypes, deleteEntry}) => {
+const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
   // Get the unit for the given stat using the list of stat types
   const getUnit = statName => {
     for (let type of statTypes) {
@@ -12,7 +12,7 @@ const Entry = ({entry, statTypes, deleteEntry}) => {
   };
 
   return (
-    <View style={styles.item}>
+    <TouchableOpacity onPress={() => onEditEntry(entry.id)} style={styles.item}>
       {entry.stats.map(stat => (
         <Text style={styles.text} key={Math.random()}>
           {stat.name}: {stat.value} {getUnit(stat.name)}
@@ -22,10 +22,10 @@ const Entry = ({entry, statTypes, deleteEntry}) => {
         <Text style={styles.comment}>{entry.comment}</Text>
       )}
       <View style={styles.bottomRow}>
-        <Text style={styles.dateText}>{entry.date}</Text>
+        <Text style={styles.dateText}>{entry.date.text}</Text>
         <DeleteButton onPress={() => deleteEntry(entry.id)} />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

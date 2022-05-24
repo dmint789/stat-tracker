@@ -14,7 +14,7 @@ const WorkingEntryList = ({stats, statTypes, deleteStat}) => {
   return (
     <View style={styles.container}>
       {stats.map(item => (
-        <View style={styles.stat} key={item.id}>
+        <View style={styles.stat} key={Math.random()}>
           <Text style={styles.text}>
             {item.name}: {item.value} {getUnit(item.name)}
           </Text>

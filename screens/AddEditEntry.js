@@ -16,19 +16,39 @@ import * as SM from '../shared/StorageManager.js';
 import WorkingEntryList from '../components/WorkingEntryList.js';
 import ChooseStatModal from '../components/ChooseStatModal.js';
 
-const AddEditEntry = ({navigation}) => {
+const AddEditEntry = ({navigation, route}) => {
   const [stats, setStats] = useState([]);
   const [statTypes, setStatTypes] = useState([]);
   const [statModalOpen, setStatModalOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [date, setDate] = useState(new Date());
+  const [textDate, setTextDate] = useState('');
   const [statName, setStatName] = useState('Stat');
   const [statChoice, setStatChoice] = useState(0);
   const [statValue, setStatValue] = useState('');
   const [comment, setComment] = useState('');
 
+  const passedData = route.params;
+
   useEffect(() => {
     getInitData();
+
+    // If data was passed, that means we're editing an entry.
+    // In that case, set all of the data from that entry.
+    if (passedData) {
+      // Destructure passed data. t stands for temporary.
+      const {stats: tStats, comment: tComment, date: tDate} = passedData;
+
+      setStats(tStats);
+      setComment(tComment);
+      // The month has to be given as an index
+      setDate(new Date(tDate.year, tDate.month - 1, tDate.day));
+
+      setDateText(tDate);
+    } else {
+      // If data wasn't passed, just set the current date in textDate
+      setDateText(date);
+    }
   }, []);
 
   const getInitData = async () => {
@@ -45,14 +65,26 @@ const AddEditEntry = ({navigation}) => {
     }
   };
 
-  const formatDate = () => {
-    return (
-      date.getDate() +
-      '/' +
-      (date.getMonth() + 1) +
-      '/' +
-      date.getFullYear()
-    ).toString();
+  // Sets day, month, year and text date
+  const setDateText = passedDate => {
+    // If passedDate has a day property, that means we're editing an entry.
+    // In that case simply use the passedDate object as is.
+    // If the month is less than 10, add 0 in front of it.
+    if (passedDate.day) {
+      const prettyMonth =
+        passedDate.month < 10 ? '0' + passedDate.month : passedDate.month;
+      setTextDate(`${passedDate.day}/${prettyMonth}/${passedDate.year}`);
+    }
+    // Otherwise, use it as a Date() object
+    else {
+      // We add 1 to the month, because the Date class sets it with 0 indexing
+      const prettyMonth =
+        (passedDate.getMonth() + 1 < 10 ? '0' : '') +
+        (passedDate.getMonth() + 1).toString();
+      setTextDate(
+        `${passedDate.getDate()}/${prettyMonth}/${passedDate.getFullYear()}`,
+      );
+    }
   };
 
   // Check the validity of the new entry before it's passed to the home screen
@@ -88,9 +120,8 @@ const AddEditEntry = ({navigation}) => {
         return [
           ...prevStats,
           {
-            name: statTypes[statChoice].name,
+            name: statName,
             value: statValue,
-            id: Math.random(),
           },
         ];
       });
@@ -107,40 +138,74 @@ const AddEditEntry = ({navigation}) => {
   };
 
   // Add new entry
-  const addEntry = () => {
-    // Ask about saving the last entered stat
+  const onAddEditEntry = () => {
     if (statValue.length > 0) {
-      Alert.alert(
-        'Confirmation',
-        'Do you want to add your last stat or discard it?',
-        [
-          {
-            text: 'Discard',
-            onPress: () => addEntry(),
-          },
-          {
-            text: 'Add',
-            onPress: () => addStat(),
-          },
-        ],
-      );
-    } else {
-      const newEntry = {
-        stats: stats.map(item => ({
-          name: item.name,
-          value: item.value,
-        })),
-        comment,
-        date: formatDate(),
-      };
-
-      if (isValidEntry(newEntry)) {
-        navigation.navigate('Home', {newEntry, statTypes});
+      // If no other stats have been entered, automatically add the one in the text input
+      if (stats.length === 0) {
+        if (isValidStat) {
+          addEditEntry(true);
+        }
       } else {
-        Alert.alert('Error', 'Please fill in all required fields', [
-          {text: 'Ok'},
-        ]);
+        // Ask about saving the last entered stat if other ones have been entered
+        Alert.alert(
+          'Confirmation',
+          'Do you want to add your last stat or discard it?',
+          [
+            {
+              text: 'Discard',
+              onPress: () => addEditEntry(),
+            },
+            {
+              text: 'Add',
+              onPress: () => {
+                if (isValidStat) {
+                  addEditEntry(true);
+                }
+              },
+            },
+          ],
+        );
       }
+    } else {
+      // If the text input is empty, just add the stats that have been entered
+      addEditEntry();
+    }
+  };
+
+  const addEditEntry = (addLastStat = false) => {
+    let tempStats = stats.map(item => ({
+      name: item.name,
+      value: item.value,
+    }));
+
+    // Add the last entered stat if requested. Its validity must already be checked.
+    if (addLastStat) {
+      tempStats.push({
+        name: statName,
+        value: statValue,
+      });
+    }
+
+    // If we're adding a new entry, we pass the id as -1 and let the Home screen set the id.
+    // If we're editing an entry, we set the same id that was passed.
+    const newEntry = {
+      id: passedData ? passedData.id : -1,
+      stats: tempStats,
+      comment,
+      date: {
+        day: date.getDate(),
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+        text: textDate,
+      },
+    };
+
+    if (isValidEntry(newEntry)) {
+      navigation.navigate('Home', {newEntry, statTypes});
+    } else {
+      Alert.alert('Error', 'Please fill in all required fields', [
+        {text: 'Ok'},
+      ]);
     }
   };
 
@@ -223,14 +288,15 @@ const AddEditEntry = ({navigation}) => {
           placeholder="Comment"
           placeholderTextColor="grey"
           onChangeText={value => setComment(value)}
+          value={comment}
         />
         {/* Date */}
         <View style={styles.date}>
-          <Text style={styles.dateText}>{formatDate()}</Text>
+          <Text style={styles.dateText}>{textDate}</Text>
           <Button
             onPress={() => setDatePickerOpen(true)}
             title="Edit"
-            color="grey"
+            color="blue"
           />
         </View>
         <DatePicker
@@ -241,6 +307,7 @@ const AddEditEntry = ({navigation}) => {
           onConfirm={date => {
             setDatePickerOpen(false);
             setDate(date);
+            setDateText(date);
           }}
           onCancel={() => {
             setDatePickerOpen(false);
@@ -248,7 +315,11 @@ const AddEditEntry = ({navigation}) => {
         />
         {/* Make title conditional (Add Entry or Edit Entry) */}
         <View style={{marginBottom: 20}}>
-          <Button onPress={() => addEntry()} title="Add Entry" color="red" />
+          <Button
+            onPress={() => onAddEditEntry()}
+            title={passedData ? 'Edit Entry' : 'Add Entry'}
+            color="red"
+          />
         </View>
       </ScrollView>
     </View>

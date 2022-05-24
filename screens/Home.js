@@ -16,36 +16,42 @@ import MyButton from '../components/MyButton.js';
 
 const Home = ({navigation, route}) => {
   const [entries, setEntries] = useState([]);
+  const [lastId, setLastId] = useState(0);
   const [statTypes, setStatTypes] = useState([]);
 
   const passedData = route.params;
 
   useEffect(() => {
     getInitData();
+    //SM.deleteData('entries');
   }, []);
 
   useEffect(() => {
-    // Check that we received valid data from AddEditEntry and if so - save it
+    // Check that we received valid data from AddEditEntry and if so - save it.
     if (Object.keys(passedData).length > 0) {
-      setEntries(prevEntries => {
-        const newEntries = sortEntries([
-          {...passedData.newEntry, id: Math.random()},
-          ...prevEntries,
-        ]);
+      // If the passed id is -1, that means we're adding an entry. If not - we're editing one.
+      if (passedData.newEntry.id === -1) {
+        addEntry(passedData.newEntry);
 
-        SM.setData('entries', newEntries);
-        return newEntries;
-      });
+        // Set new last id
+        setLastId(prevLastId => {
+          SM.setData('lastId', prevLastId + 1);
+          return prevLastId + 1;
+        });
+      } else {
+        editEntry(passedData.newEntry);
+      }
 
+      // Save new stat types
       setStatTypes(passedData.statTypes);
     }
   }, [passedData]);
 
   useEffect(() => {
-    // Set the plus button in the header
+    // Set the plus button in the header. Pass null to indicate that we're adding an entry.
     navigation.setOptions({
       headerRight: () => (
-        <MyButton onPress={() => navigation.navigate('AddEditEntry')}>
+        <MyButton onPress={() => navigation.navigate('AddEditEntry', null)}>
           <Icon name="plus" size={24} color="red" />
         </MyButton>
       ),
@@ -53,10 +59,15 @@ const Home = ({navigation, route}) => {
   }, [navigation]);
 
   const getInitData = async () => {
-    // Get entry data (if any)
+    // Get entry data if there is any, and if so, also get last id
     const tempEntries = await SM.getData('entries');
     if (tempEntries !== null) {
       setEntries(tempEntries);
+
+      const tempLastId = await SM.getData('lastId');
+      if (tempLastId !== null) {
+        setLastId(tempLastId);
+      }
     }
 
     // Get stat types data (if any)
@@ -64,6 +75,44 @@ const Home = ({navigation, route}) => {
     if (tempStatTypes !== null) {
       setStatTypes(tempStatTypes);
     }
+  };
+
+  const onEditEntry = id => {
+    const entry = entries.find(item => item.id === id);
+
+    navigation.navigate('AddEditEntry', entry);
+  };
+
+  const addEntry = entry => {
+    setEntries(prevEntries => {
+      const newEntries = [
+        {
+          id: lastId,
+          stats: entry.stats,
+          comment: entry.comment,
+          date: entry.date,
+        },
+        ...prevEntries,
+      ];
+
+      SM.setData('entries', newEntries);
+
+      return newEntries;
+    });
+  };
+
+  const editEntry = entry => {
+    setEntries(prevEntries => {
+      let newEntries = prevEntries;
+
+      // Get the index of the entry that has the same id as the one we're editing
+      const index = prevEntries.findIndex(item => item.id === entry.id);
+      newEntries[index] = entry;
+
+      SM.setData('entries', newEntries);
+
+      return newEntries;
+    });
   };
 
   const deleteEntry = id => {
@@ -78,10 +127,6 @@ const Home = ({navigation, route}) => {
 
       return newEntries;
     });
-  };
-
-  const sortEntries = entries => {
-    return entries;
   };
 
   return (
@@ -101,6 +146,7 @@ const Home = ({navigation, route}) => {
               entry={item}
               statTypes={statTypes}
               deleteEntry={deleteEntry}
+              onEditEntry={onEditEntry}
             />
           )}
           ListFooterComponent={<View style={{height: 20}} />}
