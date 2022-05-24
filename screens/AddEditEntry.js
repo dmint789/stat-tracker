@@ -11,91 +11,37 @@ import {
   Keyboard,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import DatePicker from 'react-native-date-picker';
+import * as SM from '../shared/StorageManager.js';
 import WorkingEntryList from '../components/WorkingEntryList.js';
 import ChooseStatModal from '../components/ChooseStatModal.js';
 
-const AddEditEntry = ({navigation, route}) => {
+const AddEditEntry = ({navigation}) => {
   const [stats, setStats] = useState([]);
-  const [date, setDate] = useState(new Date());
+  const [statTypes, setStatTypes] = useState([]);
   const [statModalOpen, setStatModalOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [statTypes, setStatTypes] = useState([]);
-
+  const [date, setDate] = useState(new Date());
   const [statName, setStatName] = useState('Stat');
   const [statChoice, setStatChoice] = useState(0);
   const [statValue, setStatValue] = useState('');
   const [comment, setComment] = useState('');
 
   useEffect(() => {
-    getStatTypesAsync();
+    getInitData();
   }, []);
 
-  const setStatTypesAsync = async (statTypes, lastStatChoice) => {
-    try {
-      let entries = [];
+  const getInitData = async () => {
+    // Get stat types if they've been saved, and if so, also get the last stat choice
+    const tempStatTypes = await SM.getData('statTypes');
+    if (tempStatTypes !== null) {
+      setStatTypes(tempStatTypes);
 
-      try {
-        const data = await AsyncStorage.getItem('data');
-        entries = JSON.parse(data).entries;
-      } catch (err) {
-        console.log(err);
+      const tempLastStatChoice = await SM.getData('lastStatChoice');
+      if (tempLastStatChoice !== null) {
+        setStatChoice(tempLastStatChoice);
+        setStatName(tempStatTypes[statChoice].name);
       }
-
-      const newData = {
-        statTypes,
-        lastStatChoice,
-        entries,
-      };
-
-      await AsyncStorage.setItem('data', JSON.stringify(newData));
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const getStatTypesAsync = async () => {
-    try {
-      const data = await AsyncStorage.getItem('data');
-
-      if (data.length > 0) {
-        const parsedData = JSON.parse(data);
-        setStatTypes(parsedData.statTypes);
-        setStatChoice(parsedData.lastStatChoice);
-
-        if (parsedData.statTypes.length > 0) {
-          setStatName(parsedData.statTypes[parsedData.lastStatChoice].name);
-        }
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const deleteStatTypeAsync = async name => {
-    try {
-      let entries = [];
-
-      try {
-        const data = await AsyncStorage.getItem('data');
-        entries = JSON.parse(data).entries;
-      } catch (err) {
-        console.log(err);
-      }
-
-      const newStatTypes = statTypes.filter(item => item.name != name);
-      const newData = {
-        entries,
-        statTypes: newStatTypes,
-      };
-
-      await AsyncStorage.setItem('data', JSON.stringify(newData));
-      setStatTypes(newStatTypes);
-
-      if (newStatTypes.length === 0) setStatName('Stat');
-    } catch (err) {
-      console.log(err);
     }
   };
 
@@ -109,6 +55,7 @@ const AddEditEntry = ({navigation, route}) => {
     ).toString();
   };
 
+  // Check the validity of the new entry before it's passed to the home screen
   const isValidEntry = entry => {
     if (entry.stats.length === 0) return false;
 
@@ -121,16 +68,20 @@ const AddEditEntry = ({navigation, route}) => {
     return true;
   };
 
-  const isValidStat = () => {
+  // Check the validity of the new stat
+  const isValidStat = (showAlerts = true) => {
     if (statTypes.length === 0) {
-      Alert.alert('Error', 'Please create a stat type', [{text: 'Ok'}]);
+      if (showAlerts)
+        Alert.alert('Error', 'Please create a stat type', [{text: 'Ok'}]);
       return false;
     } else if (statValue.length === 0) {
-      Alert.alert('Error', 'Please fill in the stat value', [{text: 'Ok'}]);
+      if (showAlerts)
+        Alert.alert('Error', 'Please fill in the stat value', [{text: 'Ok'}]);
       return false;
     } else return true;
   };
 
+  // Add new stat to the list of stats in the current entry
   const addStat = () => {
     if (isValidStat()) {
       setStats(prevStats => {
@@ -143,18 +94,21 @@ const AddEditEntry = ({navigation, route}) => {
           },
         ];
       });
+
       setStatValue('');
     }
   };
 
+  // Delete a stat from the list
   const deleteStat = id => {
     setStats(prevStats => {
       return prevStats.filter(item => item.id != id);
     });
   };
 
+  // Add new entry
   const addEntry = () => {
-    // Save last entered stat
+    // Ask about saving the last entered stat
     if (statValue.length > 0) {
       Alert.alert(
         'Confirmation',
@@ -190,22 +144,39 @@ const AddEditEntry = ({navigation, route}) => {
     }
   };
 
-  const setNewStat = (statChoice, newStatType = null) => {
+  // Set new stat type or change stat choice
+  const setNewStatType = (statChoice, newStatType = null) => {
     setStatChoice(statChoice);
+    SM.setData('lastStatChoice', statChoice);
 
     if (newStatType != null) {
       setStatTypes(prevStatTypes => {
         const newStatTypes = [...prevStatTypes, newStatType];
-        setStatTypesAsync(newStatTypes, statChoice);
+        SM.setData('statTypes', newStatTypes);
         return newStatTypes;
       });
 
       setStatName(newStatType.name);
     } else {
-      setStatTypesAsync(statTypes, statChoice);
-
       setStatName(statTypes[statChoice].name);
     }
+  };
+
+  // Delete stat type
+  const deleteStatType = name => {
+    setStatTypes(prevStatTypes => {
+      const newStatTypes = statTypes.filter(item => item.name != name);
+
+      if (newStatTypes.length === 0) {
+        setStatName('Stat');
+        SM.deleteData('statTypes');
+        SM.deleteData('lastStatchoice');
+      } else {
+        SM.setData('statTypes', newStatTypes);
+      }
+
+      return newStatTypes;
+    });
   };
 
   return (
@@ -230,8 +201,8 @@ const AddEditEntry = ({navigation, route}) => {
           statModalOpen={statModalOpen}
           setStatModalOpen={setStatModalOpen}
           statTypes={statTypes}
-          setNewStat={setNewStat}
-          deleteStatType={deleteStatTypeAsync}
+          setNewStatType={setNewStatType}
+          deleteStatType={deleteStatType}
         />
         <TextInput
           style={styles.input}
@@ -240,9 +211,11 @@ const AddEditEntry = ({navigation, route}) => {
           onChangeText={value => setStatValue(value)}
           value={statValue}
         />
-        <View style={styles.statButtons}>
-          <Button onPress={() => addStat()} title="Add Stat" color="gray" />
-        </View>
+        <Button
+          onPress={() => addStat()}
+          title="Add Stat"
+          color={isValidStat(false) ? 'green' : 'grey'}
+        />
 
         {/* Comment */}
         <TextInput
@@ -312,12 +285,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-  },
-  statButtons: {
-    //flexDirection: 'row',
-    //justifyContent: 'center',
-    //alignItems: 'center',
-    marginBottom: 20,
   },
   date: {
     flexDirection: 'row',

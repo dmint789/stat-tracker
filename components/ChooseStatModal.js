@@ -17,7 +17,7 @@ const ChooseStatModal = ({
   statModalOpen,
   setStatModalOpen,
   statTypes,
-  setNewStat,
+  setNewStatType,
   deleteStatType,
 }) => {
   const [newStatName, setNewStatName] = useState('');
@@ -25,7 +25,7 @@ const ChooseStatModal = ({
 
   const onButtonPressed = () => {
     if (newStatName.length > 0) {
-      setNewStat(statTypes.length, {name: newStatName, unit: statUnit});
+      setNewStatType(statTypes.length, {name: newStatName, unit: statUnit});
       setNewStatName('');
       setStatUnit('');
       setStatModalOpen(false);
@@ -39,7 +39,7 @@ const ChooseStatModal = ({
   const onStatChosen = name => {
     for (let i = 0; i < statTypes.length; i++) {
       if (statTypes[i].name === name) {
-        setNewStat(i);
+        setNewStatType(i);
         break;
       }
     }

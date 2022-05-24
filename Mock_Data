@@ -1,0 +1,27 @@
+statCategories: [
+  "Weight",
+  "Gym"
+]
+
+[Stat category name]-statTypes: [
+  {name: 'Weight', unit: 'kg'},
+  {name: 'Pull-ups', unit: ''},
+],
+[Stat category name]-lastStatChoice: 0,
+[Stat category name]-entries: [
+  {
+    id: 1,
+    stats: [
+      {
+        name: 'Weight',
+        value: '85',
+      },
+      {
+        name: 'Weight',
+        value: '84',
+      },
+    ],
+    date: '20/5/2022',
+    comment: 'Hard',
+  },
+]

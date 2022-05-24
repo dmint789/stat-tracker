@@ -9,63 +9,40 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import * as SM from '../shared/StorageManager.js';
 import Entry from '../components/Entry.js';
 import MyButton from '../components/MyButton.js';
 
 const Home = ({navigation, route}) => {
-  const mockData = {
-    statTypes: [
-      {name: 'Weight', unit: 'kg'},
-      {name: 'Pull-ups', unit: ''},
-    ],
-    entries: [
-      {
-        id: 1,
-        stats: [
-          {
-            name: 'Weight',
-            value: '85',
-          },
-          {
-            name: 'Weight',
-            value: '84',
-          },
-        ],
-        date: '20/5/2022',
-        comment: 'Hard',
-      },
-    ],
-  };
-
   const [entries, setEntries] = useState([]);
   const [statTypes, setStatTypes] = useState([]);
 
-  const returnData = route.params;
+  const passedData = route.params;
 
   useEffect(() => {
-    getDataAsync();
+    getInitData();
   }, []);
 
   useEffect(() => {
-    // Check that we received a valid entry from the AddEditEntry screen and add it
-    if (Object.keys(returnData).length > 0) {
+    // Check that we received valid data from AddEditEntry and if so - save it
+    if (Object.keys(passedData).length > 0) {
       setEntries(prevEntries => {
         const newEntries = sortEntries([
-          {...returnData.newEntry, id: Math.random()},
+          {...passedData.newEntry, id: Math.random()},
           ...prevEntries,
         ]);
 
-        setEntriesAsync(newEntries);
+        SM.setData('entries', newEntries);
         return newEntries;
       });
 
-      setStatTypes(returnData.statTypes);
+      setStatTypes(passedData.statTypes);
     }
-  }, [returnData]);
+  }, [passedData]);
 
   useEffect(() => {
+    // Set the plus button in the header
     navigation.setOptions({
       headerRight: () => (
         <MyButton onPress={() => navigation.navigate('AddEditEntry')}>
@@ -75,49 +52,30 @@ const Home = ({navigation, route}) => {
     });
   }, [navigation]);
 
-  const getDataAsync = async () => {
-    try {
-      //await AsyncStorage.removeItem('data');
-      const data = await AsyncStorage.getItem('data');
-
-      if (data.length > 0) {
-        const parsedData = JSON.parse(data);
-        setEntries(parsedData.entries);
-        setStatTypes(parsedData.statTypes);
-      }
-    } catch (err) {
-      console.log(err);
+  const getInitData = async () => {
+    // Get entry data (if any)
+    const tempEntries = await SM.getData('entries');
+    if (tempEntries !== null) {
+      setEntries(tempEntries);
     }
-  };
 
-  const setEntriesAsync = async entries => {
-    try {
-      const newData = {
-        entries,
-        statTypes,
-        lastStatChoice: 0,
-      };
-
-      try {
-        const data = await AsyncStorage.getItem('data');
-        const parsedData = JSON.parse(data);
-
-        newData.statTypes = parsedData.statTypes;
-        newData.lastStatChoice = parsedData.lastStatChoice;
-      } catch (err) {
-        console.log(err);
-      }
-
-      await AsyncStorage.setItem('data', JSON.stringify(newData));
-    } catch (err) {
-      console.log(err);
+    // Get stat types data (if any)
+    const tempStatTypes = await SM.getData('statTypes');
+    if (tempStatTypes !== null) {
+      setStatTypes(tempStatTypes);
     }
   };
 
   const deleteEntry = id => {
     setEntries(prevEntries => {
       const newEntries = prevEntries.filter(item => item.id != id);
-      setEntriesAsync(newEntries);
+
+      if (newEntries.length === 0) {
+        SM.deleteData('entries');
+      } else {
+        SM.setData('entries', newEntries);
+      }
+
       return newEntries;
     });
   };
@@ -160,7 +118,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   text: {
-    //marginHorizontal: 20,
     marginTop: 20,
     textAlign: 'center',
     fontSize: 18,
