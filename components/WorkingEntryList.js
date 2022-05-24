@@ -19,7 +19,7 @@ const WorkingEntryList = ({stats, statTypes, deleteStat}) => {
             {item.name}: {item.value} {getUnit(item.name)}
           </Text>
           {/* This is a copy from Entry.js! Make a component and import it */}
-          <DeleteButton onPress={() => deleteStat(item.id)} />
+          <DeleteButton onPress={() => deleteStat(item.name)} />
         </View>
       ))}
     </View>

@@ -110,6 +110,12 @@ const AddEditEntry = ({navigation, route}) => {
       if (showAlerts)
         Alert.alert('Error', 'Please fill in the stat value', [{text: 'Ok'}]);
       return false;
+    } else if (stats.find(item => item.name === statName)) {
+      if (showAlerts)
+        Alert.alert('Error', 'You cannot have two stats with the same name', [
+          {text: 'Ok'},
+        ]);
+      return false;
     } else return true;
   };
 
@@ -131,9 +137,9 @@ const AddEditEntry = ({navigation, route}) => {
   };
 
   // Delete a stat from the list
-  const deleteStat = id => {
+  const deleteStat = name => {
     setStats(prevStats => {
-      return prevStats.filter(item => item.id != id);
+      return prevStats.filter(item => item.name != name);
     });
   };
 
