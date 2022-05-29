@@ -34,13 +34,16 @@ const App = () => {
         <Stack.Screen
           name="Home"
           component={Home}
-          options={({route, navigation}) => ({
-            title: 'Health',
-          })}
-          initialParams={{}}
+          initialParams={{statCategory: 'Health'}}
         />
         <Stack.Screen name="AddEditEntry" component={AddEditEntry} />
-        <Stack.Screen name="About" component={About} />
+        <Stack.Screen
+          name="About"
+          component={About}
+          options={({route, navigation}) => ({
+            title: 'About',
+          })}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

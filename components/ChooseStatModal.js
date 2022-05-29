@@ -145,8 +145,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'pink',
     marginBottom: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 10,
   },
   text: {

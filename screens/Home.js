@@ -19,31 +19,42 @@ const Home = ({navigation, route}) => {
   const [lastId, setLastId] = useState(0);
   const [statTypes, setStatTypes] = useState([]);
 
+  // Passed data should be: {newEntry, statTypes, statCategory}
+  // newEntry and statTypes are optional and statCategory is mandatory
   const passedData = route.params;
 
   useEffect(() => {
     getInitData();
-    //SM.deleteData('entries');
+    //SM.deleteData(passedData.statCategory, 'entries');
   }, []);
 
   useEffect(() => {
     // Check that we received valid data from AddEditEntry and if so - save it.
     if (Object.keys(passedData).length > 0) {
-      // If the passed id is -1, that means we're adding an entry. If not - we're editing one.
-      if (passedData.newEntry.id === -1) {
-        addEntry(passedData.newEntry);
+      if (passedData.newEntry) {
+        // If the passed id is -1, that means we're adding an entry. If not - we're editing one.
+        if (passedData.newEntry.id === -1) {
+          addEntry(passedData.newEntry);
 
-        // Set new last id
-        setLastId(prevLastId => {
-          SM.setData('lastId', prevLastId + 1);
-          return prevLastId + 1;
-        });
-      } else {
-        editEntry(passedData.newEntry);
+          // Set new last id
+          setLastId(prevLastId => {
+            SM.setData(passedData.statCategory, 'lastId', prevLastId + 1);
+            return prevLastId + 1;
+          });
+        } else {
+          editEntry(passedData.newEntry);
+        }
       }
 
-      // Save new stat types
-      setStatTypes(passedData.statTypes);
+      if (passedData.statTypes) {
+        // Save new stat types
+        setStatTypes(passedData.statTypes);
+      }
+
+      // Set header title
+      if (passedData.statCategory) {
+        navigation.setOptions({title: passedData.statCategory});
+      }
     }
   }, [passedData]);
 
@@ -51,7 +62,12 @@ const Home = ({navigation, route}) => {
     // Set the plus button in the header. Pass null to indicate that we're adding an entry.
     navigation.setOptions({
       headerRight: () => (
-        <MyButton onPress={() => navigation.navigate('AddEditEntry', null)}>
+        <MyButton
+          onPress={() =>
+            navigation.navigate('AddEditEntry', {
+              statCategory: passedData.statCategory,
+            })
+          }>
           <Icon name="plus" size={24} color="red" />
         </MyButton>
       ),
@@ -60,18 +76,21 @@ const Home = ({navigation, route}) => {
 
   const getInitData = async () => {
     // Get entry data if there is any, and if so, also get last id
-    const tempEntries = await SM.getData('entries');
+    const tempEntries = await SM.getData(passedData.statCategory, 'entries');
     if (tempEntries !== null) {
       setEntries(tempEntries);
 
-      const tempLastId = await SM.getData('lastId');
+      const tempLastId = await SM.getData(passedData.statCategory, 'lastId');
       if (tempLastId !== null) {
         setLastId(tempLastId);
       }
     }
 
     // Get stat types data (if any)
-    const tempStatTypes = await SM.getData('statTypes');
+    const tempStatTypes = await SM.getData(
+      passedData.statCategory,
+      'statTypes',
+    );
     if (tempStatTypes !== null) {
       setStatTypes(tempStatTypes);
     }
@@ -80,7 +99,10 @@ const Home = ({navigation, route}) => {
   const onEditEntry = id => {
     const entry = entries.find(item => item.id === id);
 
-    navigation.navigate('AddEditEntry', entry);
+    navigation.navigate('AddEditEntry', {
+      statCategory: passedData.statCategory,
+      entry,
+    });
   };
 
   const addEntry = entry => {
@@ -95,7 +117,7 @@ const Home = ({navigation, route}) => {
         ...prevEntries,
       ];
 
-      SM.setData('entries', newEntries);
+      SM.setData(passedData.statCategory, 'entries', newEntries);
 
       return newEntries;
     });
@@ -109,7 +131,7 @@ const Home = ({navigation, route}) => {
       const index = prevEntries.findIndex(item => item.id === entry.id);
       newEntries[index] = entry;
 
-      SM.setData('entries', newEntries);
+      SM.setData(passedData.statCategory, 'entries', newEntries);
 
       return newEntries;
     });
@@ -120,9 +142,9 @@ const Home = ({navigation, route}) => {
       const newEntries = prevEntries.filter(item => item.id != id);
 
       if (newEntries.length === 0) {
-        SM.deleteData('entries');
+        SM.deleteData(passedData.statCategory, 'entries');
       } else {
-        SM.setData('entries', newEntries);
+        SM.setData(passedData.statCategory, 'entries', newEntries);
       }
 
       return newEntries;

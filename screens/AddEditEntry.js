@@ -28,16 +28,20 @@ const AddEditEntry = ({navigation, route}) => {
   const [statValue, setStatValue] = useState('');
   const [comment, setComment] = useState('');
 
+  // Passed data should be: {statCategory, entry}
+  // statCategory is mandatory. If entry is null, we're adding an entry.
   const passedData = route.params;
 
   useEffect(() => {
     getInitData();
 
     // If data was passed, that means we're editing an entry.
-    // In that case, set all of the data from that entry.
-    if (passedData) {
+    // In that case, set the header title set all of the data from that entry.
+    if (passedData.entry) {
+      navigation.setOptions({title: 'Edit Entry'});
+
       // Destructure passed data. t stands for temporary.
-      const {stats: tStats, comment: tComment, date: tDate} = passedData;
+      const {stats: tStats, comment: tComment, date: tDate} = passedData.entry;
 
       setStats(tStats);
       setComment(tComment);
@@ -46,21 +50,28 @@ const AddEditEntry = ({navigation, route}) => {
 
       setDateText(tDate);
     } else {
-      // If data wasn't passed, just set the current date in textDate
+      // If data wasn't passed, just set the header title and the current date in textDate
+      navigation.setOptions({title: 'Add Entry'});
       setDateText(date);
     }
   }, []);
 
   const getInitData = async () => {
     // Get stat types if they've been saved, and if so, also get the last stat choice
-    const tempStatTypes = await SM.getData('statTypes');
+    const tempStatTypes = await SM.getData(
+      passedData.statCategory,
+      'statTypes',
+    );
     if (tempStatTypes !== null) {
       setStatTypes(tempStatTypes);
 
-      const tempLastStatChoice = await SM.getData('lastStatChoice');
+      const tempLastStatChoice = await SM.getData(
+        passedData.statCategory,
+        'lastStatChoice',
+      );
       if (tempLastStatChoice !== null) {
         setStatChoice(tempLastStatChoice);
-        setStatName(tempStatTypes[statChoice].name);
+        setStatName(tempStatTypes[tempLastStatChoice].name);
       }
     }
   };
@@ -89,19 +100,20 @@ const AddEditEntry = ({navigation, route}) => {
 
   // Check the validity of the new entry before it's passed to the home screen
   const isValidEntry = entry => {
-    if (entry.stats.length === 0) return false;
+    if (entry.stats.length === 0 && entry.comment.length === 0) return false;
 
     for (let stat of entry.stats) {
       if (stat.name.length === 0 || stat.value.length === 0) return false;
     }
 
-    if (entry.date.length === 0) return false;
-
     return true;
   };
 
   // Check the validity of the new stat
-  const isValidStat = (showAlerts = true) => {
+  const isValidStat = (showAlerts = true, allowEmpty = false) => {
+    // If allowEmpty is true, we allow an empty stat to pass validation
+    if (allowEmpty && statValue.length === 0) return true;
+
     if (statTypes.length === 0) {
       if (showAlerts)
         Alert.alert('Error', 'Please create a stat type', [{text: 'Ok'}]);
@@ -143,87 +155,55 @@ const AddEditEntry = ({navigation, route}) => {
     });
   };
 
-  // Add new entry
-  const onAddEditEntry = () => {
-    if (statValue.length > 0) {
-      // If no other stats have been entered, automatically add the one in the text input
-      if (stats.length === 0) {
-        if (isValidStat) {
-          addEditEntry(true);
-        }
-      } else {
-        // Ask about saving the last entered stat if other ones have been entered
-        Alert.alert(
-          'Confirmation',
-          'Do you want to add your last stat or discard it?',
-          [
-            {
-              text: 'Discard',
-              onPress: () => addEditEntry(),
-            },
-            {
-              text: 'Add',
-              onPress: () => {
-                if (isValidStat) {
-                  addEditEntry(true);
-                }
-              },
-            },
-          ],
-        );
+  const addEditEntry = () => {
+    // Check validity while showing alerts and allowing an empty stat
+    if (isValidStat(true, true)) {
+      let tempStats = stats.map(item => ({
+        name: item.name,
+        value: item.value,
+      }));
+
+      // Add the last entered stat if not empty
+      if (statTypes.length > 0 && statValue.length > 0) {
+        tempStats.push({
+          name: statName,
+          value: statValue,
+        });
       }
-    } else {
-      // If the text input is empty, just add the stats that have been entered
-      addEditEntry();
-    }
-  };
 
-  const addEditEntry = (addLastStat = false) => {
-    let tempStats = stats.map(item => ({
-      name: item.name,
-      value: item.value,
-    }));
+      // When adding a new entry (passedData.entry = null), pass the id as -1 and let the
+      // Home screen set the id. When editing an entry, set the same id that was passed.
+      const newEntry = {
+        id: passedData.entry ? passedData.entry.id : -1,
+        stats: tempStats,
+        comment,
+        date: {
+          day: date.getDate(),
+          month: date.getMonth() + 1,
+          year: date.getFullYear(),
+          text: textDate,
+        },
+      };
 
-    // Add the last entered stat if requested. Its validity must already be checked.
-    if (addLastStat) {
-      tempStats.push({
-        name: statName,
-        value: statValue,
-      });
-    }
-
-    // If we're adding a new entry, we pass the id as -1 and let the Home screen set the id.
-    // If we're editing an entry, we set the same id that was passed.
-    const newEntry = {
-      id: passedData ? passedData.id : -1,
-      stats: tempStats,
-      comment,
-      date: {
-        day: date.getDate(),
-        month: date.getMonth() + 1,
-        year: date.getFullYear(),
-        text: textDate,
-      },
-    };
-
-    if (isValidEntry(newEntry)) {
-      navigation.navigate('Home', {newEntry, statTypes});
-    } else {
-      Alert.alert('Error', 'Please fill in all required fields', [
-        {text: 'Ok'},
-      ]);
+      if (isValidEntry(newEntry)) {
+        navigation.navigate('Home', {newEntry, statTypes});
+      } else {
+        Alert.alert('Error', 'Please fill in all required fields', [
+          {text: 'Ok'},
+        ]);
+      }
     }
   };
 
   // Set new stat type or change stat choice
   const setNewStatType = (statChoice, newStatType = null) => {
     setStatChoice(statChoice);
-    SM.setData('lastStatChoice', statChoice);
+    SM.setData(passedData.statCategory, 'lastStatChoice', statChoice);
 
     if (newStatType != null) {
       setStatTypes(prevStatTypes => {
         const newStatTypes = [...prevStatTypes, newStatType];
-        SM.setData('statTypes', newStatTypes);
+        SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
         return newStatTypes;
       });
 
@@ -240,10 +220,10 @@ const AddEditEntry = ({navigation, route}) => {
 
       if (newStatTypes.length === 0) {
         setStatName('Stat');
-        SM.deleteData('statTypes');
-        SM.deleteData('lastStatchoice');
+        SM.deleteData(passedData.statCategory, 'statTypes');
+        SM.deleteData(passedData.statCategory, 'lastStatchoice');
       } else {
-        SM.setData('statTypes', newStatTypes);
+        SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
       }
 
       return newStatTypes;
@@ -291,6 +271,8 @@ const AddEditEntry = ({navigation, route}) => {
         {/* Comment */}
         <TextInput
           style={styles.input}
+          multiline
+          textAlignVertical="top"
           placeholder="Comment"
           placeholderTextColor="grey"
           onChangeText={value => setComment(value)}
@@ -322,8 +304,8 @@ const AddEditEntry = ({navigation, route}) => {
         {/* Make title conditional (Add Entry or Edit Entry) */}
         <View style={{marginBottom: 20}}>
           <Button
-            onPress={() => onAddEditEntry()}
-            title={passedData ? 'Edit Entry' : 'Add Entry'}
+            onPress={() => addEditEntry()}
+            title={passedData.entry ? 'Edit Entry' : 'Add Entry'}
             color="red"
           />
         </View>
@@ -345,7 +327,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 14,
+    marginTop: 14,
     padding: 6,
     borderWidth: 1,
     borderColor: 'grey',
@@ -358,7 +340,7 @@ const styles = StyleSheet.create({
   input: {
     color: 'black',
     fontSize: 20,
-    marginBottom: 10,
+    marginVertical: 14,
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',

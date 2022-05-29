@@ -1,8 +1,8 @@
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const getData = async request => {
-  const key = 'Stats-' + request;
+export const getData = async (statCategory, request) => {
+  const key = statCategory + '-' + request;
 
   try {
     const data = await AsyncStorage.getItem(key);
@@ -18,8 +18,8 @@ export const getData = async request => {
   return null;
 };
 
-export const setData = async (request, data) => {
-  const key = 'Stats-' + request;
+export const setData = async (statCategory, request, data) => {
+  const key = statCategory + '-' + request;
 
   try {
     await AsyncStorage.setItem(key, JSON.stringify(data));
@@ -29,8 +29,8 @@ export const setData = async (request, data) => {
   }
 };
 
-export const deleteData = async request => {
-  const key = 'Stats-' + request;
+export const deleteData = async (statCategory, request) => {
+  const key = statCategory + '-' + request;
 
   try {
     await AsyncStorage.removeItem(key);

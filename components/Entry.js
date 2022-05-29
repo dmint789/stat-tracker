@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {GlobalStyles} from '../shared/GlobalStyles.js';
 import DeleteButton from '../components/DeleteButton.js';
 
 const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
@@ -14,8 +15,9 @@ const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
   return (
     <TouchableOpacity onPress={() => onEditEntry(entry.id)} style={styles.item}>
       {entry.stats.map(stat => (
-        <Text style={styles.text} key={Math.random()}>
-          {stat.name}: {stat.value} {getUnit(stat.name)}
+        <Text style={GlobalStyles.valueText} key={Math.random()}>
+          <Text style={GlobalStyles.nameText}>{stat.name}: </Text>
+          {stat.value} {getUnit(stat.name)}
         </Text>
       ))}
       {entry.comment != '' && (
@@ -32,20 +34,16 @@ const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
 const styles = StyleSheet.create({
   item: {
     backgroundColor: 'pink',
-    marginTop: 20,
+    marginTop: 12,
     marginHorizontal: 20,
-    paddingHorizontal: 30,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     borderRadius: 10,
   },
-  text: {
-    color: 'black',
-    fontSize: 20,
-    marginBottom: 10,
-  },
   comment: {
-    color: '#444',
-    fontSize: 18,
+    color: '#555',
+    fontSize: 17,
+    marginTop: 4,
     marginBottom: 10,
   },
   dateText: {
