@@ -18,6 +18,21 @@ export const getData = async (statCategory, request) => {
   return null;
 };
 
+export const getStatCategories = async () => {
+  try {
+    const data = await AsyncStorage.getItem('statCategories');
+
+    if (data.length > 0) {
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.log('Error when retrieving stat categories');
+    console.log(err);
+  }
+
+  return null;
+};
+
 export const setData = async (statCategory, request, data) => {
   const key = statCategory + '-' + request;
 
@@ -25,6 +40,15 @@ export const setData = async (statCategory, request, data) => {
     await AsyncStorage.setItem(key, JSON.stringify(data));
   } catch (err) {
     console.log(`Error when setting data for key ${key}:`);
+    console.log(err);
+  }
+};
+
+export const setStatCategories = async data => {
+  try {
+    await AsyncStorage.setItem('statCategories', JSON.stringify(data));
+  } catch (err) {
+    console.log('Error when setting stat categories');
     console.log(err);
   }
 };

@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
+import {GlobalStyles} from '../shared/GlobalStyles.js';
 import * as SM from '../shared/StorageManager.js';
 import WorkingEntryList from '../components/WorkingEntryList.js';
 import ChooseStatModal from '../components/ChooseStatModal.js';
@@ -215,23 +216,34 @@ const AddEditEntry = ({navigation, route}) => {
 
   // Delete stat type
   const deleteStatType = name => {
-    setStatTypes(prevStatTypes => {
-      const newStatTypes = statTypes.filter(item => item.name != name);
+    Alert.alert('Confirmation', 'Are you sure you want to delete the entry?', [
+      {
+        text: 'No',
+        onPress: () => {},
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          setStatTypes(prevStatTypes => {
+            const newStatTypes = statTypes.filter(item => item.name != name);
 
-      if (newStatTypes.length === 0) {
-        setStatName('Stat');
-        SM.deleteData(passedData.statCategory, 'statTypes');
-        SM.deleteData(passedData.statCategory, 'lastStatchoice');
-      } else {
-        SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
-      }
+            if (newStatTypes.length === 0) {
+              setStatName('Stat');
+              SM.deleteData(passedData.statCategory, 'statTypes');
+              SM.deleteData(passedData.statCategory, 'lastStatchoice');
+            } else {
+              SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
+            }
 
-      return newStatTypes;
-    });
+            return newStatTypes;
+          });
+        },
+      },
+    ]);
   };
 
   return (
-    <View style={styles.container}>
+    <View style={GlobalStyles.container}>
       <ScrollView style={styles.scrollableArea}>
         {stats.length > 0 && (
           <WorkingEntryList
@@ -315,10 +327,6 @@ const AddEditEntry = ({navigation, route}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
   scrollableArea: {
     flex: 1,
     paddingHorizontal: 20,

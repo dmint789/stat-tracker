@@ -5,6 +5,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import MyButton from './components/MyButton.js';
 
+import Menu from './screens/Menu.js';
 import Home from './screens/Home.js';
 import AddEditEntry from './screens/AddEditEntry.js';
 import About from './screens/About.js';
@@ -17,7 +18,7 @@ const App = () => {
       {/* screenOptions is the same as options on the */}
       {/* Stack.Screen components, except they are global */}
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="Menu"
         screenOptions={{
           headerStyle: {
             backgroundColor: 'red',
@@ -32,18 +33,13 @@ const App = () => {
           headerTitleAlign: 'center',
         }}>
         <Stack.Screen
-          name="Home"
-          component={Home}
-          initialParams={{statCategory: 'Health'}}
+          name="Menu"
+          component={Menu}
+          options={{title: 'Stat Tracker'}}
         />
+        <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="AddEditEntry" component={AddEditEntry} />
-        <Stack.Screen
-          name="About"
-          component={About}
-          options={({route, navigation}) => ({
-            title: 'About',
-          })}
-        />
+        <Stack.Screen name="About" component={About} />
       </Stack.Navigator>
     </NavigationContainer>
   );

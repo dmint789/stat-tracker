@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
 import DeleteButton from '../components/DeleteButton.js';
 
-const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
+const Entry = ({entry, statTypes, onDelete, onEditEntry}) => {
   // Get the unit for the given stat using the list of stat types
   const getUnit = statName => {
     for (let type of statTypes) {
@@ -13,7 +13,9 @@ const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
   };
 
   return (
-    <TouchableOpacity onPress={() => onEditEntry(entry.id)} style={styles.item}>
+    <TouchableOpacity
+      onPress={() => onEditEntry(entry.id)}
+      style={GlobalStyles.card}>
       {entry.stats.map(stat => (
         <Text style={GlobalStyles.valueText} key={Math.random()}>
           <Text style={GlobalStyles.nameText}>{stat.name}: </Text>
@@ -25,21 +27,13 @@ const Entry = ({entry, statTypes, deleteEntry, onEditEntry}) => {
       )}
       <View style={styles.bottomRow}>
         <Text style={styles.dateText}>{entry.date.text}</Text>
-        <DeleteButton onPress={() => deleteEntry(entry.id)} />
+        <DeleteButton onPress={() => onDelete(entry.id)} />
       </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  item: {
-    backgroundColor: 'pink',
-    marginTop: 12,
-    marginHorizontal: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: 10,
-  },
   comment: {
     color: '#555',
     fontSize: 17,

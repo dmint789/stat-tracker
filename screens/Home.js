@@ -10,6 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import {GlobalStyles} from '../shared/GlobalStyles.js';
 import * as SM from '../shared/StorageManager.js';
 import Entry from '../components/Entry.js';
 import MyButton from '../components/MyButton.js';
@@ -20,7 +21,6 @@ const Home = ({navigation, route}) => {
   const [statTypes, setStatTypes] = useState([]);
 
   // Passed data should be: {newEntry, statTypes, statCategory}
-  // newEntry and statTypes are optional and statCategory is mandatory
   const passedData = route.params;
 
   useEffect(() => {
@@ -96,15 +96,6 @@ const Home = ({navigation, route}) => {
     }
   };
 
-  const onEditEntry = id => {
-    const entry = entries.find(item => item.id === id);
-
-    navigation.navigate('AddEditEntry', {
-      statCategory: passedData.statCategory,
-      entry,
-    });
-  };
-
   const addEntry = entry => {
     setEntries(prevEntries => {
       const newEntries = [
@@ -123,6 +114,15 @@ const Home = ({navigation, route}) => {
     });
   };
 
+  const onEditEntry = id => {
+    const entry = entries.find(item => item.id === id);
+
+    navigation.navigate('AddEditEntry', {
+      statCategory: passedData.statCategory,
+      entry,
+    });
+  };
+
   const editEntry = entry => {
     setEntries(prevEntries => {
       let newEntries = prevEntries;
@@ -135,6 +135,19 @@ const Home = ({navigation, route}) => {
 
       return newEntries;
     });
+  };
+
+  const onDeleteEntry = id => {
+    Alert.alert('Confirmation', 'Are you sure you want to delete the entry?', [
+      {
+        text: 'No',
+        onPress: () => {},
+      },
+      {
+        text: 'Yes',
+        onPress: () => deleteEntry(id),
+      },
+    ]);
   };
 
   const deleteEntry = id => {
@@ -152,7 +165,7 @@ const Home = ({navigation, route}) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={GlobalStyles.container}>
       {/* Views in React Native are flexbox components by default. */}
       {/* The items inside are automatically flex items. */}
 
@@ -167,30 +180,19 @@ const Home = ({navigation, route}) => {
             <Entry
               entry={item}
               statTypes={statTypes}
-              deleteEntry={deleteEntry}
+              onDelete={onDeleteEntry}
               onEditEntry={onEditEntry}
             />
           )}
           ListFooterComponent={<View style={{height: 20}} />}
         />
       ) : (
-        <Text style={styles.text}>Press + to add some stat entries</Text>
+        <Text style={GlobalStyles.text}>Press + to add some stat entries</Text>
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  text: {
-    marginTop: 20,
-    textAlign: 'center',
-    fontSize: 18,
-    color: 'black',
-  },
-});
+const styles = StyleSheet.create({});
 
 export default Home;
