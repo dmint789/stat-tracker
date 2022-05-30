@@ -1,9 +1,7 @@
 import React, {useState} from 'react';
-import {Button} from 'react-native';
+import {Button, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
-import MyButton from './components/MyButton.js';
 
 import Menu from './screens/Menu.js';
 import Home from './screens/Home.js';
@@ -32,11 +30,7 @@ const App = () => {
           },
           headerTitleAlign: 'center',
         }}>
-        <Stack.Screen
-          name="Menu"
-          component={Menu}
-          options={{title: 'Stat Tracker'}}
-        />
+        <Stack.Screen name="Menu" component={Menu} />
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="AddEditEntry" component={AddEditEntry} />
         <Stack.Screen name="About" component={About} />

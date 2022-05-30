@@ -3,6 +3,26 @@ export const GlobalStyles = {
     flex: 1,
     backgroundColor: '#fff',
   },
+  modalContainer: {
+    flex: 1,
+    //alignItems: 'center',
+    //justifyContent: 'center',
+  },
+  modalBackground: {
+    width: 350,
+    borderRadius: 30,
+    padding: 30,
+    marginTop: 100,
+    marginBottom: 20,
+    alignSelf: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.5,
+    elevation: 16,
+    backgroundColor: '#fff',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+
   text: {
     marginVertical: 20,
     textAlign: 'center',
@@ -17,6 +37,14 @@ export const GlobalStyles = {
     color: 'black',
     fontSize: 18,
     marginBottom: 6,
+  },
+  input: {
+    color: 'black',
+    fontSize: 20,
+    marginBottom: 10,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
   card: {
     backgroundColor: 'pink',

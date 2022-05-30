@@ -260,13 +260,15 @@ const AddEditEntry = ({navigation, route}) => {
             color={statTypes.length > 0 ? 'blue' : 'green'}
           />
         </View>
+
         <ChooseStatModal
-          statModalOpen={statModalOpen}
-          setStatModalOpen={setStatModalOpen}
+          modalOpen={statModalOpen}
+          setModalOpen={setStatModalOpen}
           statTypes={statTypes}
           setNewStatType={setNewStatType}
           deleteStatType={deleteStatType}
         />
+
         <TextInput
           style={styles.input}
           placeholder="Value"

@@ -11,11 +11,12 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import {GlobalStyles} from '../shared/GlobalStyles.js';
 import DeleteButton from '../components/DeleteButton.js';
 
 const ChooseStatModal = ({
-  statModalOpen,
-  setStatModalOpen,
+  modalOpen,
+  setModalOpen,
   statTypes,
   setNewStatType,
   deleteStatType,
@@ -28,7 +29,7 @@ const ChooseStatModal = ({
       setNewStatType(statTypes.length, {name: newStatName, unit: statUnit});
       setNewStatName('');
       setStatUnit('');
-      setStatModalOpen(false);
+      setModalOpen(false);
     } else {
       Alert.alert('Error', 'Please fill in the name of the new stat', [
         {text: 'Ok'},
@@ -46,7 +47,7 @@ const ChooseStatModal = ({
 
     setNewStatName('');
     setStatUnit('');
-    setStatModalOpen(false);
+    setModalOpen(false);
   };
 
   const unitText = unit => {
@@ -58,13 +59,13 @@ const ChooseStatModal = ({
     <Modal
       animationType="slide"
       transparent={true}
-      visible={statModalOpen}
+      visible={modalOpen}
       onRequestClose={() => {
-        setStatModalOpen(prevStatModalOpen => !prevStatModalOpen);
+        setModalOpen(false);
       }}>
-      <View styles={styles.container}>
+      <View styles={GlobalStyles.modalContainer}>
         <ScrollView>
-          <View style={styles.background}>
+          <View style={GlobalStyles.modalBackground}>
             {statTypes.map(item => (
               <TouchableOpacity
                 onPress={() => onStatChosen(item.name)}
@@ -78,23 +79,23 @@ const ChooseStatModal = ({
               </TouchableOpacity>
             ))}
             <View>
-              <View style={styles.inputView}>
+              <View style={{marginVertical: 10}}>
                 <TextInput
-                  style={styles.input}
+                  style={GlobalStyles.input}
                   value={newStatName}
                   placeholder="New Stat"
                   placeholderTextColor="grey"
                   onChangeText={value => setNewStatName(value)}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={GlobalStyles.input}
                   value={statUnit}
                   placeholder="Unit of measurement"
                   placeholderTextColor="grey"
                   onChangeText={value => setStatUnit(value)}
                 />
               </View>
-              <View style={styles.buttons}>
+              <View style={{flexDirection: 'row'}}>
                 <View style={styles.button}>
                   <Button
                     onPress={() => onButtonPressed()}
@@ -104,7 +105,7 @@ const ChooseStatModal = ({
                 </View>
                 <View style={styles.button}>
                   <Button
-                    onPress={() => setStatModalOpen(false)}
+                    onPress={() => setModalOpen(false)}
                     title="Cancel"
                     color="grey"
                   />
@@ -119,26 +120,6 @@ const ChooseStatModal = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  background: {
-    width: 350,
-    //height: 500,
-    borderRadius: 30,
-    padding: 30,
-    marginTop: 100,
-    marginBottom: 20,
-    alignSelf: 'center',
-    shadowColor: '#000000',
-    shadowOpacity: 0.5,
-    elevation: 16,
-    backgroundColor: '#fff',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -152,20 +133,6 @@ const styles = StyleSheet.create({
   text: {
     color: 'black',
     fontSize: 20,
-  },
-  inputView: {
-    marginVertical: 10,
-  },
-  input: {
-    color: 'black',
-    fontSize: 20,
-    marginBottom: 10,
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  buttons: {
-    flexDirection: 'row',
   },
   button: {
     flex: 1,

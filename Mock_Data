@@ -1,3 +1,6 @@
+
+// Remember to update deleteStatCategory in StorageManager.js
+
 statCategories: [
   "Weight",
   "Gym"
