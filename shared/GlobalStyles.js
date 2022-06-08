@@ -9,7 +9,7 @@ export const GlobalStyles = {
     //justifyContent: 'center',
   },
   modalBackground: {
-    width: 350,
+    width: '80%',
     borderRadius: 30,
     padding: 30,
     marginTop: 100,
@@ -22,7 +22,6 @@ export const GlobalStyles = {
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
-
   text: {
     marginVertical: 20,
     textAlign: 'center',

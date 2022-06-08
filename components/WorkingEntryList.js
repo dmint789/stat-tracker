@@ -1,9 +1,9 @@
 import React from 'react';
-import {StyleSheet, View, TouchableOpacity, FlatList, Text} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
 import DeleteButton from './DeleteButton.js';
 
-const WorkingEntryList = ({stats, statTypes, deleteStat}) => {
+const WorkingEntryList = ({stats, statTypes, deleteEditStat}) => {
   // Copied from Entry.js
   const getUnit = statName => {
     for (let type of statTypes) {
@@ -12,16 +12,22 @@ const WorkingEntryList = ({stats, statTypes, deleteStat}) => {
     return '';
   };
 
+  const onDelete = name => {
+    deleteEditStat({name});
+  };
+
   return (
     <View style={styles.container}>
       {stats.map(item => (
         <View style={styles.stat} key={Math.random()}>
-          <Text style={GlobalStyles.valueText}>
-            <Text style={GlobalStyles.nameText}>{item.name}: </Text>
-            {item.value} {getUnit(item.name)}
-          </Text>
-          {/* This is a copy from Entry.js! Make a component and import it */}
-          <DeleteButton onPress={() => deleteStat(item.name)} />
+          <TouchableOpacity onPress={() => deleteEditStat(item, true)}>
+            <Text style={GlobalStyles.valueText}>
+              <Text style={GlobalStyles.nameText}>{item.name}: </Text>
+              {item.value} {getUnit(item.name)}
+            </Text>
+          </TouchableOpacity>
+
+          <DeleteButton onPress={() => onDelete(item.name)} />
         </View>
       ))}
     </View>

@@ -1,13 +1,13 @@
 {
   "name": "Statistics_Tracker",
-  "version": "0.1",
+  "version": "0.2",
   "private": true,
   "scripts": {
     "emulator": "emulator -avd Pixel_3a_API_30",
     "android": "react-native run-android",
     "debug-apk": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res && cd android && ./gradlew assembleDebug",
     "ios": "react-native run-ios",
-    "start": "react-native start --reset-cache",
+    "start": "react-native start",
     "test": "jest",
     "lint": "eslint ."
   },

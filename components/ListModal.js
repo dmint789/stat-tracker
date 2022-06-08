@@ -45,18 +45,18 @@ const ListModal = ({modalOpen, setModalOpen, onAddCategory, onOpenAbout}) => {
 
 const styles = StyleSheet.create({
   background: {
-    width: 250,
-    paddingVertical: 8,
+    width: '70%',
+    paddingVertical: 0,
     marginTop: 60,
     alignSelf: 'flex-end',
     shadowColor: '#000000',
     shadowOpacity: 0.5,
     elevation: 8,
-    backgroundColor: '#ddd',
+    backgroundColor: '#eee',
   },
   item: {
     borderBottomWidth: 1,
-    borderBottomColor: '#aaa',
+    borderBottomColor: '#bbb',
     paddingHorizontal: 20,
     paddingVertical: 14,
   },

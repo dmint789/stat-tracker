@@ -154,11 +154,11 @@ const Home = ({navigation, route}) => {
   const onDeleteEntry = id => {
     Alert.alert('Confirmation', 'Are you sure you want to delete the entry?', [
       {
-        text: 'No',
+        text: 'Cancel',
         onPress: () => {},
       },
       {
-        text: 'Yes',
+        text: 'Ok',
         onPress: () => deleteEntry(id),
       },
     ]);

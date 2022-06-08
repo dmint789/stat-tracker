@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Modal,
   View,
@@ -18,32 +18,36 @@ const ChooseStatModal = ({
   modalOpen,
   setModalOpen,
   statTypes,
-  setNewStatType,
+  filteredStatTypes,
+  addChangeStatType,
   deleteStatType,
 }) => {
   const [newStatName, setNewStatName] = useState('');
   const [statUnit, setStatUnit] = useState('');
 
-  const onButtonPressed = () => {
+  const onAddButtonPressed = () => {
     if (newStatName.length > 0) {
-      setNewStatType(statTypes.length, {name: newStatName, unit: statUnit});
-      setNewStatName('');
-      setStatUnit('');
-      setModalOpen(false);
+      if (!statTypes.find(item => item.name === newStatName))
+        submitStatType({name: newStatName, unit: statUnit});
+      else {
+        Alert.alert('Error', 'A stat type with that name already exists!', [
+          {text: 'Ok'},
+        ]);
+      }
     } else {
-      Alert.alert('Error', 'Please fill in the name of the new stat', [
+      Alert.alert('Error', 'Please fill in the name of the new stat type', [
         {text: 'Ok'},
       ]);
     }
   };
 
-  const onStatChosen = name => {
-    for (let i = 0; i < statTypes.length; i++) {
-      if (statTypes[i].name === name) {
-        setNewStatType(i);
-        break;
-      }
-    }
+  const onSelect = name => {
+    submitStatType({name});
+  };
+
+  // Submits either the name of the selected stat type or the object of a new stat type
+  const submitStatType = statType => {
+    addChangeStatType(statType);
 
     setNewStatName('');
     setStatUnit('');
@@ -64,20 +68,22 @@ const ChooseStatModal = ({
         setModalOpen(false);
       }}>
       <View styles={GlobalStyles.modalContainer}>
-        <ScrollView>
+        <ScrollView keyboardShouldPersistTaps="always">
           <View style={GlobalStyles.modalBackground}>
-            {statTypes.map(item => (
+            {filteredStatTypes.map(item => (
               <TouchableOpacity
-                onPress={() => onStatChosen(item.name)}
+                onPress={() => onSelect(item.name)}
                 key={Math.random()}>
                 <View style={styles.item}>
                   <Text style={styles.text}>
                     {item.name} {unitText(item.unit)}
                   </Text>
+
                   <DeleteButton onPress={() => deleteStatType(item.name)} />
                 </View>
               </TouchableOpacity>
             ))}
+
             <View>
               <View style={{marginVertical: 10}}>
                 <TextInput
@@ -98,7 +104,7 @@ const ChooseStatModal = ({
               <View style={{flexDirection: 'row'}}>
                 <View style={styles.button}>
                   <Button
-                    onPress={() => onButtonPressed()}
+                    onPress={() => onAddButtonPressed()}
                     title="Add"
                     color="green"
                   />

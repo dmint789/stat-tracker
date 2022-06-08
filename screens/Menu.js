@@ -67,11 +67,11 @@ const Menu = ({navigation}) => {
       'Are you sure you want to delete this stat category? All entries and stat types in it will be lost.',
       [
         {
-          text: 'No',
+          text: 'Cancel',
           onPress: () => {},
         },
         {
-          text: 'Yes',
+          text: 'Ok',
           onPress: () => {
             setStatCategories(prevStatCategories => {
               const newStatCategories = prevStatCategories.filter(

@@ -10,7 +10,6 @@ statCategories: [
   {name: 'Weight', unit: 'kg'},
   {name: 'Pull-ups', unit: ''},
 ],
-[Stat category]-lastStatChoice: 0,
 [Stat category]-entries: [
   {
     id: 1,
@@ -33,4 +32,4 @@ statCategories: [
     },
   },
 ]
-[Stat category]-lastId: 5
+[Stat category]-lastId: 1

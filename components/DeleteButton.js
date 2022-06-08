@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/dist/FontAwesome';
 const DeleteButton = ({onPress}) => {
   return (
     <TouchableOpacity onPress={onPress}>
-      <Icon name="remove" size={20} color="red" />
+      <Icon name="remove" size={24} color="red" />
     </TouchableOpacity>
   );
 };

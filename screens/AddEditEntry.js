@@ -18,13 +18,18 @@ import WorkingEntryList from '../components/WorkingEntryList.js';
 import ChooseStatModal from '../components/ChooseStatModal.js';
 
 const AddEditEntry = ({navigation, route}) => {
+  // Use this variable for debugging
+  const debug = false;
+
   const [stats, setStats] = useState([]);
   const [statTypes, setStatTypes] = useState([]);
+  const [filteredStatTypes, setFilteredStatTypes] = useState([]);
   const [statModalOpen, setStatModalOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [date, setDate] = useState(new Date());
   const [textDate, setTextDate] = useState('');
   const [statName, setStatName] = useState('Stat');
+  // Stat choice from the list of filtered stats
   const [statChoice, setStatChoice] = useState(0);
   const [statValue, setStatValue] = useState('');
   const [comment, setComment] = useState('');
@@ -63,17 +68,16 @@ const AddEditEntry = ({navigation, route}) => {
       passedData.statCategory,
       'statTypes',
     );
+
     if (tempStatTypes !== null) {
       setStatTypes(tempStatTypes);
 
-      const tempLastStatChoice = await SM.getData(
-        passedData.statCategory,
-        'lastStatChoice',
+      // Set filteredStatTypes, statName and statChoice
+      // If we're editing an entry, pass its stats
+      filterStatTypes(
+        tempStatTypes,
+        passedData.entry ? passedData.entry.stats : [],
       );
-      if (tempLastStatChoice !== null) {
-        setStatChoice(tempLastStatChoice);
-        setStatName(tempStatTypes[tempLastStatChoice].name);
-      }
     }
   };
 
@@ -132,27 +136,47 @@ const AddEditEntry = ({navigation, route}) => {
     } else return true;
   };
 
+  const statSortingCondition = (a, b) => {
+    if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+    if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+    return 0;
+  };
+
   // Add new stat to the list of stats in the current entry
   const addStat = () => {
     if (isValidStat()) {
       setStats(prevStats => {
-        return [
+        const newStats = [
           ...prevStats,
           {
             name: statName,
             value: statValue,
           },
-        ];
+        ].sort(statSortingCondition);
+
+        // Set filteredStatTypes, statChoice and statName
+        filterStatTypes(statTypes, newStats);
+
+        return newStats;
       });
 
       setStatValue('');
     }
   };
 
-  // Delete a stat from the list
-  const deleteStat = name => {
+  // Delete a stat from the list or edit it (delete from the list, but put values in the inputs)
+  const deleteEditStat = (stat, edit = false) => {
     setStats(prevStats => {
-      return prevStats.filter(item => item.name != name);
+      const newStats = prevStats.filter(item => item.name != stat.name);
+
+      if (edit) {
+        setStatValue(stat.value);
+        filterStatTypes(statTypes, newStats, stat.name);
+      } else {
+        filterStatTypes(statTypes, newStats);
+      }
+
+      return newStats;
     });
   };
 
@@ -196,68 +220,130 @@ const AddEditEntry = ({navigation, route}) => {
     }
   };
 
-  // Set new stat type or change stat choice
-  const setNewStatType = (statChoice, newStatType = null) => {
-    setStatChoice(statChoice);
-    SM.setData(passedData.statCategory, 'lastStatChoice', statChoice);
-
-    if (newStatType != null) {
+  // Add new stat type or change stat choice
+  const addChangeStatType = statType => {
+    // If more than one property was passed in the statType object, that means we're adding a new stat type
+    if (Object.keys(statType).length > 1) {
       setStatTypes(prevStatTypes => {
-        const newStatTypes = [...prevStatTypes, newStatType];
+        const newStatTypes = [...prevStatTypes, statType];
+        newStatTypes.sort(statSortingCondition);
+
         SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
+
+        // Set filteredStatTypes, statChoice and statName
+        filterStatTypes(newStatTypes, stats, statType.name);
+
         return newStatTypes;
       });
-
-      setStatName(newStatType.name);
     } else {
-      setStatName(statTypes[statChoice].name);
+      setStatName(statType.name);
+      setStatChoice(
+        filteredStatTypes.findIndex(item => item.name === statType.name),
+      );
     }
   };
 
   // Delete stat type
   const deleteStatType = name => {
-    Alert.alert('Confirmation', 'Are you sure you want to delete the entry?', [
-      {
-        text: 'No',
-        onPress: () => {},
-      },
-      {
-        text: 'Yes',
-        onPress: () => {
-          setStatTypes(prevStatTypes => {
-            const newStatTypes = statTypes.filter(item => item.name != name);
-
-            if (newStatTypes.length === 0) {
-              setStatName('Stat');
-              SM.deleteData(passedData.statCategory, 'statTypes');
-              SM.deleteData(passedData.statCategory, 'lastStatchoice');
-            } else {
-              SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
-            }
-
-            return newStatTypes;
-          });
+    Alert.alert(
+      'Confirmation',
+      'Are you sure you want to delete the stat type?',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => {},
         },
-      },
-    ]);
+        {
+          text: 'Ok',
+          onPress: () => {
+            setStatTypes(prevStatTypes => {
+              const newStatTypes = statTypes.filter(item => item.name != name);
+
+              if (newStatTypes.length === 0) {
+                SM.deleteData(passedData.statCategory, 'statTypes');
+              } else {
+                SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
+              }
+
+              // This will update filteredStatTypes and statName, and, if statChoice goes
+              // beyond the number of filtered stat types, it will decrement stat choice
+              filterStatTypes(newStatTypes);
+
+              return newStatTypes;
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  // Filter out stat types that have already been entered and update statChoice and statName
+  const filterStatTypes = (
+    newStatTypes,
+    newStats = stats,
+    newStatTypeName = null,
+  ) => {
+    const newFilteredStatTypes = newStatTypes.filter(
+      type => !newStats.find(stat => stat.name === type.name),
+    );
+
+    if (newFilteredStatTypes.length > 0) {
+      // If stat choice is beyond the number of filtered stat types, decrement it
+      // This can only happen after a deletion
+      if (newFilteredStatTypes.length === statChoice) {
+        setStatChoice(prevStatChoice => {
+          setStatName(newFilteredStatTypes[prevStatChoice - 1].name);
+          return prevStatChoice - 1;
+        });
+      } else {
+        // If newStatType is set, that means we're changing the stat type selection
+        if (newStatTypeName) {
+          setStatChoice(
+            newFilteredStatTypes.findIndex(
+              item => item.name === newStatTypeName,
+            ),
+          );
+          setStatName(newStatTypeName);
+        } else {
+          // Otherwise, just set the new stat name to whatever the stat choice already
+          // was using the new filtered list of stat types
+          setStatName(newFilteredStatTypes[statChoice].name);
+        }
+      }
+    } else {
+      // This can only happen after a deletion, so we can just reset stat name and choice
+      setStatName('Stat');
+      setStatChoice(0);
+    }
+
+    if (debug) {
+      console.log('Unfiltered stat types:');
+      console.log(newStatTypes);
+      console.log('New filtered stat types:');
+      console.log(newFilteredStatTypes);
+    }
+
+    setFilteredStatTypes(newFilteredStatTypes);
   };
 
   return (
     <View style={GlobalStyles.container}>
-      <ScrollView style={styles.scrollableArea}>
+      <ScrollView
+        keyboardShouldPersistTaps="always"
+        style={styles.scrollableArea}>
         {stats.length > 0 && (
           <WorkingEntryList
             stats={stats}
             statTypes={statTypes}
-            deleteStat={deleteStat}
+            deleteEditStat={deleteEditStat}
           />
         )}
         <View style={styles.name}>
           <Text style={styles.nameText}>{statName}</Text>
           <Button
             onPress={() => setStatModalOpen(true)}
-            title={statTypes.length > 0 ? 'Change Stat' : 'Create Stat'}
-            color={statTypes.length > 0 ? 'blue' : 'green'}
+            title={filteredStatTypes.length > 0 ? 'Change Stat' : 'Create Stat'}
+            color={filteredStatTypes.length > 0 ? 'blue' : 'green'}
           />
         </View>
 
@@ -265,7 +351,8 @@ const AddEditEntry = ({navigation, route}) => {
           modalOpen={statModalOpen}
           setModalOpen={setStatModalOpen}
           statTypes={statTypes}
-          setNewStatType={setNewStatType}
+          filteredStatTypes={filteredStatTypes}
+          addChangeStatType={addChangeStatType}
           deleteStatType={deleteStatType}
         />
 
@@ -284,7 +371,7 @@ const AddEditEntry = ({navigation, route}) => {
 
         {/* Comment */}
         <TextInput
-          style={styles.input}
+          style={styles.commentInput}
           multiline
           textAlignVertical="top"
           placeholder="Comment"
@@ -352,6 +439,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginVertical: 14,
     paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  commentInput: {
+    color: 'black',
+    fontSize: 17,
+    marginVertical: 14,
+    paddingVertical: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },

@@ -92,7 +92,6 @@ export const deleteStatCategory = async (
     await setStatCategories(newStatCategories);
 
     await deleteData(statCategory, 'statTypes');
-    await deleteData(statCategory, 'lastStatChoice');
     await deleteData(statCategory, 'entries');
     await deleteData(statCategory, 'lastId');
   } catch (err) {
