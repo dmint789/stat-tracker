@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TextInput,
-  FlatList,
   ScrollView,
   TouchableOpacity,
   Button,
@@ -12,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
-import DeleteButton from '../components/DeleteButton.js';
+import IconButton from './IconButton.js';
 
 const ChooseStatModal = ({
   modalOpen,
@@ -41,10 +40,6 @@ const ChooseStatModal = ({
     }
   };
 
-  const onSelect = name => {
-    submitStatType({name});
-  };
-
   // Submits either the name of the selected stat type or the object of a new stat type
   const submitStatType = statType => {
     addChangeStatType(statType);
@@ -52,11 +47,6 @@ const ChooseStatModal = ({
     setNewStatName('');
     setStatUnit('');
     setModalOpen(false);
-  };
-
-  const unitText = unit => {
-    if (unit.length > 0) return `(${unit})`;
-    else return '';
   };
 
   return (
@@ -67,19 +57,19 @@ const ChooseStatModal = ({
       onRequestClose={() => {
         setModalOpen(false);
       }}>
-      <View styles={GlobalStyles.modalContainer}>
+      <View style={GlobalStyles.modalContainer}>
         <ScrollView keyboardShouldPersistTaps="always">
           <View style={GlobalStyles.modalBackground}>
             {filteredStatTypes.map(item => (
               <TouchableOpacity
-                onPress={() => onSelect(item.name)}
+                onPress={() => submitStatType({name: item.name})}
                 key={Math.random()}>
                 <View style={styles.item}>
-                  <Text style={styles.text}>
-                    {item.name} {unitText(item.unit)}
+                  <Text style={{...GlobalStyles.text, flex: 1}}>
+                    {item.name}
+                    {item.unit.length > 0 ? item.unit + ' ' : ''}
                   </Text>
-
-                  <DeleteButton onPress={() => deleteStatType(item.name)} />
+                  <IconButton onPress={() => deleteStatType(item.name)} />
                 </View>
               </TouchableOpacity>
             ))}
@@ -101,15 +91,15 @@ const ChooseStatModal = ({
                   onChangeText={value => setStatUnit(value)}
                 />
               </View>
-              <View style={{flexDirection: 'row'}}>
-                <View style={styles.button}>
+              <View style={GlobalStyles.buttonRow}>
+                <View style={GlobalStyles.button}>
                   <Button
                     onPress={() => onAddButtonPressed()}
                     title="Add"
                     color="green"
                   />
                 </View>
-                <View style={styles.button}>
+                <View style={GlobalStyles.button}>
                   <Button
                     onPress={() => setModalOpen(false)}
                     title="Cancel"
@@ -132,17 +122,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'pink',
     marginBottom: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 10,
-  },
-  text: {
-    color: 'black',
-    fontSize: 20,
-  },
-  button: {
-    flex: 1,
-    marginHorizontal: 10,
   },
 });
 

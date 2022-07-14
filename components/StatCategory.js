@@ -1,28 +1,37 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {Text, View, TouchableOpacity, StyleSheet} from 'react-native';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
-import DeleteButton from '../components/DeleteButton.js';
+import IconButton from '../components/IconButton.js';
 
-const StatCategory = ({statCategory, onPress, onDelete}) => {
+const StatCategory = ({statCategory, onPress, onEdit, onDelete}) => {
   return (
     <TouchableOpacity
       onPress={() => onPress(statCategory)}
-      style={{...GlobalStyles.card, ...styles.card}}>
-      <Text style={styles.text}>{statCategory}</Text>
-      <DeleteButton onPress={() => onDelete(statCategory)} />
+      style={GlobalStyles.card}>
+      <Text style={styles.titleText}>{statCategory.name}</Text>
+      {statCategory.note !== '' && (
+        <Text
+          style={{...GlobalStyles.commentText, marginTop: 6, marginBottom: 24}}>
+          {statCategory.note}
+        </Text>
+      )}
+      <View style={GlobalStyles.bottomButtons}>
+        <IconButton
+          type={'pencil'}
+          color={'gray'}
+          onPress={() => onEdit(statCategory)}
+        />
+        <IconButton onPress={() => onDelete(statCategory.name)} />
+      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  text: {
+  titleText: {
+    textAlign: 'center',
+    fontSize: 24,
     color: 'black',
-    fontSize: 20,
   },
 });
 

@@ -4,11 +4,8 @@ import {
   StyleSheet,
   TextInput,
   Button,
-  FlatList,
   View,
   ScrollView,
-  Modal,
-  Keyboard,
   Alert,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
@@ -51,9 +48,8 @@ const AddEditEntry = ({navigation, route}) => {
 
       setStats(tStats);
       setComment(tComment);
-      // The month has to be given as an index
+      // The month has to be given with 0 indexing
       setDate(new Date(tDate.year, tDate.month - 1, tDate.day));
-
       setDateText(tDate);
     } else {
       // If data wasn't passed, just set the header title and the current date in textDate
@@ -72,8 +68,7 @@ const AddEditEntry = ({navigation, route}) => {
     if (tempStatTypes !== null) {
       setStatTypes(tempStatTypes);
 
-      // Set filteredStatTypes, statName and statChoice
-      // If we're editing an entry, pass its stats
+      // Set filteredStatTypes, statName and statChoice. If editing an entry, pass its stats.
       filterStatTypes(
         tempStatTypes,
         passedData.entry ? passedData.entry.stats : [],
@@ -81,15 +76,10 @@ const AddEditEntry = ({navigation, route}) => {
     }
   };
 
-  // Sets day, month, year and text date
   const setDateText = passedDate => {
-    // If passedDate has a day property, that means we're editing an entry.
-    // In that case simply use the passedDate object as is.
-    // If the month is less than 10, add 0 in front of it.
-    if (passedDate.day) {
-      const prettyMonth =
-        passedDate.month < 10 ? '0' + passedDate.month : passedDate.month;
-      setTextDate(`${passedDate.day}/${prettyMonth}/${passedDate.year}`);
+    // If passedDate has a text property, just use that (means we're editing an entry)
+    if (passedDate.text) {
+      setTextDate(passedDate.text);
     }
     // Otherwise, use it as a Date() object
     else {
@@ -97,31 +87,42 @@ const AddEditEntry = ({navigation, route}) => {
       const prettyMonth =
         (passedDate.getMonth() + 1 < 10 ? '0' : '') +
         (passedDate.getMonth() + 1).toString();
-      setTextDate(
-        `${passedDate.getDate()}/${prettyMonth}/${passedDate.getFullYear()}`,
-      );
+      const prettyDay =
+        (passedDate.getDate() < 10 ? '0' : '') +
+        passedDate.getDate().toString();
+
+      setTextDate(`${prettyDay}/${prettyMonth}/${passedDate.getFullYear()}`);
     }
   };
 
   // Check the validity of the new entry before it's passed to the home screen
   const isValidEntry = entry => {
-    if (entry.stats.length === 0 && entry.comment.length === 0) return false;
+    if (entry.stats.length === 0 && entry.comment.length === 0) {
+      Alert.alert('Error', 'Please create a stat or write a comment', [
+        {text: 'Ok'},
+      ]);
+      return false;
+    }
 
     for (let stat of entry.stats) {
-      if (stat.name.length === 0 || stat.value.length === 0) return false;
+      if (stat.name.length === 0 || stat.value.length === 0) {
+        Alert.alert(
+          'Error',
+          'Please make sure all stats have a stat type and a value',
+          [{text: 'Ok'}],
+        );
+        return false;
+      }
     }
 
     return true;
   };
 
   // Check the validity of the new stat
-  const isValidStat = (showAlerts = true, allowEmpty = false) => {
-    // If allowEmpty is true, we allow an empty stat to pass validation
-    if (allowEmpty && statValue.length === 0) return true;
-
-    if (statTypes.length === 0) {
+  const isValidStat = (showAlerts = true) => {
+    if (statName === 'Stat') {
       if (showAlerts)
-        Alert.alert('Error', 'Please create a stat type', [{text: 'Ok'}]);
+        Alert.alert('Error', 'Please choose a stat type', [{text: 'Ok'}]);
       return false;
     } else if (statValue.length === 0) {
       if (showAlerts)
@@ -181,19 +182,16 @@ const AddEditEntry = ({navigation, route}) => {
   };
 
   const addEditEntry = () => {
-    // Check validity while showing alerts and allowing an empty stat
-    if (isValidStat(true, true)) {
-      let tempStats = stats.map(item => ({
-        name: item.name,
-        value: item.value,
-      }));
+    if (statValue.length === 0 || isValidStat()) {
+      let tempStats = stats;
 
-      // Add the last entered stat if not empty
-      if (statTypes.length > 0 && statValue.length > 0) {
+      // Add the last entered stat if not empty and sort the new list of stats
+      if (statValue.length > 0) {
         tempStats.push({
           name: statName,
           value: statValue,
         });
+        tempStats.sort(statSortingCondition);
       }
 
       // When adding a new entry (passedData.entry = null), pass the id as -1 and let the
@@ -212,21 +210,18 @@ const AddEditEntry = ({navigation, route}) => {
 
       if (isValidEntry(newEntry)) {
         navigation.navigate('Home', {newEntry, statTypes});
-      } else {
-        Alert.alert('Error', 'Please fill in all required fields', [
-          {text: 'Ok'},
-        ]);
       }
     }
   };
 
-  // Add new stat type or change stat choice
+  // Add new stat type or change stat choice. Takes an object.
   const addChangeStatType = statType => {
     // If more than one property was passed in the statType object, that means we're adding a new stat type
     if (Object.keys(statType).length > 1) {
       setStatTypes(prevStatTypes => {
-        const newStatTypes = [...prevStatTypes, statType];
-        newStatTypes.sort(statSortingCondition);
+        const newStatTypes = [...prevStatTypes, statType].sort(
+          statSortingCondition,
+        );
 
         SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
 
@@ -249,14 +244,11 @@ const AddEditEntry = ({navigation, route}) => {
       'Confirmation',
       'Are you sure you want to delete the stat type?',
       [
-        {
-          text: 'Cancel',
-          onPress: () => {},
-        },
+        {text: 'Cancel'},
         {
           text: 'Ok',
           onPress: () => {
-            setStatTypes(prevStatTypes => {
+            setStatTypes(() => {
               const newStatTypes = statTypes.filter(item => item.name != name);
 
               if (newStatTypes.length === 0) {
@@ -288,8 +280,8 @@ const AddEditEntry = ({navigation, route}) => {
     );
 
     if (newFilteredStatTypes.length > 0) {
-      // If stat choice is beyond the number of filtered stat types, decrement it
-      // This can only happen after a deletion
+      // If stat choice is beyond the number of filtered stat types, decrement it.
+      // This can only happen after a deletion.
       if (newFilteredStatTypes.length === statChoice) {
         setStatChoice(prevStatChoice => {
           setStatName(newFilteredStatTypes[prevStatChoice - 1].name);
@@ -316,13 +308,6 @@ const AddEditEntry = ({navigation, route}) => {
       setStatChoice(0);
     }
 
-    if (debug) {
-      console.log('Unfiltered stat types:');
-      console.log(newStatTypes);
-      console.log('New filtered stat types:');
-      console.log(newFilteredStatTypes);
-    }
-
     setFilteredStatTypes(newFilteredStatTypes);
   };
 
@@ -338,15 +323,14 @@ const AddEditEntry = ({navigation, route}) => {
             deleteEditStat={deleteEditStat}
           />
         )}
-        <View style={styles.name}>
-          <Text style={styles.nameText}>{statName}</Text>
+        <View style={styles.nameView}>
+          <Text style={{...GlobalStyles.text, flex: 1}}>{statName}</Text>
           <Button
             onPress={() => setStatModalOpen(true)}
             title={filteredStatTypes.length > 0 ? 'Change Stat' : 'Create Stat'}
             color={filteredStatTypes.length > 0 ? 'blue' : 'green'}
           />
         </View>
-
         <ChooseStatModal
           modalOpen={statModalOpen}
           setModalOpen={setStatModalOpen}
@@ -355,33 +339,33 @@ const AddEditEntry = ({navigation, route}) => {
           addChangeStatType={addChangeStatType}
           deleteStatType={deleteStatType}
         />
-
         <TextInput
-          style={styles.input}
+          style={GlobalStyles.input}
           placeholder="Value"
           placeholderTextColor="grey"
-          onChangeText={value => setStatValue(value)}
           value={statValue}
+          onChangeText={value => setStatValue(value)}
         />
-        <Button
-          onPress={() => addStat()}
-          title="Add Stat"
-          color={isValidStat(false) ? 'green' : 'grey'}
-        />
+        <View style={{marginBottom: 10}}>
+          <Button
+            color={isValidStat(false) ? 'green' : 'grey'}
+            title="Add Stat"
+            onPress={() => addStat()}
+          />
+        </View>
 
         {/* Comment */}
         <TextInput
-          style={styles.commentInput}
-          multiline
-          textAlignVertical="top"
+          style={GlobalStyles.input}
           placeholder="Comment"
           placeholderTextColor="grey"
-          onChangeText={value => setComment(value)}
           value={comment}
+          onChangeText={value => setComment(value)}
+          multiline
         />
         {/* Date */}
         <View style={styles.date}>
-          <Text style={styles.dateText}>{textDate}</Text>
+          <Text style={GlobalStyles.text}>{textDate}</Text>
           <Button
             onPress={() => setDatePickerOpen(true)}
             title="Edit"
@@ -398,11 +382,8 @@ const AddEditEntry = ({navigation, route}) => {
             setDate(date);
             setDateText(date);
           }}
-          onCancel={() => {
-            setDatePickerOpen(false);
-          }}
+          onCancel={() => setDatePickerOpen(false)}
         />
-        {/* Make title conditional (Add Entry or Edit Entry) */}
         <View style={{marginBottom: 20}}>
           <Button
             onPress={() => addEditEntry()}
@@ -420,7 +401,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  name: {
+  nameView: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -429,36 +410,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'grey',
   },
-  nameText: {
-    color: 'black',
-    fontSize: 20,
-    marginBottom: 6,
-  },
-  input: {
-    color: 'black',
-    fontSize: 20,
-    marginVertical: 14,
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  commentInput: {
-    color: 'black',
-    fontSize: 17,
-    marginVertical: 14,
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
   date: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
-  },
-  dateText: {
-    color: 'black',
-    fontSize: 18,
   },
 });
 

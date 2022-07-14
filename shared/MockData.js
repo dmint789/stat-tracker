@@ -1,16 +1,17 @@
+// Remember to update dataPoints in StorageManager.js
 
-// Remember to update deleteStatCategory in StorageManager.js
+let statCategories = [
+  {name: 'Weight', note: '', totalEntries: 4},
+  {name: 'Gym', note: 'This is a note', totalEntries: 17},
+];
 
-statCategories: [
-  "Weight",
-  "Gym"
-]
+// All of the _ are actually - in storage
 
-[Stat category]-statTypes: [
+let CategoryName_statTypes = [
   {name: 'Weight', unit: 'kg'},
   {name: 'Pull-ups', unit: ''},
-],
-[Stat category]-entries: [
+];
+let CategoryName_entries = [
   {
     id: 1,
     stats: [
@@ -28,8 +29,8 @@ statCategories: [
       day: 14,
       month: 5,
       year: 2022,
-      text: '14/05/2022'
+      text: '14/05/2022',
     },
   },
-]
-[Stat category]-lastId: 1
+];
+let CategoryName_lastId = 1;

@@ -23,34 +23,55 @@ export const GlobalStyles = {
     justifyContent: 'space-between',
   },
   text: {
-    marginVertical: 20,
-    textAlign: 'center',
+    marginBottom: 6,
     fontSize: 18,
     color: 'black',
   },
   nameText: {
     color: '#555',
-    fontSize: 18,
   },
-  valueText: {
-    color: 'black',
+  commentText: {
+    marginBottom: 10,
+    fontSize: 17,
+    color: '#555',
+  },
+  smallText: {
+    fontSize: 16,
+    color: 'grey',
+  },
+  infoText: {
+    margin: 20,
+    textAlign: 'center',
     fontSize: 18,
-    marginBottom: 6,
+    color: 'black',
   },
   input: {
     color: 'black',
-    fontSize: 20,
+    fontSize: 18,
     marginBottom: 10,
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
   card: {
-    backgroundColor: 'pink',
+    position: 'relative',
     marginTop: 12,
     marginHorizontal: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    padding: 16,
     borderRadius: 10,
+    backgroundColor: 'pink',
+  },
+  button: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+  },
+  bottomButtons: {
+    position: 'absolute',
+    flexDirection: 'row',
+    bottom: 12,
+    right: 14,
   },
 };

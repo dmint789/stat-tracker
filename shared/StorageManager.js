@@ -1,7 +1,9 @@
-import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const getData = async (statCategory, request, verbose = false) => {
+const dataPoints = ['statTypes', 'entries', 'lastId'];
+const verbose = false;
+
+export const getData = async (statCategory, request) => {
   const key = statCategory + '-' + request;
 
   try {
@@ -20,24 +22,7 @@ export const getData = async (statCategory, request, verbose = false) => {
   return null;
 };
 
-export const getStatCategories = async (verbose = false) => {
-  try {
-    if (verbose) console.log('Getting statCategories');
-
-    const data = await AsyncStorage.getItem('statCategories');
-
-    if (data.length > 0) {
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.log('Error when retrieving stat categories:');
-    console.log(err);
-  }
-
-  return null;
-};
-
-export const setData = async (statCategory, request, data, verbose = false) => {
+export const setData = async (statCategory, request, data) => {
   const key = statCategory + '-' + request;
 
   try {
@@ -53,7 +38,41 @@ export const setData = async (statCategory, request, data, verbose = false) => {
   }
 };
 
-export const setStatCategories = async (data, verbose = false) => {
+export const deleteData = async (statCategory, request) => {
+  const key = statCategory + '-' + request;
+
+  try {
+    if (verbose) console.log(`Deleting data for key ${key}`);
+
+    await AsyncStorage.removeItem(key);
+  } catch (err) {
+    console.log(`Error when deleting data at key ${key}:`);
+    console.log(err);
+  }
+};
+
+export const getStatCategories = async () => {
+  try {
+    if (verbose) console.log('Getting statCategories');
+
+    let data = await AsyncStorage.getItem('statCategories');
+    data = JSON.parse(data);
+
+    if (verbose) console.log(data);
+
+    // Check that the data is valid
+    if (data.length > 0 && data[0].name) {
+      return data;
+    }
+  } catch (err) {
+    console.log('Error when retrieving stat categories:');
+    console.log(err);
+  }
+
+  return null;
+};
+
+export const setStatCategories = async data => {
   try {
     if (verbose) {
       console.log('Setting statCategories to:');
@@ -67,33 +86,50 @@ export const setStatCategories = async (data, verbose = false) => {
   }
 };
 
-export const deleteData = async (statCategory, request, verbose = false) => {
-  const key = statCategory + '-' + request;
-
+// Edits stat category by removing old keys in the storage and saving them again
+// with the new name if it was renamed and then saving the list of stat categories
+export const editStatCategory = async (
+  newStatCategories,
+  statCategory,
+  prevCategory,
+) => {
   try {
-    if (verbose) console.log(`Deleting data for key ${key}`);
+    if (verbose) console.log(`Editing stat category ${prevCategory}`);
 
-    await AsyncStorage.removeItem(key);
+    if (statCategory !== prevCategory) {
+      for (let i of dataPoints) {
+        const temp = await getData(prevCategory, i);
+
+        if (verbose) {
+          console.log(
+            `Changing the data from ${prevCategory}-${i} to ${statCategory}-${i}:`,
+          );
+          console.log(temp);
+        }
+
+        await setData(statCategory, i, temp);
+        await deleteData(prevCategory, i);
+      }
+    }
+
+    await setStatCategories(newStatCategories);
   } catch (err) {
-    console.log(`Error when deleting data at key ${key}:`);
+    console.log(`Error when editing stat category ${prevCategory}:`);
     console.log(err);
   }
 };
 
 // Sets the new list of stat categoies after a deletion and deletes all data used for it
-export const deleteStatCategory = async (
-  newStatCategories,
-  statCategory,
-  verbose = false,
-) => {
+// The input is an array of the new list of categories and the name of the category to be deleted
+export const deleteStatCategory = async (newStatCategories, statCategory) => {
   try {
     if (verbose) console.log(`Deleting stat category ${statCategory}`);
 
-    await setStatCategories(newStatCategories);
+    for (let i of dataPoints) {
+      await deleteData(statCategory, i);
+    }
 
-    await deleteData(statCategory, 'statTypes');
-    await deleteData(statCategory, 'entries');
-    await deleteData(statCategory, 'lastId');
+    await setStatCategories(newStatCategories);
   } catch (err) {
     console.log(`Error when deleting stat category ${statCategory}:`);
     console.log(err);

@@ -1,6 +1,5 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import {GlobalStyles} from '../shared/GlobalStyles.js';
 
 const ListModal = ({modalOpen, setModalOpen, onAddCategory, onOpenAbout}) => {
   const options = [
@@ -52,7 +51,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000000',
     shadowOpacity: 0.5,
     elevation: 8,
-    backgroundColor: '#eee',
+    backgroundColor: '#fff',
   },
   item: {
     borderBottomWidth: 1,
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#555',
+    color: 'black',
   },
 });
 

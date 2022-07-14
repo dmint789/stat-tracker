@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
-import DeleteButton from './DeleteButton.js';
+import IconButton from './IconButton.js';
 
 const WorkingEntryList = ({stats, statTypes, deleteEditStat}) => {
   // Copied from Entry.js
@@ -20,14 +20,16 @@ const WorkingEntryList = ({stats, statTypes, deleteEditStat}) => {
     <View style={styles.container}>
       {stats.map(item => (
         <View style={styles.stat} key={Math.random()}>
-          <TouchableOpacity onPress={() => deleteEditStat(item, true)}>
-            <Text style={GlobalStyles.valueText}>
+          <TouchableOpacity
+            style={{flex: 1}}
+            onPress={() => deleteEditStat(item, true)}>
+            <Text style={GlobalStyles.text}>
               <Text style={GlobalStyles.nameText}>{item.name}: </Text>
               {item.value} {getUnit(item.name)}
             </Text>
           </TouchableOpacity>
 
-          <DeleteButton onPress={() => onDelete(item.name)} />
+          <IconButton onPress={() => onDelete(item.name)} />
         </View>
       ))}
     </View>

@@ -1,13 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native';
+import {View, Text, FlatList, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
 import * as SM from '../shared/StorageManager.js';
@@ -28,7 +20,6 @@ const Home = ({navigation, route}) => {
 
   useEffect(() => {
     getInitData();
-    //SM.deleteData(statCategory, 'entries', debug);
   }, []);
 
   useEffect(() => {
@@ -153,10 +144,7 @@ const Home = ({navigation, route}) => {
 
   const onDeleteEntry = id => {
     Alert.alert('Confirmation', 'Are you sure you want to delete the entry?', [
-      {
-        text: 'Cancel',
-        onPress: () => {},
-      },
+      {text: 'Cancel'},
       {
         text: 'Ok',
         onPress: () => deleteEntry(id),
@@ -201,7 +189,9 @@ const Home = ({navigation, route}) => {
           ListFooterComponent={<View style={{height: 20}} />}
         />
       ) : (
-        <Text style={GlobalStyles.text}>Press + to add some stat entries</Text>
+        <Text style={GlobalStyles.infoText}>
+          Press + to add some stat entries
+        </Text>
       )}
     </View>
   );

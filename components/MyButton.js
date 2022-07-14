@@ -3,14 +3,14 @@ import {TouchableOpacity, StyleSheet} from 'react-native';
 
 const MyButton = ({children, onPress}) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity style={styles.myButton} onPress={onPress}>
       {children}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
+  myButton: {
     backgroundColor: 'white',
     alignItems: 'center',
     paddingTop: 8,
