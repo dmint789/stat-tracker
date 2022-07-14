@@ -123,7 +123,7 @@ const Home = ({navigation, route}) => {
     const entry = entries.find(item => item.id === id);
 
     navigation.navigate('AddEditEntry', {
-      statCategory: statCategory,
+      statCategory,
       entry,
     });
   };

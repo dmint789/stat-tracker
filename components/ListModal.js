@@ -1,13 +1,26 @@
 import React from 'react';
 import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 
-const ListModal = ({modalOpen, setModalOpen, onAddCategory, onOpenAbout}) => {
+const ListModal = ({
+  modalOpen,
+  setModalOpen,
+  onAddCategory,
+  onOpenImportExport,
+  onOpenAbout,
+}) => {
   const options = [
     {
       title: 'Add Stat Category',
       onChoose: () => {
         setModalOpen(false);
         onAddCategory();
+      },
+    },
+    {
+      title: 'Import/Export',
+      onChoose: () => {
+        setModalOpen(false);
+        onOpenImportExport();
       },
     },
     {
@@ -29,9 +42,7 @@ const ListModal = ({modalOpen, setModalOpen, onAddCategory, onOpenAbout}) => {
       <View style={styles.background}>
         {options.map(item => (
           <TouchableOpacity
-            onPress={() => {
-              item.onChoose();
-            }}
+            onPress={() => item.onChoose()}
             style={styles.item}
             key={Math.random()}>
             <Text style={styles.text}>{item.title}</Text>

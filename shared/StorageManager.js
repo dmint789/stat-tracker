@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNFS from 'react-native-fs';
 
 const dataPoints = ['statTypes', 'entries', 'lastId'];
+const backupPath = RNFS.DownloadDirectoryPath + '/Stat_Tracker_Backup.json';
 const verbose = false;
 
 export const getData = async (statCategory, request) => {
@@ -15,7 +17,7 @@ export const getData = async (statCategory, request) => {
       return JSON.parse(data);
     }
   } catch (err) {
-    console.log(`Error when searching for key ${key}:`);
+    if (verbose) console.log(`Error while searching for key ${key}:`);
     console.log(err);
   }
 
@@ -33,7 +35,7 @@ export const setData = async (statCategory, request, data) => {
 
     await AsyncStorage.setItem(key, JSON.stringify(data));
   } catch (err) {
-    console.log(`Error when setting data for key ${key}:`);
+    if (verbose) console.log(`Error while setting data for key ${key}:`);
     console.log(err);
   }
 };
@@ -46,7 +48,7 @@ export const deleteData = async (statCategory, request) => {
 
     await AsyncStorage.removeItem(key);
   } catch (err) {
-    console.log(`Error when deleting data at key ${key}:`);
+    if (verbose) console.log(`Error while deleting data at key ${key}:`);
     console.log(err);
   }
 };
@@ -65,7 +67,7 @@ export const getStatCategories = async () => {
       return data;
     }
   } catch (err) {
-    console.log('Error when retrieving stat categories:');
+    if (verbose) console.log('Error while retrieving stat categories:');
     console.log(err);
   }
 
@@ -81,7 +83,7 @@ export const setStatCategories = async data => {
 
     await AsyncStorage.setItem('statCategories', JSON.stringify(data));
   } catch (err) {
-    console.log('Error when setting stat categories:');
+    if (verbose) console.log('Error while setting stat categories:');
     console.log(err);
   }
 };
@@ -100,12 +102,10 @@ export const editStatCategory = async (
       for (let i of dataPoints) {
         const temp = await getData(prevCategory, i);
 
-        if (verbose) {
+        if (verbose)
           console.log(
             `Changing the data from ${prevCategory}-${i} to ${statCategory}-${i}:`,
           );
-          console.log(temp);
-        }
 
         await setData(statCategory, i, temp);
         await deleteData(prevCategory, i);
@@ -114,7 +114,8 @@ export const editStatCategory = async (
 
     await setStatCategories(newStatCategories);
   } catch (err) {
-    console.log(`Error when editing stat category ${prevCategory}:`);
+    if (verbose)
+      console.log(`Error while editing stat category ${prevCategory}:`);
     console.log(err);
   }
 };
@@ -131,7 +132,76 @@ export const deleteStatCategory = async (newStatCategories, statCategory) => {
 
     await setStatCategories(newStatCategories);
   } catch (err) {
-    console.log(`Error when deleting stat category ${statCategory}:`);
+    if (verbose)
+      console.log(`Error while deleting stat category ${statCategory}:`);
     console.log(err);
+  }
+};
+
+export const exportData = async () => {
+  try {
+    if (verbose) console.log('Exporting backup file');
+
+    let data = {};
+    data.statCategories = await getStatCategories();
+    data.backup = [];
+
+    for (let i of data.statCategories) {
+      for (let j of dataPoints) {
+        // Save every piece of data in the app's storage in a format that
+        // can be used by setData() later when importing
+        data.backup.push({
+          statCategory: i.name,
+          request: j,
+          data: await getData(i.name, j),
+        });
+      }
+    }
+
+    data = JSON.stringify(data);
+
+    if (verbose) console.log(data);
+
+    await RNFS.writeFile(backupPath, data, 'utf8');
+
+    return `Successfully exported backup file to ${backupPath}`;
+  } catch (err) {
+    console.log(err);
+    return 'Error while exporting backup file';
+  }
+};
+
+// Deletes old stat categories (based on the passed array) and imports backup
+export const importData = async statCategories => {
+  try {
+    if (verbose) console.log('Importing backup file');
+
+    const data = JSON.parse(await RNFS.readFile(backupPath));
+
+    if (verbose) console.log(data);
+
+    // Check validity of the received data
+    if (data.statCategories) {
+      // Go through the old stat categories and add any that are not to be overwritten
+      // by the backup file due to having the same name
+      for (let i of statCategories) {
+        if (!data.statCategories.find(item => item.name === i.name)) {
+          data.statCategories.push(i);
+        }
+      }
+
+      setStatCategories(data.statCategories);
+
+      for (let i of data.backup) {
+        setData(i.statCategory, i.request, i.data);
+      }
+
+      return 'Successfully imported backup file';
+    } else {
+      return 'Backup file is empty';
+    }
+  } catch (err) {
+    console.log(err);
+    return 'Error while importing backup file';
   }
 };

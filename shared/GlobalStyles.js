@@ -35,6 +35,11 @@ export const GlobalStyles = {
     fontSize: 17,
     color: '#555',
   },
+  normalText: {
+    margin: 20,
+    fontSize: 18,
+    color: 'black',
+  },
   smallText: {
     fontSize: 16,
     color: 'grey',
@@ -71,7 +76,7 @@ export const GlobalStyles = {
   bottomButtons: {
     position: 'absolute',
     flexDirection: 'row',
-    bottom: 12,
-    right: 14,
+    bottom: 10,
+    right: 10,
   },
 };

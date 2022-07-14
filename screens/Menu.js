@@ -1,19 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Alert,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import {View, Text, FlatList, Alert, StyleSheet} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {GlobalStyles} from '../shared/GlobalStyles.js';
 import * as SM from '../shared/StorageManager.js';
 import StatCategory from '../components/StatCategory.js';
 import AddEditCategoryModal from '../components/AddEditCategoryModal.js';
 import ListModal from '../components/ListModal.js';
-import {stat} from 'react-native-fs';
+import IconButton from '../components/IconButton.js';
 
 const Menu = ({navigation}) => {
   const [statCategories, setStatCategories] = useState([]);
@@ -24,23 +17,29 @@ const Menu = ({navigation}) => {
     useState(false);
 
   useEffect(() => {
-    getInitData();
-  }, []);
-
-  useEffect(() => {
     navigation.setOptions({
       title: 'Stat Tracker',
       headerRight: () => (
-        <TouchableOpacity
-          style={styles.ellipsis}
-          onPress={() => {
-            setListModalOpen(prevListModalOpen => !prevListModalOpen);
-          }}>
-          <Icon name="ellipsis-v" size={24} color="white" />
-        </TouchableOpacity>
+        <IconButton
+          type="ellipsis-v"
+          color="white"
+          bigHitbox={true}
+          onPress={() =>
+            setListModalOpen(prevListModalOpen => !prevListModalOpen)
+          }
+        />
       ),
     });
   }, [navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getInitData();
+
+      // Do something when leaving this screen
+      return () => {};
+    }, []),
+  );
 
   const getInitData = async () => {
     const tempStatCategories = await SM.getStatCategories();
@@ -127,6 +126,9 @@ const Menu = ({navigation}) => {
         modalOpen={listModalOpen}
         setModalOpen={setListModalOpen}
         onAddCategory={() => setAddEditCategoryModalOpen(true)}
+        onOpenImportExport={() =>
+          navigation.navigate('ImportExport', {statCategories})
+        }
         onOpenAbout={() => navigation.navigate('About')}
       />
       <AddEditCategoryModal

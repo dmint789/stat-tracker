@@ -1,11 +1,12 @@
-import React, {useState} from 'react';
-import {Button, View, Keyboard} from 'react-native';
+import React from 'react';
+import {View, Keyboard} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import Menu from './screens/Menu.js';
 import Home from './screens/Home.js';
 import AddEditEntry from './screens/AddEditEntry.js';
+import ImportExport from './screens/ImportExport.js';
 import About from './screens/About.js';
 
 const Stack = createNativeStackNavigator();
@@ -36,6 +37,7 @@ const App = () => {
           <Stack.Screen name="Menu" component={Menu} />
           <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="AddEditEntry" component={AddEditEntry} />
+          <Stack.Screen name="ImportExport" component={ImportExport} />
           <Stack.Screen name="About" component={About} />
         </Stack.Navigator>
       </NavigationContainer>
