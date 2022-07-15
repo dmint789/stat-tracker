@@ -60,5 +60,6 @@ buck-out/
 /ios/Pods/
 /vendor/bundle/
 
-# My files
+# Added manually
+android/app/rsc/main/res/drawable-*
 test.sh
