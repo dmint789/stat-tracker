@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
-import {GlobalStyles} from '../shared/GlobalStyles.js';
+import GS from '../shared/GlobalStyles.js';
+
 import IconButton from './IconButton.js';
 
 const WorkingEntryList = ({stats, statTypes, deleteEditStat}) => {
@@ -23,8 +24,8 @@ const WorkingEntryList = ({stats, statTypes, deleteEditStat}) => {
           <TouchableOpacity
             style={{flex: 1}}
             onPress={() => deleteEditStat(item, true)}>
-            <Text style={GlobalStyles.text}>
-              <Text style={GlobalStyles.nameText}>{item.name}: </Text>
+            <Text style={GS.text}>
+              <Text style={GS.nameText}>{item.name}: </Text>
               {item.value} {getUnit(item.name)}
             </Text>
           </TouchableOpacity>

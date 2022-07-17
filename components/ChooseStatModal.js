@@ -10,7 +10,8 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import {GlobalStyles} from '../shared/GlobalStyles.js';
+import GS from '../shared/GlobalStyles.js';
+
 import IconButton from './IconButton.js';
 
 const ChooseStatModal = ({
@@ -57,15 +58,15 @@ const ChooseStatModal = ({
       onRequestClose={() => {
         setModalOpen(false);
       }}>
-      <View style={GlobalStyles.modalContainer}>
+      <View style={GS.modalContainer}>
         <ScrollView keyboardShouldPersistTaps="always">
-          <View style={GlobalStyles.modalBackground}>
+          <View style={GS.modalBackground}>
             {filteredStatTypes.map(item => (
               <TouchableOpacity
                 onPress={() => submitStatType({name: item.name})}
                 key={Math.random()}>
                 <View style={styles.item}>
-                  <Text style={{...GlobalStyles.text, flex: 1}}>
+                  <Text style={{...GS.text, flex: 1}}>
                     {item.name}
                     {item.unit.length > 0 ? item.unit + ' ' : ''}
                   </Text>
@@ -77,29 +78,29 @@ const ChooseStatModal = ({
             <View>
               <View style={{marginVertical: 10}}>
                 <TextInput
-                  style={GlobalStyles.input}
+                  style={GS.input}
                   value={newStatName}
                   placeholder="New Stat"
                   placeholderTextColor="grey"
                   onChangeText={value => setNewStatName(value)}
                 />
                 <TextInput
-                  style={GlobalStyles.input}
+                  style={GS.input}
                   value={statUnit}
                   placeholder="Unit of measurement"
                   placeholderTextColor="grey"
                   onChangeText={value => setStatUnit(value)}
                 />
               </View>
-              <View style={GlobalStyles.buttonRow}>
-                <View style={GlobalStyles.button}>
+              <View style={GS.buttonRow}>
+                <View style={GS.button}>
                   <Button
                     onPress={() => onAddButtonPressed()}
                     title="Add"
                     color="green"
                   />
                 </View>
-                <View style={GlobalStyles.button}>
+                <View style={GS.button}>
                   <Button
                     onPress={() => setModalOpen(false)}
                     title="Cancel"

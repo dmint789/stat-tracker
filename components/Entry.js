@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
-import {GlobalStyles} from '../shared/GlobalStyles.js';
+import GS from '../shared/GlobalStyles.js';
+
 import IconButton from '../components/IconButton.js';
 
 const Entry = ({entry, statTypes, onDelete, onEditEntry}) => {
@@ -21,22 +22,20 @@ const Entry = ({entry, statTypes, onDelete, onEditEntry}) => {
   };
 
   return (
-    <TouchableOpacity
-      onPress={() => onEditEntry(entry.id)}
-      style={GlobalStyles.card}>
+    <TouchableOpacity onPress={() => onEditEntry(entry.id)} style={GS.card}>
       {entry.stats.map(stat => (
-        <Text style={GlobalStyles.text} key={Math.random()}>
-          <Text style={GlobalStyles.nameText}>{stat.name}: </Text>
+        <Text style={GS.text} key={Math.random()}>
+          <Text style={GS.nameText}>{stat.name}: </Text>
           {stat.value} {getUnit(stat.name)}
         </Text>
       ))}
       {entry.comment !== '' && (
-        <Text style={{...GlobalStyles.commentText, color: getCommentColor()}}>
+        <Text style={{...GS.commentText, color: getCommentColor()}}>
           {entry.comment}
         </Text>
       )}
-      <Text style={GlobalStyles.smallText}>{entry.date.text}</Text>
-      <View style={GlobalStyles.bottomButtons}>
+      <Text style={GS.smallText}>{entry.date.text}</Text>
+      <View style={GS.bottomButtons}>
         <IconButton onPress={() => onDelete(entry.id)} />
       </View>
     </TouchableOpacity>

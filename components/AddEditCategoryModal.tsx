@@ -1,10 +1,24 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, SetStateAction} from 'react';
 import {Modal, View, TextInput, Button, Alert} from 'react-native';
-import {GlobalStyles} from '../shared/GlobalStyles.js';
+import GS from '../shared/GlobalStyles.js';
+import {IStatCategory} from '../shared/DataStructure';
+import {updateExpression} from '@babel/types';
 
-const AddCategoryModal = ({
-  statCategories,
-  prevStatCategory,
+type Props = {
+  categories: IStatCategory[];
+  prevCategory: IStatCategory;
+  modalOpen: boolean;
+  setModalOpen: React.Dispatch<SetStateAction<boolean>>;
+  onAddCategory: (category: IStatCategory) => void;
+  onEditCategory: (
+    prevCategory: IStatCategory,
+    category: IStatCategory,
+  ) => void;
+};
+
+const AddEditCategoryModal: React.FC<Props> = ({
+  categories,
+  prevCategory,
   modalOpen,
   setModalOpen,
   onAddCategory,
@@ -15,22 +29,26 @@ const AddCategoryModal = ({
 
   useEffect(() => {
     // Initialize inputs if we're editing a stat category
-    if (prevStatCategory) {
-      setName(prevStatCategory.name);
-      setNote(prevStatCategory.note);
+    if (prevCategory) {
+      setName(prevCategory.name);
+      setNote(prevCategory.note);
     }
   }, [modalOpen]);
 
   const onButtonPressed = () => {
     if (name.length > 0) {
       // Make sure this is not a duplicate stat category
-      if (
-        !statCategories.find(item => item.name === name && item.note === note)
-      ) {
-        if (!prevStatCategory) {
-          onAddCategory({name, note});
+      if (!categories.find(item => item.name === name && item.note === note)) {
+        if (!prevCategory) {
+          onAddCategory({name, note, lastId: 0, totalEntries: 0});
         } else {
-          onEditCategory({name, note}, prevStatCategory);
+          const updatedCategory: IStatCategory = {
+            name,
+            note,
+            lastId: prevCategory.lastId,
+            totalEntries: prevCategory.lastId,
+          };
+          onEditCategory(prevCategory, updatedCategory);
         }
 
         setName('');
@@ -58,32 +76,32 @@ const AddCategoryModal = ({
       onRequestClose={() => {
         setModalOpen(false);
       }}>
-      <View style={GlobalStyles.modalContainer}>
-        <View style={GlobalStyles.modalBackground}>
+      <View style={GS.modalContainer}>
+        <View style={GS.modalBackground}>
           <TextInput
-            style={GlobalStyles.input}
+            style={GS.input}
             placeholder="Name"
             placeholderTextColor="grey"
             value={name}
             onChangeText={value => setName(value)}
           />
           <TextInput
-            style={GlobalStyles.input}
+            style={GS.input}
             placeholder="Note"
             placeholderTextColor="grey"
             value={note}
             onChangeText={value => setNote(value)}
             multiline
           />
-          <View style={GlobalStyles.buttonRow}>
-            <View style={GlobalStyles.button}>
+          <View style={GS.buttonRow}>
+            <View style={GS.button}>
               <Button
                 onPress={() => onButtonPressed()}
-                title={prevStatCategory ? 'Edit' : 'Add'}
-                color={prevStatCategory ? 'blue' : 'green'}
+                title={prevCategory ? 'Edit' : 'Add'}
+                color={prevCategory ? 'blue' : 'green'}
               />
             </View>
-            <View style={GlobalStyles.button}>
+            <View style={GS.button}>
               <Button
                 onPress={() => setModalOpen(false)}
                 title="Cancel"
@@ -97,4 +115,4 @@ const AddCategoryModal = ({
   );
 };
 
-export default AddCategoryModal;
+export default AddEditCategoryModal;

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, Button, Alert, StyleSheet} from 'react-native';
-import {GlobalStyles} from '../shared/GlobalStyles.js';
-import * as SM from '../shared/StorageManager.js';
+import GS from '../shared/GlobalStyles';
+import * as SM from '../shared/StorageManager';
 
 const ImportExport = ({route}) => {
   const [exportMessage, setExportMessage] = useState('');
@@ -33,28 +33,22 @@ const ImportExport = ({route}) => {
   };
 
   return (
-    <View style={GlobalStyles.container}>
-      <Text style={GlobalStyles.normalText}>
-        Press "Export" to export all of your stats in .json format. WARNING:
-        this will overwrite any existing files with the same name. You can use
+    <View style={GS.container}>
+      <Text style={GS.normalText}>
+        Press "Export" to export all of your stats in .json format. You can use
         this file to back up your data and restore it later using the "Import"
-        button below. For that to work you must place a backup file with the
-        name "Stat_Tracker_Backup.json" in your Downloads folder. WARNING: this
-        will overwrite any existing stat categories that have the same name as
-        one of the stat categories in the backup file.
+        button below. WARNING: this will overwrite any existing stat categories
+        that have the same name as one of the stat categories in the backup
+        file.
       </Text>
       {exportMessage !== '' && (
-        <Text style={{...GlobalStyles.normalText, color: 'grey'}}>
-          {exportMessage}
-        </Text>
+        <Text style={{...GS.normalText, color: 'grey'}}>{exportMessage}</Text>
       )}
       <View style={styles.button}>
         <Button onPress={() => exportData()} title="Export" color="red" />
       </View>
       {importMessage !== '' && (
-        <Text style={{...GlobalStyles.normalText, color: 'grey'}}>
-          {importMessage}
-        </Text>
+        <Text style={{...GS.normalText, color: 'grey'}}>{importMessage}</Text>
       )}
       <View style={styles.button}>
         <Button onPress={() => importData()} title="Import" color="blue" />

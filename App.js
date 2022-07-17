@@ -3,11 +3,11 @@ import {View, Keyboard} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import Menu from './screens/Menu.js';
-import Home from './screens/Home.js';
-import AddEditEntry from './screens/AddEditEntry.js';
-import ImportExport from './screens/ImportExport.js';
-import About from './screens/About.js';
+import Menu from './screens/Menu';
+import Home from './screens/Home';
+import AddEditEntry from './screens/AddEditEntry';
+import ImportExport from './screens/ImportExport';
+import About from './screens/About';
 
 const Stack = createNativeStackNavigator();
 

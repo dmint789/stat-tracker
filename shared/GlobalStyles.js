@@ -1,4 +1,6 @@
-export const GlobalStyles = {
+import {StyleSheet} from 'react-native';
+
+export default GS = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -79,4 +81,4 @@ export const GlobalStyles = {
     bottom: 10,
     right: 10,
   },
-};
+});

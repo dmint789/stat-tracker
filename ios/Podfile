@@ -21,7 +21,7 @@ target 'Statistics_Tracker' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
-  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
 
   target 'Statistics_TrackerTests' do
     inherit! :complete

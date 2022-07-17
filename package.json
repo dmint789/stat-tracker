@@ -8,7 +8,7 @@
     "bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "debug-apk": "yarn bundle && cd android && ./gradlew assembleDebug && cd ..",
     "release-apk": "yarn bundle && cd android && rm -rf app/src/main/res/drawable* && ./gradlew assembleRelease && cd ..",
-    "emulator": "emulator -avd Pixel_3a_API_30",
+    "emulator": "emulator -avd Pixel_4a_API_31",
     "test": "jest",
     "lint": "eslint ."
   },
@@ -16,13 +16,16 @@
     "@react-native-async-storage/async-storage": "^1.17.5",
     "@react-navigation/native": "^6.0.10",
     "@react-navigation/native-stack": "^6.6.2",
+    "@types/react": "^18.0.15",
+    "@types/react-native": "^0.69.3",
     "react": "^18.0.0",
     "react-native": "^0.68.1",
     "react-native-date-picker": "^4.2.1",
-    "react-native-fs": "^2.20.0",
     "react-native-safe-area-context": "^4.2.5",
+    "react-native-scoped-storage": "^1.9.2",
     "react-native-screens": "^3.13.1",
-    "react-native-vector-icons": "^9.1.0"
+    "react-native-vector-icons": "^9.1.0",
+    "typescript": "^4.7.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

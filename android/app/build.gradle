@@ -232,9 +232,11 @@ android {
         }
         release {
             storeFile file('my_keys.keystore')
-            storePassword System.console().readLine("\nKeystore password: ")
+            //storePassword System.console().readLine("\nKeystore password: ")
+            storePassword 'Password'
             keyAlias 'my_keys'
-            keyPassword System.console().readLine("\nKey alias password: ")
+            //keyPassword System.console().readLine("\nKey alias password: ")
+            keyPassword 'Password'
         }
     }
     buildTypes {
