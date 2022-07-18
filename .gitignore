@@ -62,4 +62,5 @@ buck-out/
 
 # Added manually
 android/app/rsc/main/res/drawable-*
+android/keystore.properties
 test.sh

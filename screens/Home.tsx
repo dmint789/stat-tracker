@@ -12,7 +12,6 @@ const Home = ({navigation, route}) => {
   const [statCategory, setStatCategory] = useState<IStatCategory>();
   const [entries, setEntries] = useState([]);
   const [statTypes, setStatTypes] = useState([]);
-  const [lastId, setLastId] = useState(0);
 
   interface IPassedData {
     statCategory?: IStatCategory;
@@ -68,13 +67,12 @@ const Home = ({navigation, route}) => {
             const updatedCategory: IStatCategory = {
               name: prevCategory.name,
               note: prevCategory.note,
-              lastId: lastId + 1,
-              totalEntries: prevCategory.totalEntries + 1,
+              lastId: prevCategory.lastId + 1,
+              // We have to add 1, because entries aren't updated until the next frame
+              totalEntries: entries.length + 1,
             };
 
             SM.editStatCategory(prevCategory, updatedCategory);
-
-            setLastId(lastId + 1);
 
             return updatedCategory;
           });
@@ -104,7 +102,7 @@ const Home = ({navigation, route}) => {
     setEntries(prevEntries => {
       const newEntries = [
         {
-          id: lastId,
+          id: statCategory.lastId,
           stats: entry.stats,
           comment: entry.comment,
           date: entry.date,
@@ -155,6 +153,14 @@ const Home = ({navigation, route}) => {
             } else {
               SM.setData(statCategory.name, 'entries', newEntries);
             }
+
+            // Update the number of entries
+            SM.editStatCategory(statCategory, {
+              name: statCategory.name,
+              note: statCategory.note,
+              lastId: statCategory.lastId,
+              totalEntries: newEntries.length,
+            });
 
             return newEntries;
           });

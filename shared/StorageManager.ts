@@ -3,6 +3,9 @@ import * as ScopedStorage from 'react-native-scoped-storage';
 import {formatDate} from './GlobalFunctions';
 import {IStatCategory, BackupData, dataPoints} from './DataStructure';
 
+// NOTE: As these functions are asynchronous, when they're called from a normal function,
+// the execution of them may not end up being in the same order (shocking, I know)
+
 const verbose = false;
 
 export const getData = async (statCategory: string, request: string) => {
@@ -102,12 +105,16 @@ export const reorderStatCategories = async (statCategory: IStatCategory) => {
       );
 
     let newStatCategories = await getStatCategories();
-    newStatCategories = [
-      statCategory,
-      ...newStatCategories.filter(item => item.name !== statCategory.name),
-    ];
 
-    await setStatCategories(newStatCategories);
+    if (newStatCategories[0].name !== statCategory.name) {
+      newStatCategories = [
+        statCategory,
+        ...newStatCategories.filter(item => item.name !== statCategory.name),
+      ];
+
+      await setStatCategories(newStatCategories);
+    } else if (verbose)
+      console.log(`${statCategory.name} is already at the top`);
   } catch (err) {
     console.log(`Error while reordering stat categories: ${err}`);
   }
