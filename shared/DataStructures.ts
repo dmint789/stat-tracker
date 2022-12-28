@@ -34,23 +34,32 @@ export enum StatTypeVariant {
   FORMULA,
 }
 
+export interface IMultiValueStat {
+  best: number;
+  avg: number;
+  sum: number;
+}
+
 export interface IStatType {
   id: number;
   name: string;
   unit?: string;
   order: number; // goes from 1 to statTypes.length with no gaps
   variant: StatTypeVariant;
-  choices?: string[]; // MULTIPLE_CHOICE only
-  formula?: string; // FORMULA only
+  // choices?: string[]; // MULTIPLE_CHOICE only
+  // formula?: string; // FORMULA only
   multipleValues?: boolean; // NON_NUMERIC, LOWER_IS_BETTER and HIGHER_IS_BETTER only
   showBest?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
   showAvg?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
   showSum?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  trackPBs?: boolean; // Except MULTIPLE_CHOICE
+  trackPBs?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
+  // trackWorst?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
+  // If this is unset that means there aren't any pbs yet for this stat type
   pbs?: {
-    month: number;
-    year: number;
-    allTime: string | number;
+    allTime: {
+      entryId: number | IMultiValueStat;
+      result: number | IMultiValueStat;
+    };
   };
 }
 
@@ -65,6 +74,7 @@ export interface IStat {
   id: number;
   type: number | null; // ID of stat type or null if not yet chosen
   values: string[] | number[] | null; // Null if stat type is a formula
+  multiValueStats?: IMultiValueStat;
 }
 
 export interface IDate {

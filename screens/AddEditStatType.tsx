@@ -85,7 +85,7 @@ const AddEditStatType = ({ navigation, route }) => {
       const statType: IStatType = {
         id: passedData?.statType ? passedData.statType.id : statCategory.lastStatTypeId + 1,
         name,
-        order: statTypes.length + 1,
+        order: passedData?.statType ? passedData.statType.order : statTypes.length + 1,
         variant,
       };
 
@@ -96,9 +96,11 @@ const AddEditStatType = ({ navigation, route }) => {
         statType.showAvg = showAvg;
         statType.showSum = showSum;
       }
-      if (variant !== StatTypeVariant.MULTIPLE_CHOICE) statType.trackPBs = trackPBs;
+      if (getIsNumericVariant(variant)) statType.trackPBs = trackPBs;
 
       if (passedData?.statType) {
+        if (passedData.statType.pbs) statType.pbs = passedData.statType.pbs;
+
         dispatch(editStatType(statType));
       } else {
         dispatch(addStatType(statType));
@@ -128,7 +130,8 @@ const AddEditStatType = ({ navigation, route }) => {
         <Text style={styles.label}>Variant:</Text>
         <Select options={options} selected={variant} onSelect={changeVariant} />
         {getCanHaveMultipleValues() && (
-          <Checkbox checked={multipleValues} onChange={setMultipleValues}>
+          // Checkbox disabled if editing stat type
+          <Checkbox checked={multipleValues} disabled={!!passedData?.statType} onChange={setMultipleValues}>
             Allow multiple values
           </Checkbox>
         )}
@@ -145,9 +148,9 @@ const AddEditStatType = ({ navigation, route }) => {
             </Checkbox>
           </>
         )}
-        {variant !== StatTypeVariant.MULTIPLE_CHOICE && (
+        {getIsNumericVariant(variant) && (
           <Checkbox checked={trackPBs} onChange={setTrackPBs}>
-            Track PBs {variant === StatTypeVariant.NON_NUMERIC ? '(manual)' : '(automatic)'}
+            Track PBs{variant === StatTypeVariant.NON_NUMERIC ? ' (manual)' : ''}
           </Checkbox>
         )}
         <View style={{ marginVertical: 20 }}>

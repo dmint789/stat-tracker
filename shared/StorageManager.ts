@@ -14,10 +14,13 @@ export const getData = async (categoryId: number, request: string) => {
   try {
     if (verbose) console.log(`Getting data for key ${key}`);
 
-    const data: any = JSON.parse(await AsyncStorage.getItem(key));
+    const data = await AsyncStorage.getItem(key);
+    const parsedData = JSON.parse(data);
 
     if (verbose) console.log(data);
-    if (data) return data;
+
+    if (parsedData) return parsedData;
+    else throw new Error('Retrieved data is invalid');
   } catch (err) {
     console.log(`Error while searching for key ${key}:`);
     console.log(err);
@@ -30,12 +33,14 @@ export const setData = async (categoryId: number, request: string, data: any) =>
   const key = categoryId + '_' + request;
 
   try {
+    const dataString = JSON.stringify(data);
+
     if (verbose) {
       console.log(`Setting data for key ${key}:`);
-      console.log(data);
+      console.log(dataString);
     }
 
-    await AsyncStorage.setItem(key, JSON.stringify(data));
+    await AsyncStorage.setItem(key, dataString);
   } catch (err) {
     console.log(`Error while setting data for key ${key}:`);
     console.log(err);

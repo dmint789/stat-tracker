@@ -1,37 +1,71 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
-import { getStatValues, getShowStats, getMultiValueStats } from '../shared/GlobalFunctions';
-import { IEntry } from '../shared/DataStructures';
+import { IEntry, IStatType, IMultiValueStat } from '../shared/DataStructures';
 
 import IconButton from './IconButton';
 
 const Entry: React.FC<{
   entry: IEntry;
-  onDeleteEntry: (id: number) => void;
+  onDeleteEntry: (entry: IEntry) => void;
   onEditEntry: (entry: IEntry) => void;
 }> = ({ entry, onDeleteEntry, onEditEntry }) => {
   const { statTypes } = useSelector((state: RootState) => state.main);
 
+  const getValueTextElement = (
+    value: string | number,
+    statType: IStatType,
+    key = null as 'best' | 'avg' | 'sum',
+  ) => {
+    const isPB =
+      statType?.trackPBs &&
+      ((!key && statType.pbs?.allTime.entryId === entry.id) ||
+        (key &&
+          statType.pbs?.allTime.entryId[key] === entry.id &&
+          statType.pbs?.allTime.result[key] === value));
+
+    return <Text style={isPB ? styles.pbStyle : {}}>{value}</Text>;
+  };
+
   return (
     <TouchableOpacity onPress={() => onEditEntry(entry)} style={GS.card}>
-      {entry.stats.map((stat) => (
-        <View key={stat.id}>
-          <Text style={GS.text}>
-            <Text style={GS.grayText}>
-              {statTypes.find((el) => el.id === stat.type)?.name || '(Deleted)'}:{' '}
+      {entry.stats.map((stat) => {
+        const statType = statTypes.find((el) => el.id === stat.type);
+
+        // Best/avg/sum should be shown if needed and if there are multiple values or the best/avg/sum is a PB
+        const id = statType.pbs?.allTime.entryId as IMultiValueStat;
+        const showBest = statType?.showBest && (stat.values.length > 1 || id?.best === entry.id);
+        const showAvg = statType?.showAvg && (stat.values.length > 1 || id?.avg === entry.id);
+        const showSum = statType?.showSum && (stat.values.length > 1 || id?.sum === entry.id);
+
+        return (
+          <View key={stat.id}>
+            <Text style={GS.text}>
+              <Text style={GS.grayText}>{statType?.name || '(Deleted)'}: </Text>
+              {statType.multipleValues
+                ? stat.values.map((value, i) => (
+                    <Text key={i}>
+                      {getValueTextElement(value, statType, 'best')}
+                      {i !== stat.values.length - 1 && ', '}
+                    </Text>
+                  ))
+                : getValueTextElement(stat.values[0], statType)}
             </Text>
-            {getStatValues(stat, statTypes)}
-          </Text>
-          {getShowStats(stat, statTypes) && (
-            <Text style={{ ...GS.grayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
-              {getMultiValueStats(stat, statTypes)}
-            </Text>
-          )}
-        </View>
-      ))}
+            {(showBest || showAvg || showSum) && (
+              <Text style={{ ...GS.grayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
+                {/* &#8194; is the En space character */}
+                {showBest && (
+                  <>Best: {getValueTextElement(stat.multiValueStats.best, statType, 'best')}&#8194;</>
+                )}
+                {showAvg && <>Avg: {getValueTextElement(stat.multiValueStats.avg, statType, 'avg')}&#8194;</>}
+                {showSum && <>Sum: {getValueTextElement(stat.multiValueStats.sum, statType, 'sum')}</>}
+              </Text>
+            )}
+          </View>
+        );
+      })}
       {entry.comment !== '' && (
         <Text
           style={{
@@ -44,10 +78,17 @@ const Entry: React.FC<{
       )}
       <Text style={GS.smallText}>{entry.date.text}</Text>
       <View style={GS.bottomButtons}>
-        <IconButton onPress={() => onDeleteEntry(entry.id)} />
+        <IconButton onPress={() => onDeleteEntry(entry)} />
       </View>
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  pbStyle: {
+    color: '#0c0',
+    fontWeight: 'bold',
+  },
+});
 
 export default Entry;

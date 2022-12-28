@@ -6,13 +6,23 @@ import GS from '../shared/GlobalStyles';
 type Props = {
   children: any;
   checked: boolean;
+  disabled?: boolean;
   onChange: (value: boolean) => void;
 };
 
-const Checkbox: React.FC<Props> = ({ children, checked, onChange }) => {
+const Checkbox: React.FC<Props> = ({ children, checked, disabled = false, onChange }) => {
+  const onPress = () => {
+    if (!disabled) {
+      onChange(!checked);
+    }
+  };
+
   return (
-    <TouchableOpacity onPress={() => onChange(!checked)} style={styles.checkboxContainer}>
-      <View style={styles.checkbox}>{checked && <Icon name="check" size={24} color="red" />}</View>
+    // 0.2 is the default activeOpacity in React Native
+    <TouchableOpacity onPress={onPress} activeOpacity={disabled ? 1 : 0.2} style={styles.checkboxContainer}>
+      <View style={{ ...styles.checkbox, backgroundColor: disabled ? 'lightgray' : 'pink' }}>
+        {checked && <Icon name="check" size={24} color={disabled ? 'gray' : 'red'} />}
+      </View>
       <Text style={GS.blackText}>{children}</Text>
     </TouchableOpacity>
   );
@@ -31,7 +41,6 @@ const styles = StyleSheet.create({
     width: 30,
     marginRight: 10,
     borderRadius: 10,
-    backgroundColor: 'pink',
   },
 });
 

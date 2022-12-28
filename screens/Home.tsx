@@ -30,12 +30,12 @@ const Home = ({ navigation }) => {
     navigation.navigate('AddEditEntry', { entry });
   };
 
-  const onDeleteEntry = (id: number) => {
+  const onDeleteEntry = (entry: IEntry) => {
     Alert.alert('Confirmation', 'Are you sure you want to delete the entry?', [
       { text: 'Cancel' },
       {
         text: 'Ok',
-        onPress: () => dispatch(deleteEntry(id)),
+        onPress: () => dispatch(deleteEntry(entry)),
       },
     ]);
   };

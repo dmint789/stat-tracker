@@ -3,8 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
-import { getStatValues, getShowStats, getMultiValueStats } from '../shared/GlobalFunctions';
-import { IStat } from '../shared/DataStructures';
+import { IStat, IStatType } from '../shared/DataStructures';
 
 import IconButton from './IconButton';
 
@@ -14,25 +13,40 @@ const WorkingEntryList: React.FC<{
 }> = ({ stats, deleteEditStat }) => {
   const { statTypes } = useSelector((state: RootState) => state.main);
 
+  const getStatValues = (stat: IStat, statType: IStatType): string => {
+    if (stat.values.length === 1) return String(stat.values[0]);
+    else {
+      return stat.values
+        .map((val) => val + (statType.unit ? ` ${statType.unit}` : '') + ', ')
+        .join('')
+        .slice(0, -2);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {stats.map((stat) => (
-        <View style={styles.stat} key={stat.id}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => deleteEditStat(stat, true)}>
-            <Text style={GS.text}>
-              <Text style={GS.grayText}>
-                {statTypes.find((el) => el.id === stat.type)?.name || '(Deleted)'}:{' '}
+      {stats.map((stat) => {
+        const statType = statTypes.find((el) => el.id === stat.type);
+        return (
+          <View style={styles.stat} key={stat.id}>
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => deleteEditStat(stat, true)}>
+              <Text style={GS.text}>
+                <Text style={GS.grayText}>{statType?.name || '(Deleted)'}: </Text>
+                {getStatValues(stat, statType)}
               </Text>
-              {getStatValues(stat, statTypes)}
-            </Text>
-            {getShowStats(stat, statTypes) && (
-              <Text style={{ ...GS.text, ...GS.grayText }}>{getMultiValueStats(stat, statTypes)}</Text>
-            )}
-          </TouchableOpacity>
+              {stat.values.length > 1 && (statType?.showBest || statType?.showAvg || statType?.showSum) && (
+                <Text style={{ ...GS.text, ...GS.grayText }}>
+                  {statType?.showBest && `Best: ${stat.multiValueStats.best}  `}
+                  {statType?.showAvg && `Avg: ${stat.multiValueStats.avg}  `}
+                  {statType?.showSum && `Sum: ${stat.multiValueStats.sum}`}
+                </Text>
+              )}
+            </TouchableOpacity>
 
-          <IconButton onPress={() => deleteEditStat(stat)} />
-        </View>
-      ))}
+            <IconButton onPress={() => deleteEditStat(stat)} />
+          </View>
+        );
+      })}
     </View>
   );
 };

@@ -23,6 +23,7 @@ const ChooseStatModal: React.FC<{
 
   const submitStatType = (statType: IStatType) => {
     selectStatType(statType.id);
+    setReordering(false);
     setStatModalOpen(false);
   };
 
@@ -47,6 +48,11 @@ const ChooseStatModal: React.FC<{
     if ((up && statType.order !== 1) || (!up && statType.order !== statTypes.length)) {
       dispatch(reorderStatTypes({ statType, up }));
     }
+  };
+
+  const onCancel = () => {
+    setReordering(false);
+    setStatModalOpen(false);
   };
 
   return (
@@ -101,7 +107,7 @@ const ChooseStatModal: React.FC<{
                 <Button onPress={onAddStatType} title="New" color="green" />
               </View>
               <View style={GS.button}>
-                <Button onPress={() => setStatModalOpen(false)} title="Cancel" color="grey" />
+                <Button onPress={onCancel} title="Cancel" color="grey" />
               </View>
             </View>
           </View>

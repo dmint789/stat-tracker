@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addEntry, editEntry } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import { getStatUnit, getIsNumericVariant } from '../shared/GlobalFunctions';
+import { getIsNumericVariant } from '../shared/GlobalFunctions';
 import { formatDate } from '../shared/GlobalFunctions';
 import { IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructures';
 
@@ -65,7 +65,6 @@ const AddEditEntry = ({ navigation, route }) => {
 
   // Check the validity of the new entry before it's passed to the home screen
   const isValidEntry = (entry: IEntry): boolean => {
-    console.log(JSON.stringify(entry));
     if (entry.stats.length === 0 && entry.comment.length === 0) {
       Alert.alert('Error', 'Please create a stat or write a comment', [{ text: 'Ok' }]);
       return false;
@@ -117,19 +116,40 @@ const AddEditEntry = ({ navigation, route }) => {
 
   // Assumes the new stat is valid
   const getNewStats = (prevStats = stats): IStat[] => {
-    const formattedValues = getIsNumericVariant(selectedStatType.variant)
-      ? (statValues.filter((val) => val !== '').map((val) => Number(val)) as number[])
-      : (statValues.filter((val) => val !== '').map((val) => String(val)) as string[]);
+    let formattedValues;
+    let multiValueStats = null;
 
-    return [
-      ...prevStats,
-      {
-        id: selectedStatType.id,
-        type: selectedStatType.id,
-        values: formattedValues,
-      },
-    ].sort(
-      (a: IStat, b: IStat) =>
+    if (getIsNumericVariant(selectedStatType.variant)) {
+      formattedValues = statValues.filter((val) => val !== '').map((val) => Number(val)) as number[];
+
+      if (selectedStatType.multipleValues) {
+        multiValueStats = {
+          best: null as number,
+          avg: null as number,
+          sum: null as number,
+        };
+
+        multiValueStats.sum = formattedValues.reduce((acc, val) => acc + val, 0);
+        multiValueStats.best =
+          selectedStatType.variant === StatTypeVariant.HIGHER_IS_BETTER
+            ? Math.max(...formattedValues)
+            : Math.min(...formattedValues);
+        multiValueStats.avg =
+          Math.round((multiValueStats.sum / formattedValues.length + Number.EPSILON) * 100) / 100;
+      }
+    } else {
+      formattedValues = statValues.filter((val) => val !== '').map((val) => String(val)) as string[];
+    }
+
+    const newStat: IStat = {
+      id: selectedStatType.id,
+      type: selectedStatType.id,
+      values: formattedValues,
+    };
+    if (multiValueStats) newStat.multiValueStats = multiValueStats;
+
+    return [...prevStats, newStat].sort(
+      (a, b) =>
         statTypes.find((el) => el.id === a.type).order - statTypes.find((el) => el.id === b.type).order,
     );
   };
@@ -201,7 +221,7 @@ const AddEditEntry = ({ navigation, route }) => {
   const filterStatTypes = () => {
     const newFilteredStatTypes = statTypes.filter((type) => !stats.find((stat) => stat.type === type.id));
 
-    // If the selected stat type is not in the filtered list after a deletion - update it
+    // If the selected stat type is not in the filtered list - update it
     if (
       selectedStatType &&
       newFilteredStatTypes.length > 0 &&
@@ -210,7 +230,7 @@ const AddEditEntry = ({ navigation, route }) => {
       let newSelection = null;
 
       for (let i of statTypes) {
-        if (i.id > selectedStatType.id && newFilteredStatTypes.find((el) => el.id === i.id)) {
+        if (i.order >= selectedStatType.order && newFilteredStatTypes.find((el) => el.id === i.id)) {
           newSelection = i;
           break;
         }
@@ -243,7 +263,7 @@ const AddEditEntry = ({ navigation, route }) => {
             <>
               <Text style={{ ...GS.text, flex: 1 }}>
                 {selectedStatType.name}
-                {getStatUnit(selectedStatType.id, statTypes)}
+                {selectedStatType.unit ? ` (${selectedStatType.unit})` : ''}
               </Text>
               <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
             </>
