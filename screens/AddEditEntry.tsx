@@ -1,99 +1,78 @@
-import React, {useState, useEffect} from 'react';
-import {
-  Text,
-  StyleSheet,
-  TextInput,
-  Button,
-  View,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, StyleSheet, TextInput, Button, View, ScrollView, Alert } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import * as SM from '../shared/StorageManager';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../redux/store';
+import { addEntry, editEntry, deleteStatType } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import {IEntry, IStatType, IStat} from '../shared/DataStructure';
-import {formatDate} from '../shared/GlobalFunctions';
+import { getStatUnit, getIsNumericVariant } from '../shared/GlobalFunctions';
+import { formatDate } from '../shared/GlobalFunctions';
+import { IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructures';
 
 import WorkingEntryList from '../components/WorkingEntryList';
-import ChooseStatModal from '../components/ChooseStatModal';
+import StatTypeModal from '../components/StatTypeModal';
 
-const AddEditEntry = ({navigation, route}) => {
+const AddEditEntry = ({ navigation, route }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { statCategory, statTypes } = useSelector((state: RootState) => state.main);
+
+  // Used when editing an entry (note: ids start from 1, so this can only be falsy when set to null)
+  const [prevEntryId, setPrevEntryId] = useState<number>(null);
   const [stats, setStats] = useState<IStat[]>([]);
-  const [statTypes, setStatTypes] = useState<IStatType[]>([]);
   const [filteredStatTypes, setFilteredStatTypes] = useState<IStatType[]>([]);
   // Stat choice from the list of filtered stat types
-  const [statChoice, setStatChoice] = useState<number>(0);
-  const [statName, setStatName] = useState<string>('Stat');
-  const [statValue, setStatValue] = useState<string>('');
+  const [selectedStatType, setSelectedStatType] = useState<IStatType>(statTypes[0] || null);
+  // The type here is different from the type of values in IStat
+  const [statValues, setStatValues] = useState<Array<string | number>>(['']);
   const [comment, setComment] = useState<string>('');
   const [date, setDate] = useState<Date>(new Date());
   const [textDate, setTextDate] = useState<string>('');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [statModalOpen, setStatModalOpen] = useState(false);
 
-  // If entry is null, we're adding an entry.
-  interface IPassedData {
-    statCategory: string;
-    entry?: IEntry;
-  }
-  const passedData: IPassedData = route.params;
+  const passedData: {
+    entry?: IEntry; // if null, we're adding a new entry
+    statType?: IStatType; // if set, we're adding or editing a stat type
+  } = route.params;
 
   useEffect(() => {
-    getInitData();
-
     // If an entry was passed, that means we're editing an entry.
     // In that case, set the header title and set all of the data from that entry.
-    if (passedData.entry) {
-      navigation.setOptions({title: 'Edit Entry'});
+    if (passedData?.entry) {
+      navigation.setOptions({ title: 'Edit Entry' });
 
-      setStats(passedData.entry.stats);
-      setComment(passedData.entry.comment);
-      // Destructure date from passed entry (t = temporary)
+      const { entry } = passedData;
+
+      setPrevEntryId(entry.id);
+      setStats(entry.stats);
+      setComment(entry.comment);
       // The month has to be given with 0 indexing
-      const {date: tDate} = passedData.entry;
-      setDate(new Date(tDate.year, tDate.month - 1, tDate.day));
-      setTextDate(tDate.text);
+      setDate(new Date(entry.date.year, entry.date.month - 1, entry.date.day));
+      setTextDate(entry.date.text);
     } else {
-      // If data wasn't passed, just set the header title and the current date in textDate
-      navigation.setOptions({title: 'Add Entry'});
+      navigation.setOptions({ title: 'Add Entry' });
       setTextDate(formatDate(date));
     }
-  }, []);
 
-  const getInitData = async () => {
-    // Get stat types if they've been saved, and if so, also get the last stat choice
-    const tempStatTypes: IStatType[] = await SM.getData(
-      passedData.statCategory,
-      'statTypes',
-    );
-
-    if (tempStatTypes !== null) {
-      setStatTypes(tempStatTypes);
-
-      // Set filteredStatTypes, statName and statChoice. If editing an entry, pass its stats.
-      filterStatTypes(
-        tempStatTypes,
-        passedData.entry ? passedData.entry.stats : [],
-      );
+    if (passedData?.statType) {
+      setSelectedStatType(passedData.statType);
     }
-  };
+  }, [passedData]);
+
+  useEffect(() => {
+    filterStatTypes();
+  }, [statTypes, stats]);
 
   // Check the validity of the new entry before it's passed to the home screen
-  const isValidEntry = (entry: IEntry) => {
+  const isValidEntry = (entry: IEntry): boolean => {
+    console.log(JSON.stringify(entry));
     if (entry.stats.length === 0 && entry.comment.length === 0) {
-      Alert.alert('Error', 'Please create a stat or write a comment', [
-        {text: 'Ok'},
-      ]);
+      Alert.alert('Error', 'Please create a stat or write a comment', [{ text: 'Ok' }]);
       return false;
     }
-
     for (let stat of entry.stats) {
-      if (stat.name.length === 0 || stat.value.length === 0) {
-        Alert.alert(
-          'Error',
-          'Please make sure all stats have a stat type and a value',
-          [{text: 'Ok'}],
-        );
+      if (!statTypes.find((el) => el.id === stat.type)) {
+        Alert.alert('Error', 'Please make sure all stats have a stat type', [{ text: 'Ok' }]);
         return false;
       }
     }
@@ -101,86 +80,88 @@ const AddEditEntry = ({navigation, route}) => {
   };
 
   // Check the validity of the new stat
-  const isValidStat = (showAlerts = true) => {
-    if (statName === 'Stat') {
-      if (showAlerts)
-        Alert.alert('Error', 'Please choose a stat type', [{text: 'Ok'}]);
+  const isValidStat = (showAlerts = true): boolean => {
+    if (filteredStatTypes.length === 0) {
+      if (showAlerts) Alert.alert('Error', 'Please choose a stat type', [{ text: 'Ok' }]);
       return false;
-    } else if (statValue.length === 0) {
-      if (showAlerts)
-        Alert.alert('Error', 'Please fill in the stat value', [{text: 'Ok'}]);
+    } else if (!statValues.find((el) => el !== '')) {
+      if (showAlerts) Alert.alert('Error', 'Please enter a stat value', [{ text: 'Ok' }]);
       return false;
-    } else if (stats.find(item => item.name === statName)) {
-      if (showAlerts)
-        Alert.alert('Error', 'You cannot have two stats with the same name', [
-          {text: 'Ok'},
-        ]);
+    } else if (
+      getIsNumericVariant(selectedStatType.variant) &&
+      statValues.find((el: string | number) => isNaN(Number(el))) !== undefined
+    ) {
+      if (showAlerts) {
+        const error = selectedStatType.multipleValues
+          ? 'All values must be numeric for this stat type'
+          : 'The value must be numeric for this stat type';
+        Alert.alert('Error', error, [{ text: 'Ok' }]);
+      }
       return false;
     } else return true;
   };
 
-  const statSortingCondition = (a: IStatType | IStat, b: IStatType | IStat) => {
-    if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
-    if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
-    return 0;
+  const updateStatValue = (index: number, value: string) => {
+    setStatValues((prevStatValues) => {
+      const newStatValues = prevStatValues.map((prevValue: string | number, i) =>
+        i === index ? value : prevValue,
+      );
+
+      // Add extra value input, if no empty ones are left and the stat type allows multiple values
+      if (selectedStatType?.multipleValues && newStatValues.findIndex((val) => val === '') === -1) {
+        newStatValues.push('');
+      }
+      return newStatValues;
+    });
+  };
+
+  // Assumes the new stat is valid
+  const getNewStats = (prevStats = stats): IStat[] => {
+    const formattedValues = getIsNumericVariant(selectedStatType.variant)
+      ? (statValues.filter((val) => val !== '').map((val) => Number(val)) as number[])
+      : (statValues.filter((val) => val !== '').map((val) => String(val)) as string[]);
+
+    return [
+      ...prevStats,
+      {
+        id: selectedStatType.id,
+        type: selectedStatType.id,
+        values: formattedValues,
+      },
+    ].sort(
+      (a: IStat, b: IStat) =>
+        statTypes.find((el) => el.id === a.type).order - statTypes.find((el) => el.id === b.type).order,
+    );
   };
 
   // Add new stat to the list of stats in the current entry
   const addStat = () => {
     if (isValidStat()) {
-      setStats((prevStats: IStat[]) => {
-        const newStats: IStat[] = [
-          ...prevStats,
-          {
-            name: statName,
-            value: statValue,
-          },
-        ].sort(statSortingCondition);
-
-        // Set filteredStatTypes, statChoice and statName
-        filterStatTypes(statTypes, newStats);
-
-        return newStats;
-      });
-
-      setStatValue('');
+      setStats((prevStats: IStat[]) => getNewStats(prevStats));
+      setStatValues(['']);
     }
   };
 
   // Delete a stat from the list or edit it (delete from the list, but put values in the inputs)
   const deleteEditStat = (stat: IStat, edit = false) => {
-    setStats((prevStats: IStat[]) => {
-      const newStats = prevStats.filter(item => item.name != stat.name);
+    setStats((prevStats: IStat[]) => prevStats.filter((el) => el.id !== stat.id));
 
-      if (edit) {
-        setStatValue(stat.value);
-        filterStatTypes(statTypes, newStats, stat.name);
-      } else {
-        filterStatTypes(statTypes, newStats);
-      }
-
-      return newStats;
-    });
+    if (edit) {
+      setStatValues(() => {
+        if (statTypes.find((el) => el.id === stat.type)?.multipleValues) return [...stat.values, ''];
+        else return stat.values;
+      });
+      selectStatType(stat.type);
+    }
   };
 
   const addEditEntry = () => {
-    if (statValue.length === 0 || isValidStat()) {
-      let tempStats: IStat[] = stats;
+    const unenteredStatExists = statValues.find((el) => el !== '');
 
-      // Add the last entered stat if not empty and sort the new list of stats
-      if (statValue.length > 0) {
-        tempStats.push({
-          name: statName,
-          value: statValue,
-        });
-        tempStats.sort(statSortingCondition);
-      }
-
-      // When adding a new entry (passedData.entry = null), pass the id as -1 and let the
-      // Home screen set the id. When editing an entry, set the same id that was passed.
-      const newEntry: IEntry = {
-        id: passedData.entry ? passedData.entry.id : -1,
-        stats: tempStats,
+    if (!unenteredStatExists || isValidStat()) {
+      const entry: IEntry = {
+        id: prevEntryId ? prevEntryId : statCategory.lastEntryId + 1,
+        stats: unenteredStatExists ? getNewStats() : stats, // add last entered stat if needed
         comment,
         date: {
           day: date.getDate(),
@@ -190,104 +171,71 @@ const AddEditEntry = ({navigation, route}) => {
         },
       };
 
-      if (isValidEntry(newEntry)) {
-        navigation.navigate('Home', {newEntry, statTypes});
+      if (isValidEntry(entry)) {
+        if (prevEntryId) {
+          dispatch(editEntry(entry));
+        } else {
+          dispatch(addEntry(entry));
+        }
+
+        navigation.goBack();
       }
     }
   };
 
-  // Add new stat type or change stat choice. Takes an object.
-  const addChangeStatType = (statType: IStatType) => {
-    // If more than one property was passed in the statType object, that means we're adding a new stat type
-    if (Object.keys(statType).length > 1) {
-      setStatTypes(prevStatTypes => {
-        const newStatTypes = [...prevStatTypes, statType].sort(
-          statSortingCondition,
-        );
-
-        SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
-
-        // Set filteredStatTypes, statChoice and statName
-        filterStatTypes(newStatTypes, stats, statType.name);
-
-        return newStatTypes;
-      });
-    } else {
-      setStatName(statType.name);
-      setStatChoice(
-        filteredStatTypes.findIndex(item => item.name === statType.name),
-      );
-    }
+  const selectStatType = (id: number) => {
+    setSelectedStatType(statTypes.find((el) => el.id === id));
   };
 
-  // Delete stat type
-  const deleteStatType = (name: string) => {
-    Alert.alert(
-      'Confirmation',
-      `Are you sure you want to delete the stat type ${name}?`,
-      [
-        {text: 'Cancel'},
-        {
-          text: 'Ok',
-          onPress: () => {
-            setStatTypes(() => {
-              const newStatTypes = statTypes.filter(item => item.name !== name);
+  const onAddStatType = () => {
+    setStatModalOpen(false);
+    navigation.navigate('AddEditStatType');
+  };
 
-              if (newStatTypes.length === 0) {
-                SM.deleteData(passedData.statCategory, 'statTypes');
-              } else {
-                SM.setData(passedData.statCategory, 'statTypes', newStatTypes);
-              }
+  const onEditStatType = (statType: IStatType) => {
+    setStatModalOpen(false);
+    navigation.navigate('AddEditStatType', { statType });
+  };
 
-              // This will update filteredStatTypes and statName, and, if statChoice goes
-              // beyond the number of filtered stat types, it will decrement stat choice
-              filterStatTypes(newStatTypes);
+  const onDeleteStatType = (statType: IStatType) => {
+    Alert.alert('Confirmation', `Are you sure you want to delete the stat type ${statType.name}?`, [
+      { text: 'Cancel' },
+      {
+        text: 'Ok',
+        onPress: () => {
+          dispatch(deleteStatType(statType.id));
 
-              return newStatTypes;
-            });
-          },
+          // -1, because it won't be updated until the next tick
+          if (statTypes.length - 1 === 0) {
+            setStatModalOpen(false);
+          }
         },
-      ],
-    );
+      },
+    ]);
   };
 
-  // Filter out stat types that have already been entered and update statChoice and statName
-  const filterStatTypes = (
-    newStatTypes: IStatType[],
-    newStats: IStat[] = stats,
-    newStatTypeName: string = '',
-  ) => {
-    const newFilteredStatTypes = newStatTypes.filter(
-      type => !newStats.find(stat => stat.name === type.name),
-    );
+  // Filter out stat types that have already been entered and update statChoice if needed
+  const filterStatTypes = () => {
+    const newFilteredStatTypes = statTypes.filter((type) => !stats.find((stat) => stat.type === type.id));
 
-    if (newFilteredStatTypes.length > 0) {
-      // If stat choice is beyond the number of filtered stat types, decrement it.
-      // This can only happen after a deletion.
-      if (newFilteredStatTypes.length === statChoice) {
-        setStatChoice(prevStatChoice => {
-          setStatName(newFilteredStatTypes[prevStatChoice - 1].name);
-          return prevStatChoice - 1;
-        });
-      } else {
-        // If newStatType is set, that means we're changing the stat type selection
-        if (newStatTypeName) {
-          setStatChoice(
-            newFilteredStatTypes.findIndex(
-              item => item.name === newStatTypeName,
-            ),
-          );
-          setStatName(newStatTypeName);
-        } else {
-          // Otherwise, just set the new stat name to whatever the stat choice already
-          // was using the new filtered list of stat types
-          setStatName(newFilteredStatTypes[statChoice].name);
+    // If the selected stat type is not in the filtered list after a deletion - update it
+    if (
+      selectedStatType &&
+      newFilteredStatTypes.length > 0 &&
+      !newFilteredStatTypes.find((el) => el.id === selectedStatType.id)
+    ) {
+      let newSelection = null;
+
+      for (let i of statTypes) {
+        if (i.id > selectedStatType.id && newFilteredStatTypes.find((el) => el.id === i.id)) {
+          newSelection = i;
+          break;
         }
       }
-    } else {
-      // This can only happen after a deletion, so we can just reset stat name and choice
-      setStatName('Stat');
-      setStatChoice(0);
+      if (newSelection === null) {
+        newSelection = newFilteredStatTypes[0];
+      }
+      setSelectedStatType(newSelection);
     }
 
     setFilteredStatTypes(newFilteredStatTypes);
@@ -295,46 +243,48 @@ const AddEditEntry = ({navigation, route}) => {
 
   return (
     <View style={GS.container}>
-      <ScrollView
-        keyboardShouldPersistTaps="always"
-        style={styles.scrollableArea}>
-        {stats.length > 0 && (
-          <WorkingEntryList
-            stats={stats}
-            statTypes={statTypes}
-            deleteEditStat={deleteEditStat}
-          />
-        )}
-        <ChooseStatModal
+      <ScrollView keyboardShouldPersistTaps="always" style={GS.scrollableArea}>
+        {stats.length > 0 && <WorkingEntryList stats={stats} deleteEditStat={deleteEditStat} />}
+        <StatTypeModal
           modalOpen={statModalOpen}
           setModalOpen={setStatModalOpen}
-          statTypes={statTypes}
           filteredStatTypes={filteredStatTypes}
-          addChangeStatType={addChangeStatType}
-          deleteStatType={deleteStatType}
+          selectStatType={selectStatType}
+          onAddStatType={onAddStatType}
+          onEditStatType={onEditStatType}
+          onDeleteStatType={onDeleteStatType}
         />
 
+        {/* Stat */}
         <View style={styles.nameView}>
-          <Text style={{...GS.text, flex: 1}}>{statName}</Text>
-          <Button
-            onPress={() => setStatModalOpen(true)}
-            title={filteredStatTypes.length > 0 ? 'Change Stat' : 'Create Stat'}
-            color={filteredStatTypes.length > 0 ? 'blue' : 'green'}
-          />
+          {filteredStatTypes.length > 0 ? (
+            <>
+              <Text style={{ ...GS.text, flex: 1 }}>
+                {selectedStatType.name}
+                {getStatUnit(selectedStatType.id, statTypes)}
+              </Text>
+              <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
+            </>
+          ) : (
+            <>
+              <Text style={{ ...GS.text, flex: 1 }}>Stat</Text>
+              <Button onPress={onAddStatType} title="Create Stat" color="green" />
+            </>
+          )}
         </View>
-        <TextInput
-          style={GS.input}
-          placeholder="Value"
-          placeholderTextColor="grey"
-          value={statValue}
-          onChangeText={value => setStatValue(value)}
-        />
-        <View style={{marginBottom: 10}}>
-          <Button
-            color={isValidStat(false) ? 'green' : 'grey'}
-            title="Add Stat"
-            onPress={() => addStat()}
+        {statValues.map((value: string | number, index: number) => (
+          <TextInput
+            key={String(index)}
+            style={GS.input}
+            placeholder="Value"
+            placeholderTextColor="grey"
+            multiline
+            value={String(value)}
+            onChangeText={(val: string) => updateStatValue(index, val)}
           />
+        ))}
+        <View style={{ marginBottom: 10 }}>
+          <Button color={isValidStat(false) ? 'green' : 'grey'} title="Add Stat" onPress={addStat} />
         </View>
 
         {/* Comment */}
@@ -342,36 +292,32 @@ const AddEditEntry = ({navigation, route}) => {
           style={GS.input}
           placeholder="Comment"
           placeholderTextColor="grey"
-          value={comment}
-          onChangeText={value => setComment(value)}
           multiline
+          value={comment}
+          onChangeText={(value) => setComment(value)}
         />
         {/* Date */}
         <View style={styles.date}>
           <Text style={GS.text}>{textDate}</Text>
-          <Button
-            onPress={() => setDatePickerOpen(true)}
-            title="Edit"
-            color="blue"
-          />
+          <Button onPress={() => setDatePickerOpen(true)} title="Edit" color="blue" />
         </View>
         <DatePicker
           modal
           mode="date"
           open={datePickerOpen}
           date={date}
-          onConfirm={date => {
+          onConfirm={(date) => {
             setDatePickerOpen(false);
             setDate(date);
             setTextDate(formatDate(date));
           }}
           onCancel={() => setDatePickerOpen(false)}
         />
-        <View style={{marginBottom: 20}}>
+        <View style={{ marginBottom: 20 }}>
           <Button
-            onPress={() => addEditEntry()}
-            title={passedData.entry ? 'Edit Entry' : 'Add Entry'}
-            color="red"
+            onPress={addEditEntry}
+            title={prevEntryId ? 'Edit Entry' : 'Add Entry'}
+            color={prevEntryId ? 'blue' : 'red'}
           />
         </View>
       </ScrollView>
@@ -380,10 +326,6 @@ const AddEditEntry = ({navigation, route}) => {
 };
 
 const styles = StyleSheet.create({
-  scrollableArea: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
   nameView: {
     flexDirection: 'row',
     justifyContent: 'space-between',

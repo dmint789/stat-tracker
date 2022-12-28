@@ -1,6 +1,6 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
-export default GS = StyleSheet.create({
+export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -24,12 +24,24 @@ export default GS = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
+  scrollableArea: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
   text: {
     marginBottom: 6,
     fontSize: 18,
     color: 'black',
   },
-  nameText: {
+  blackText: {
+    fontSize: 18,
+    color: 'black',
+  },
+  whiteText: {
+    fontSize: 18,
+    color: 'white',
+  },
+  grayText: {
     color: '#555',
   },
   commentText: {
@@ -68,12 +80,23 @@ export default GS = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'pink',
   },
+  smallCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'pink',
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
   button: {
     flex: 1,
     marginHorizontal: 10,
   },
   buttonRow: {
     flexDirection: 'row',
+    marginTop: 20,
   },
   bottomButtons: {
     position: 'absolute',

@@ -1,29 +1,20 @@
-import React, {useState, useEffect, SetStateAction} from 'react';
-import {Modal, View, TextInput, Button, Alert} from 'react-native';
-import GS from '../shared/GlobalStyles.js';
-import {IStatCategory} from '../shared/DataStructure';
-import {updateExpression} from '@babel/types';
+import React, { useState, useEffect, SetStateAction } from 'react';
+import { Modal, View, TextInput, Button, Alert } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../redux/store';
+import { addStatCategory, editStatCategory } from '../redux/mainSlice';
+import GS from '../shared/GlobalStyles';
+import { IStatCategory } from '../shared/DataStructures';
 
-type Props = {
-  categories: IStatCategory[];
-  prevCategory: IStatCategory;
+const AddEditCategoryModal: React.FC<{
+  prevCategory?: IStatCategory;
   modalOpen: boolean;
   setModalOpen: React.Dispatch<SetStateAction<boolean>>;
-  onAddCategory: (category: IStatCategory) => void;
-  onEditCategory: (
-    prevCategory: IStatCategory,
-    category: IStatCategory,
-  ) => void;
-};
+}> = ({ prevCategory, modalOpen, setModalOpen }) => {
+  const dispatch = useDispatch();
 
-const AddEditCategoryModal: React.FC<Props> = ({
-  categories,
-  prevCategory,
-  modalOpen,
-  setModalOpen,
-  onAddCategory,
-  onEditCategory,
-}) => {
+  const { statCategories, lastCategoryId } = useSelector((state: RootState) => state.main);
+
   const [name, setName] = useState('');
   const [note, setNote] = useState('');
 
@@ -32,39 +23,43 @@ const AddEditCategoryModal: React.FC<Props> = ({
     if (prevCategory) {
       setName(prevCategory.name);
       setNote(prevCategory.note);
+    } else {
+      setName('');
+      setNote('');
     }
   }, [modalOpen]);
 
   const onButtonPressed = () => {
     if (name.length > 0) {
       // Make sure this is not a duplicate stat category
-      if (!categories.find(item => item.name === name && item.note === note)) {
+      if (!statCategories.find((el) => el.name === name && el.id !== prevCategory?.id)) {
         if (!prevCategory) {
-          onAddCategory({name, note, lastId: 0, totalEntries: 0});
+          dispatch(
+            addStatCategory({
+              id: lastCategoryId + 1,
+              name,
+              note,
+              lastEntryId: 0,
+              lastStatTypeId: 0,
+              totalEntries: 0,
+            }),
+          );
         } else {
-          const updatedCategory: IStatCategory = {
-            name,
-            note,
-            lastId: prevCategory.lastId,
-            totalEntries: prevCategory.lastId,
-          };
-          onEditCategory(prevCategory, updatedCategory);
+          dispatch(
+            editStatCategory({
+              ...prevCategory,
+              name,
+              note,
+            }),
+          );
         }
 
-        setName('');
-        setNote('');
         setModalOpen(false);
       } else {
-        Alert.alert(
-          'Error',
-          'You already have a stat category with this name and note!',
-          [{text: 'Ok'}],
-        );
+        Alert.alert('Error', 'You already have a stat category with this name', [{ text: 'Ok' }]);
       }
     } else {
-      Alert.alert('Error', 'Please fill in the name of the stat category', [
-        {text: 'Ok'},
-      ]);
+      Alert.alert('Error', 'Please fill in the name of the stat category', [{ text: 'Ok' }]);
     }
   };
 
@@ -75,7 +70,8 @@ const AddEditCategoryModal: React.FC<Props> = ({
       visible={modalOpen}
       onRequestClose={() => {
         setModalOpen(false);
-      }}>
+      }}
+    >
       <View style={GS.modalContainer}>
         <View style={GS.modalBackground}>
           <TextInput
@@ -83,14 +79,14 @@ const AddEditCategoryModal: React.FC<Props> = ({
             placeholder="Name"
             placeholderTextColor="grey"
             value={name}
-            onChangeText={value => setName(value)}
+            onChangeText={(value) => setName(value)}
           />
           <TextInput
             style={GS.input}
             placeholder="Note"
             placeholderTextColor="grey"
             value={note}
-            onChangeText={value => setNote(value)}
+            onChangeText={(value) => setNote(value)}
             multiline
           />
           <View style={GS.buttonRow}>
@@ -102,11 +98,7 @@ const AddEditCategoryModal: React.FC<Props> = ({
               />
             </View>
             <View style={GS.button}>
-              <Button
-                onPress={() => setModalOpen(false)}
-                title="Cancel"
-                color="grey"
-              />
+              <Button onPress={() => setModalOpen(false)} title="Cancel" color="grey" />
             </View>
           </View>
         </View>

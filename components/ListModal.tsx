@@ -1,7 +1,15 @@
-import React from 'react';
-import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, { SetStateAction } from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ListModal = ({
+type Props = {
+  modalOpen: boolean;
+  setModalOpen: React.Dispatch<SetStateAction<boolean>>;
+  onAddCategory: () => void;
+  onOpenImportExport: () => void;
+  onOpenAbout: () => void;
+};
+
+const ListModal: React.FC<Props> = ({
   modalOpen,
   setModalOpen,
   onAddCategory,
@@ -10,6 +18,7 @@ const ListModal = ({
 }) => {
   const options = [
     {
+      id: 0,
       title: 'Add Stat Category',
       onChoose: () => {
         setModalOpen(false);
@@ -17,6 +26,7 @@ const ListModal = ({
       },
     },
     {
+      id: 1,
       title: 'Import/Export',
       onChoose: () => {
         setModalOpen(false);
@@ -24,6 +34,7 @@ const ListModal = ({
       },
     },
     {
+      id: 2,
       title: 'About',
       onChoose: () => {
         setModalOpen(false);
@@ -33,18 +44,10 @@ const ListModal = ({
   ];
 
   return (
-    <Modal
-      transparent={true}
-      visible={modalOpen}
-      onRequestClose={() => {
-        setModalOpen(false);
-      }}>
+    <Modal transparent={true} visible={modalOpen} onRequestClose={() => setModalOpen(false)}>
       <View style={styles.background}>
-        {options.map(item => (
-          <TouchableOpacity
-            onPress={() => item.onChoose()}
-            style={styles.item}
-            key={Math.random()}>
+        {options.map((item) => (
+          <TouchableOpacity onPress={item.onChoose} style={styles.item} key={item.id}>
             <Text style={styles.text}>{item.title}</Text>
           </TouchableOpacity>
         ))}

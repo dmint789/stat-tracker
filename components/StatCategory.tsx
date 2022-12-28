@@ -1,43 +1,30 @@
 import React from 'react';
-import {Text, View, TouchableOpacity, StyleSheet} from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import GS from '../shared/GlobalStyles';
-import {IStatCategory} from '../shared/DataStructure';
+import { IStatCategory } from '../shared/DataStructures';
 
-import IconButton from '../components/IconButton';
+import IconButton from './IconButton';
 
 type Props = {
   category: IStatCategory;
   onPress: (category: IStatCategory) => void;
   onEdit: (category: IStatCategory) => void;
-  onDelete: (category: string) => void;
+  onDelete: (category: IStatCategory) => void;
 };
 
-const StatCategory: React.FC<Props> = ({
-  category,
-  onPress,
-  onEdit,
-  onDelete,
-}) => {
+const StatCategory: React.FC<Props> = ({ category, onPress, onEdit, onDelete }) => {
   const getEntriesText = () => {
-    return category.totalEntries !== 1
-      ? `${category.totalEntries} entries`
-      : '1 entry';
+    return category.totalEntries !== 1 ? `${category.totalEntries} entries` : '1 entry';
   };
 
   return (
     <TouchableOpacity onPress={() => onPress(category)} style={GS.card}>
       <Text style={styles.titleText}>{category.name}</Text>
-      {category.note !== '' && (
-        <Text style={GS.commentText}>{category.note}</Text>
-      )}
+      {category.note !== '' && <Text style={GS.commentText}>{category.note}</Text>}
       <Text style={GS.smallText}>{getEntriesText()}</Text>
       <View style={GS.bottomButtons}>
-        <IconButton
-          type={'pencil'}
-          color={'gray'}
-          onPress={() => onEdit(category)}
-        />
-        <IconButton onPress={() => onDelete(category.name)} />
+        <IconButton type={'pencil'} color={'gray'} onPress={() => onEdit(category)} />
+        <IconButton onPress={() => onDelete(category)} />
       </View>
     </TouchableOpacity>
   );

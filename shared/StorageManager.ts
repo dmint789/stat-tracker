@@ -1,15 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ScopedStorage from 'react-native-scoped-storage';
-import {formatDate} from './GlobalFunctions';
-import {IStatCategory, BackupData, dataPoints} from './DataStructure';
+import { formatDate } from './GlobalFunctions';
+import { IStatCategory, BackupData, dataPoints } from './DataStructures';
 
 // NOTE: As these functions are asynchronous, when they're called from a normal function,
 // the execution of them may not end up being in the same order (shocking, I know)
 
-const verbose = false;
+const verbose = true;
 
-export const getData = async (statCategory: string, request: string) => {
-  const key: string = statCategory + '_' + request;
+export const getData = async (categoryId: number, request: string) => {
+  const key: string = categoryId + '_' + request;
 
   try {
     if (verbose) console.log(`Getting data for key ${key}`);
@@ -17,10 +17,7 @@ export const getData = async (statCategory: string, request: string) => {
     const data: any = JSON.parse(await AsyncStorage.getItem(key));
 
     if (verbose) console.log(data);
-
-    if (data) {
-      return data;
-    }
+    if (data) return data;
   } catch (err) {
     console.log(`Error while searching for key ${key}:`);
     console.log(err);
@@ -29,12 +26,8 @@ export const getData = async (statCategory: string, request: string) => {
   return null;
 };
 
-export const setData = async (
-  statCategory: string,
-  request: string,
-  data: any,
-) => {
-  const key = statCategory + '_' + request;
+export const setData = async (categoryId: number, request: string, data: any) => {
+  const key = categoryId + '_' + request;
 
   try {
     if (verbose) {
@@ -49,8 +42,8 @@ export const setData = async (
   }
 };
 
-export const deleteData = async (statCategory: string, request: string) => {
-  const key = statCategory + '_' + request;
+export const deleteData = async (categoryId: number, request: string) => {
+  const key = categoryId + '_' + request;
 
   try {
     if (verbose) console.log(`Deleting data for key ${key}`);
@@ -66,19 +59,48 @@ export const getStatCategories = async (): Promise<IStatCategory[]> => {
   try {
     if (verbose) console.log('Getting statCategories');
 
-    let data: IStatCategory[] = JSON.parse(
-      await AsyncStorage.getItem('statCategories'),
-    );
+    let data: IStatCategory[] = JSON.parse(await AsyncStorage.getItem('statCategories'));
 
     if (verbose) console.log(data);
 
-    // Check that the data is valid (there is always a name property in every element of the array)
-    if (data.length > 0 && data[0].name) return data;
+    // Check that the data is valid (there is always an id property in every element of the array)
+    if (data?.length > 0 && typeof data[0].id === 'number') return data;
   } catch (err) {
     console.log(`Error while retrieving stat categories: ${err}`);
   }
 
   return null;
+};
+
+export const getLastCategoryId = async (): Promise<number> => {
+  try {
+    if (verbose) console.log('Getting lastCategoryId');
+
+    const data = await AsyncStorage.getItem('lastCategoryId');
+
+    if (data === null) {
+      console.error('lastCategoryId not found');
+      return null;
+    }
+
+    if (verbose) console.log(data);
+
+    return Number(data);
+  } catch (err) {
+    console.error(`Error while retrieving lastCategoryId: ${err}`);
+  }
+
+  return null;
+};
+
+export const setLastCategoryId = async (id: number) => {
+  try {
+    if (verbose) console.log(`Setting lastCategoryId to ${id}`);
+
+    await AsyncStorage.setItem('lastCategoryId', String(id));
+  } catch (err) {
+    console.error(`Error while incrementing lastCategoryId: ${err}`);
+  }
 };
 
 export const setStatCategories = async (statCategories: IStatCategory[]) => {
@@ -88,87 +110,24 @@ export const setStatCategories = async (statCategories: IStatCategory[]) => {
       console.log(statCategories);
     }
 
-    await AsyncStorage.setItem(
-      'statCategories',
-      JSON.stringify(statCategories),
-    );
+    await AsyncStorage.setItem('statCategories', JSON.stringify(statCategories));
   } catch (err) {
     console.log(`Error while setting stat categories: ${err}`);
   }
 };
 
-export const reorderStatCategories = async (statCategory: IStatCategory) => {
-  try {
-    if (verbose)
-      console.log(
-        `Reordering statCategories with ${statCategory.name} at the top`,
-      );
-
-    let newStatCategories = await getStatCategories();
-
-    if (newStatCategories[0].name !== statCategory.name) {
-      newStatCategories = [
-        statCategory,
-        ...newStatCategories.filter(item => item.name !== statCategory.name),
-      ];
-
-      await setStatCategories(newStatCategories);
-    } else if (verbose)
-      console.log(`${statCategory.name} is already at the top`);
-  } catch (err) {
-    console.log(`Error while reordering stat categories: ${err}`);
-  }
-};
-
-export const editStatCategory = async (
-  prevCategory: IStatCategory,
-  statCategory: IStatCategory,
-) => {
-  try {
-    if (verbose) console.log(`Editing stat category ${prevCategory.name}`);
-
-    // If the name was changed, delete old keys from async storage and save them under the new name
-    if (statCategory.name !== prevCategory.name) {
-      for (let i of dataPoints) {
-        const temp: any = await getData(prevCategory.name, i);
-
-        if (verbose)
-          console.log(
-            `Changing the data from ${prevCategory.name}_${i} to ${statCategory.name}_${i}:`,
-          );
-
-        await setData(statCategory.name, i, temp);
-        await deleteData(prevCategory.name, i);
-      }
-    }
-
-    let newStatCategories: IStatCategory[] = await getStatCategories();
-    newStatCategories = newStatCategories.map(item =>
-      item.name === prevCategory.name ? statCategory : item,
-    );
-
-    await setStatCategories(newStatCategories);
-  } catch (err) {
-    console.log(`Error while editing stat category ${prevCategory}:`);
-    console.log(err);
-  }
-};
-
 // Sets the new list of stat categoies after a deletion and deletes all data used for it
-export const deleteStatCategory = async (
-  newStatCategories: IStatCategory[],
-  statCategory: string,
-) => {
+export const deleteStatCategory = async (category: IStatCategory, newStatCategories: IStatCategory[]) => {
   try {
-    if (verbose) console.log(`Deleting stat category ${statCategory}`);
+    if (verbose) console.log(`Deleting stat category ${category.name}`);
 
     for (let i of dataPoints) {
-      await deleteData(statCategory, i);
+      await deleteData(category.id, i);
     }
 
     await setStatCategories(newStatCategories);
   } catch (err) {
-    console.log(`Error while deleting stat category ${statCategory}:`);
+    console.log(`Error while deleting stat category ${category.name}:`);
     console.log(err);
   }
 };
@@ -185,9 +144,9 @@ export const exportData = async (): Promise<string> => {
         // Save every piece of data in the app's storage in a format that
         // can be used by setData() later when importing
         data.backup.push({
-          statCategory: i.name,
+          categoryId: i.id,
           request: j,
-          data: await getData(i.name, j),
+          data: await getData(i.id, j),
         });
       }
     }
@@ -197,15 +156,9 @@ export const exportData = async (): Promise<string> => {
     const backupDir: ScopedStorage.FileType = await getBackupDir();
 
     if (backupDir) {
-      const backupFile: string =
-        'Stat_Tracker_Backup_' + formatDate(new Date(), false);
+      const backupFile: string = 'Stat_Tracker_Backup_' + formatDate(new Date(), false);
 
-      await ScopedStorage.writeFile(
-        backupDir.uri,
-        backupFile,
-        'application/json',
-        JSON.stringify(data),
-      );
+      await ScopedStorage.writeFile(backupDir.uri, backupFile, 'application/json', JSON.stringify(data));
       return `Successfully exported backup file to ${backupDir.path}/${backupFile}.json`;
     } else {
       return 'Error while getting permission to backup directory';
@@ -217,9 +170,7 @@ export const exportData = async (): Promise<string> => {
 };
 
 // Deletes old stat categories (based on the passed array) and imports backup
-export const importData = async (
-  statCategories: IStatCategory[],
-): Promise<string> => {
+export const importData = async (statCategories: IStatCategory[]): Promise<string> => {
   try {
     if (verbose) console.log('Importing backup file');
 
@@ -232,21 +183,25 @@ export const importData = async (
 
       // Check validity of the received data
       if (data.statCategories) {
+        let successMessage = 'Successfully imported backup file';
+
         // Go through the old stat categories and add any that are not to be overwritten
-        // by the backup file due to having the same name
+        // by the backup file due to having the same id
         for (let i of statCategories) {
-          if (!data.statCategories.find(item => item.name === i.name)) {
+          if (!data.statCategories.find((el) => el.id === i.id)) {
             data.statCategories.push(i);
+          } else {
+            successMessage += ', but there were stat categories with duplicate IDs that were skipped';
           }
         }
 
         setStatCategories(data.statCategories);
 
         for (let i of data.backup) {
-          setData(i.statCategory, i.request, i.data);
+          setData(i.categoryId, i.request, i.data);
         }
 
-        return 'Successfully imported backup file';
+        return successMessage;
       } else {
         return 'Backup file is invalid';
       }
@@ -262,9 +217,7 @@ export const importData = async (
 // Will return backup directory uri or null if there's an error
 const getBackupDir = async (): Promise<ScopedStorage.FileType> => {
   // Get the backup directory from storage and get list of directories the app has permission to
-  let backupDir: any = JSON.parse(
-    await AsyncStorage.getItem('backupDirectory'),
-  );
+  let backupDir: any = JSON.parse(await AsyncStorage.getItem('backupDirectory'));
   const persistedUris = await ScopedStorage.getPersistedUriPermissions();
 
   if (verbose) {
@@ -275,9 +228,7 @@ const getBackupDir = async (): Promise<ScopedStorage.FileType> => {
   // If directory wasn't in storage or permission to it has been revoked, ask user to give permission and save new directory
   if (!backupDir || persistedUris.indexOf(backupDir.uri) === -1) {
     if (verbose)
-      console.log(
-        'Backup directory not found in async storage, requesting backup directory from user',
-      );
+      console.log('Backup directory not found in async storage, requesting backup directory from user');
 
     backupDir = await ScopedStorage.openDocumentTree(true);
     if (!backupDir) return null;
@@ -286,4 +237,28 @@ const getBackupDir = async (): Promise<ScopedStorage.FileType> => {
   }
 
   return backupDir;
+};
+
+// USED FOR DEVELOPMENT
+export const deleteAllData = async (): Promise<void> => {
+  try {
+    if (verbose) console.log('Deleting all data');
+
+    await AsyncStorage.removeItem('lastCategoryId');
+    await AsyncStorage.removeItem('backupDirectory');
+
+    const categories = JSON.parse(await AsyncStorage.getItem('statCategories'));
+
+    if (categories?.length > 0) {
+      for (let i of categories) {
+        for (let j of dataPoints) {
+          deleteData(i.id, j);
+        }
+      }
+
+      await AsyncStorage.removeItem('statCategories');
+    }
+  } catch (err) {
+    console.error(`Error while deleting all data: ${err}`);
+  }
 };
