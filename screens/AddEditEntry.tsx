@@ -3,7 +3,7 @@ import { Text, StyleSheet, TextInput, Button, View, ScrollView, Alert } from 're
 import DatePicker from 'react-native-date-picker';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
-import { addEntry, editEntry, deleteStatType } from '../redux/mainSlice';
+import { addEntry, editEntry } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
 import { getStatUnit, getIsNumericVariant } from '../shared/GlobalFunctions';
 import { formatDate } from '../shared/GlobalFunctions';
@@ -197,23 +197,6 @@ const AddEditEntry = ({ navigation, route }) => {
     navigation.navigate('AddEditStatType', { statType });
   };
 
-  const onDeleteStatType = (statType: IStatType) => {
-    Alert.alert('Confirmation', `Are you sure you want to delete the stat type ${statType.name}?`, [
-      { text: 'Cancel' },
-      {
-        text: 'Ok',
-        onPress: () => {
-          dispatch(deleteStatType(statType.id));
-
-          // -1, because it won't be updated until the next tick
-          if (statTypes.length - 1 === 0) {
-            setStatModalOpen(false);
-          }
-        },
-      },
-    ]);
-  };
-
   // Filter out stat types that have already been entered and update statChoice if needed
   const filterStatTypes = () => {
     const newFilteredStatTypes = statTypes.filter((type) => !stats.find((stat) => stat.type === type.id));
@@ -247,12 +230,11 @@ const AddEditEntry = ({ navigation, route }) => {
         {stats.length > 0 && <WorkingEntryList stats={stats} deleteEditStat={deleteEditStat} />}
         <StatTypeModal
           modalOpen={statModalOpen}
-          setModalOpen={setStatModalOpen}
+          setStatModalOpen={setStatModalOpen}
           filteredStatTypes={filteredStatTypes}
           selectStatType={selectStatType}
           onAddStatType={onAddStatType}
           onEditStatType={onEditStatType}
-          onDeleteStatType={onDeleteStatType}
         />
 
         {/* Stat */}

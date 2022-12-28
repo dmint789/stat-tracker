@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import * as SM from '../shared/StorageManager';
-import { IStatCategory, IEntry, IStatType } from '../shared/DataStructures';
+import { IStatCategory, IEntry, IStatType, StatTypeVariant } from '../shared/DataStructures';
 
 const initialState = {
   statCategories: [] as IStatCategory[],
@@ -100,7 +100,6 @@ const mainSlice = createSlice({
      */
     addStatType: (state, action: PayloadAction<IStatType>) => {
       state.statTypes.push(action.payload);
-      // state.statTypes.sort((a: IStatType, b: IStatType) => a.order - b.order);
       SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
 
       // Update stat category
@@ -112,6 +111,24 @@ const mainSlice = createSlice({
     },
     editStatType: (state, action: PayloadAction<IStatType>) => {
       state.statTypes = state.statTypes.map((el) => (el.id === action.payload.id ? action.payload : el));
+      SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
+    },
+    reorderStatTypes: (state, action: PayloadAction<{ statType: IStatType; up: boolean }>) => {
+      const { statType, up } = action.payload;
+
+      state.statTypes = state.statTypes
+        .map((el) => {
+          const upCondition = (up && el.id === statType.id) || (!up && el.order === statType.order + 1);
+          const downCondition = (!up && el.id === statType.id) || (up && el.order === statType.order - 1);
+
+          if (upCondition || downCondition) {
+            return {
+              ...el,
+              order: el.order + (upCondition ? -1 : 1),
+            };
+          } else return el;
+        })
+        .sort((a, b) => a.order - b.order);
       SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
     },
     deleteStatType: (state, action: PayloadAction<number>) => {
@@ -140,6 +157,7 @@ export const {
   deleteEntry,
   addStatType,
   editStatType,
+  reorderStatTypes,
   deleteStatType,
 } = mainSlice.actions;
 export default mainSlice.reducer;

@@ -13,8 +13,8 @@ export default StyleSheet.create({
   modalBackground: {
     width: '80%',
     borderRadius: 30,
-    padding: 30,
-    marginTop: 100,
+    padding: 20,
+    marginTop: '40%',
     marginBottom: 20,
     alignSelf: 'center',
     shadowColor: '#000000',

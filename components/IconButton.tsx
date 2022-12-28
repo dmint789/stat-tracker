@@ -3,7 +3,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
 
 type Props = {
-  type?: 'remove' | 'pencil' | 'ellipsis-v';
+  type?: 'remove' | 'pencil' | 'ellipsis-v' | 'arrow-up' | 'arrow-down';
   color?: string;
   onPress: () => void;
   bigHitbox?: boolean;

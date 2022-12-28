@@ -38,7 +38,7 @@ export interface IStatType {
   id: number;
   name: string;
   unit?: string;
-  order: number;
+  order: number; // goes from 1 to statTypes.length with no gaps
   variant: StatTypeVariant;
   choices?: string[]; // MULTIPLE_CHOICE only
   formula?: string; // FORMULA only
