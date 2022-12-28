@@ -49,7 +49,6 @@ const updateStatTypePB = (statType: IStatType, entry: IEntry): boolean => {
             result: { ...stat.multiValueStats },
           },
         };
-        console.log('First time PB', stat.multiValueStats);
 
         pbsUpdated = true;
       } else {
@@ -63,9 +62,6 @@ const updateStatTypePB = (statType: IStatType, entry: IEntry): boolean => {
           ) {
             statType.pbs.allTime.entryId[key] = entry.id;
             statType.pbs.allTime.result[key] = stat.multiValueStats[key];
-            console.log(
-              `Updating pb for key ${key} for stat ${statType.name} to ${stat.multiValueStats[key]}, id ${entry.id}`,
-            );
 
             pbsUpdated = true;
           }
@@ -77,13 +73,11 @@ const updateStatTypePB = (statType: IStatType, entry: IEntry): boolean => {
 };
 
 const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') => {
-  console.log('Update PB in mode', mode);
   let pbsUpdated = false;
 
   for (let statType of state.statTypes) {
     if (statType.trackPBs && getIsNumericVariant(statType.variant)) {
       if (mode !== 'delete') {
-        console.log('Improving PB for stat type', statType.name);
         pbsUpdated = updateStatTypePB(statType, entry) || pbsUpdated;
       }
 
@@ -105,7 +99,6 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
 
         if (isPrevPB) {
           for (let e of state.entries as IEntry[]) {
-            console.log('Lowering PB for stat type', statType.name, 'entry', e);
             pbsUpdated = updateStatTypePB(statType, e) || pbsUpdated;
           }
 
@@ -246,14 +239,14 @@ const mainSlice = createSlice({
         if (el.id === action.payload.id) {
           if (el.trackPBs && !action.payload.trackPBs) {
             delete action.payload.pbs;
-            console.log('Disabled pbs for stat type', action.payload);
           } else if (!el.trackPBs && action.payload.trackPBs) {
             for (let entry of state.entries as IEntry[]) {
               updateStatTypePB(action.payload, entry);
             }
-
-            SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
           }
+
+          SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
+
           return action.payload;
         } else return el;
       });

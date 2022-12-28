@@ -17,7 +17,7 @@ const WorkingEntryList: React.FC<{
     if (stat.values.length === 1) return String(stat.values[0]);
     else {
       return stat.values
-        .map((val) => val + (statType.unit ? ` ${statType.unit}` : '') + ', ')
+        .map((val) => val + (statType?.unit ? ` ${statType.unit}` : '') + ', ')
         .join('')
         .slice(0, -2);
     }

@@ -7,7 +7,7 @@ import { addEntry, editEntry } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
 import { getIsNumericVariant } from '../shared/GlobalFunctions';
 import { formatDate } from '../shared/GlobalFunctions';
-import { IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructures';
+import { IEntry, IStatType, IStat, StatTypeVariant, IMultiValueStat } from '../shared/DataStructures';
 
 import WorkingEntryList from '../components/WorkingEntryList';
 import StatTypeModal from '../components/StatTypeModal';
@@ -80,7 +80,7 @@ const AddEditEntry = ({ navigation, route }) => {
 
   // Check the validity of the new stat
   const isValidStat = (showAlerts = true): boolean => {
-    if (filteredStatTypes.length === 0) {
+    if (!selectedStatType) {
       if (showAlerts) Alert.alert('Error', 'Please choose a stat type', [{ text: 'Ok' }]);
       return false;
     } else if (!statValues.find((el) => el !== '')) {
@@ -100,7 +100,7 @@ const AddEditEntry = ({ navigation, route }) => {
     } else return true;
   };
 
-  const updateStatValue = (index: number, value: string) => {
+  const updateStatValues = (index: number, value: string) => {
     setStatValues((prevStatValues) => {
       const newStatValues = prevStatValues.map((prevValue: string | number, i) =>
         i === index ? value : prevValue,
@@ -110,43 +110,37 @@ const AddEditEntry = ({ navigation, route }) => {
       if (selectedStatType?.multipleValues && newStatValues.findIndex((val) => val === '') === -1) {
         newStatValues.push('');
       }
+
       return newStatValues;
     });
   };
 
   // Assumes the new stat is valid
   const getNewStats = (prevStats = stats): IStat[] => {
-    let formattedValues;
-    let multiValueStats = null;
+    let formatted;
+    const mvs = {} as IMultiValueStat;
 
     if (getIsNumericVariant(selectedStatType.variant)) {
-      formattedValues = statValues.filter((val) => val !== '').map((val) => Number(val)) as number[];
+      formatted = statValues.filter((val) => val !== '').map((val) => Number(val)) as number[];
 
       if (selectedStatType.multipleValues) {
-        multiValueStats = {
-          best: null as number,
-          avg: null as number,
-          sum: null as number,
-        };
-
-        multiValueStats.sum = formattedValues.reduce((acc, val) => acc + val, 0);
-        multiValueStats.best =
+        mvs.sum = formatted.reduce((acc, val) => acc + val, 0);
+        mvs.best =
           selectedStatType.variant === StatTypeVariant.HIGHER_IS_BETTER
-            ? Math.max(...formattedValues)
-            : Math.min(...formattedValues);
-        multiValueStats.avg =
-          Math.round((multiValueStats.sum / formattedValues.length + Number.EPSILON) * 100) / 100;
+            ? Math.max(...formatted)
+            : Math.min(...formatted);
+        mvs.avg = Math.round((mvs.sum / formatted.length + Number.EPSILON) * 100) / 100;
       }
     } else {
-      formattedValues = statValues.filter((val) => val !== '').map((val) => String(val)) as string[];
+      formatted = statValues.filter((val) => val !== '').map((val) => String(val)) as string[];
     }
 
     const newStat: IStat = {
       id: selectedStatType.id,
       type: selectedStatType.id,
-      values: formattedValues,
+      values: formatted,
     };
-    if (multiValueStats) newStat.multiValueStats = multiValueStats;
+    if (Object.keys(mvs).length > 0) newStat.multiValueStats = mvs;
 
     return [...prevStats, newStat].sort(
       (a, b) =>
@@ -167,10 +161,10 @@ const AddEditEntry = ({ navigation, route }) => {
     setStats((prevStats: IStat[]) => prevStats.filter((el) => el.id !== stat.id));
 
     if (edit) {
-      setStatValues(() => {
-        if (statTypes.find((el) => el.id === stat.type)?.multipleValues) return [...stat.values, ''];
-        else return stat.values;
-      });
+      const newValues = statTypes.find((el) => el.id === stat.type)?.multipleValues
+        ? [...stat.values, '']
+        : stat.values;
+      setStatValues(newValues);
       selectStatType(stat.type);
     }
   };
@@ -204,7 +198,7 @@ const AddEditEntry = ({ navigation, route }) => {
   };
 
   const selectStatType = (id: number) => {
-    setSelectedStatType(statTypes.find((el) => el.id === id));
+    setSelectedStatType(statTypes.find((el) => el.id === id) || null);
   };
 
   const onAddStatType = () => {
@@ -221,12 +215,11 @@ const AddEditEntry = ({ navigation, route }) => {
   const filterStatTypes = () => {
     const newFilteredStatTypes = statTypes.filter((type) => !stats.find((stat) => stat.type === type.id));
 
+    if (newFilteredStatTypes.length === 0) {
+      setSelectedStatType(null);
+    }
     // If the selected stat type is not in the filtered list - update it
-    if (
-      selectedStatType &&
-      newFilteredStatTypes.length > 0 &&
-      !newFilteredStatTypes.find((el) => el.id === selectedStatType.id)
-    ) {
+    else if (selectedStatType && !newFilteredStatTypes.find((el) => el.id === selectedStatType.id)) {
       let newSelection = null;
 
       for (let i of statTypes) {
@@ -259,19 +252,18 @@ const AddEditEntry = ({ navigation, route }) => {
 
         {/* Stat */}
         <View style={styles.nameView}>
-          {filteredStatTypes.length > 0 ? (
-            <>
-              <Text style={{ ...GS.text, flex: 1 }}>
-                {selectedStatType.name}
-                {selectedStatType.unit ? ` (${selectedStatType.unit})` : ''}
-              </Text>
-              <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
-            </>
+          {selectedStatType ? (
+            <Text style={{ ...GS.text, flex: 1 }}>
+              {selectedStatType.name}
+              {selectedStatType.unit ? ` (${selectedStatType.unit})` : ''}
+            </Text>
           ) : (
-            <>
-              <Text style={{ ...GS.text, flex: 1 }}>Stat</Text>
-              <Button onPress={onAddStatType} title="Create Stat" color="green" />
-            </>
+            <Text style={{ ...GS.text, flex: 1 }}>Stat</Text>
+          )}
+          {filteredStatTypes.length === 0 ? (
+            <Button onPress={onAddStatType} title="Create Stat" color="green" />
+          ) : (
+            <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
           )}
         </View>
         {statValues.map((value: string | number, index: number) => (
@@ -282,7 +274,7 @@ const AddEditEntry = ({ navigation, route }) => {
             placeholderTextColor="grey"
             multiline
             value={String(value)}
-            onChangeText={(val: string) => updateStatValue(index, val)}
+            onChangeText={(val: string) => updateStatValues(index, val)}
           />
         ))}
         <View style={{ marginBottom: 10 }}>

@@ -35,23 +35,24 @@ const Entry: React.FC<{
         const statType = statTypes.find((el) => el.id === stat.type);
 
         // Best/avg/sum should be shown if needed and if there are multiple values or the best/avg/sum is a PB
-        const id = statType.pbs?.allTime.entryId as IMultiValueStat;
-        const showBest = statType?.showBest && (stat.values.length > 1 || id?.best === entry.id);
-        const showAvg = statType?.showAvg && (stat.values.length > 1 || id?.avg === entry.id);
-        const showSum = statType?.showSum && (stat.values.length > 1 || id?.sum === entry.id);
+        const showBest = statType?.showBest && stat.values.length > 1;
+        const showAvg =
+          statType?.showAvg &&
+          (stat.values.length > 1 || (statType.pbs?.allTime.entryId as IMultiValueStat)?.avg === entry.id);
+        const showSum =
+          statType?.showSum &&
+          (stat.values.length > 1 || (statType.pbs?.allTime.entryId as IMultiValueStat)?.sum === entry.id);
 
         return (
           <View key={stat.id}>
             <Text style={GS.text}>
               <Text style={GS.grayText}>{statType?.name || '(Deleted)'}: </Text>
-              {statType.multipleValues
-                ? stat.values.map((value, i) => (
-                    <Text key={i}>
-                      {getValueTextElement(value, statType, 'best')}
-                      {i !== stat.values.length - 1 && ', '}
-                    </Text>
-                  ))
-                : getValueTextElement(stat.values[0], statType)}
+              {stat.values.map((value, i) => (
+                <Text key={i}>
+                  {getValueTextElement(value, statType, statType?.multipleValues ? 'best' : null)}
+                  {i !== stat.values.length - 1 && ', '}
+                </Text>
+              ))}
             </Text>
             {(showBest || showAvg || showSum) && (
               <Text style={{ ...GS.grayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
