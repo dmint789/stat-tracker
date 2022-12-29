@@ -1,4 +1,4 @@
-import { createSlice, isPending, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import * as SM from '../shared/StorageManager';
 import {
   IMultiValueStat,

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ScopedStorage from 'react-native-scoped-storage';
 import { formatDate } from './GlobalFunctions';
-import { IStatCategory, BackupData, dataPoints } from './DataStructures';
+import { IStatCategory, IBackupData, dataPoints } from './DataStructures';
 
 // NOTE: As these functions are asynchronous, when they're called from a normal function,
 // the execution of them may not end up being in the same order (shocking, I know)
@@ -137,85 +137,106 @@ export const deleteStatCategory = async (category: IStatCategory, newStatCategor
   }
 };
 
-export const exportData = async (): Promise<string> => {
+export const exportData = async (): Promise<{ message: string; error: string }> => {
   try {
     if (verbose) console.log('Exporting backup file');
 
-    let data = new BackupData();
-    data.statCategories = await getStatCategories();
+    const data: IBackupData = {
+      statCategories: (await getStatCategories()) || [],
+      lastCategoryId: await getLastCategoryId(),
+      statTypes: {},
+      entries: {},
+    };
 
     for (let i of data.statCategories) {
       for (let j of dataPoints) {
-        // Save every piece of data in the app's storage in a format that
-        // can be used by setData() later when importing
-        data.backup.push({
-          categoryId: i.id,
-          request: j,
-          data: await getData(i.id, j),
-        });
+        data[j][i.id] = await getData(i.id, j);
       }
     }
 
-    if (verbose) console.log(data);
+    const dataString = JSON.stringify(data);
+
+    if (verbose) console.log(dataString);
 
     const backupDir: ScopedStorage.FileType = await getBackupDir();
 
     if (backupDir) {
       const backupFile: string = 'Stat_Tracker_Backup_' + formatDate(new Date(), false);
 
-      await ScopedStorage.writeFile(backupDir.uri, backupFile, 'application/json', JSON.stringify(data));
-      return `Successfully exported backup file to ${backupDir.path}/${backupFile}.json`;
+      await ScopedStorage.writeFile(backupDir.uri, backupFile, 'application/json', dataString);
+      return {
+        message: `Successfully exported backup file to ${backupDir.path}/${backupFile}.json`,
+        error: '',
+      };
     } else {
-      return 'Error while getting permission to backup directory';
+      return { error: 'Error while getting permission to backup directory', message: '' };
     }
   } catch (err) {
-    console.log(err);
-    return `Error while exporting backup file: ${err}`;
+    return { error: `Error while exporting backup file: ${err}`, message: '' };
   }
 };
 
 // Deletes old stat categories (based on the passed array) and imports backup
-export const importData = async (statCategories: IStatCategory[]): Promise<string> => {
+export const importData = async (
+  statCategories: IStatCategory[],
+  lastCategoryId: number,
+): Promise<{ message: string; error: string }> => {
   try {
     if (verbose) console.log('Importing backup file');
 
     // Check for permission to backup directory or request it and continue if there's no error (null value returned)
     if (await getBackupDir()) {
       const backupFile = await ScopedStorage.openDocument(true, 'utf8');
-      const data: BackupData = JSON.parse(backupFile.data);
 
-      if (verbose) console.log(data);
+      if (verbose) console.log(backupFile.data);
 
-      // Check validity of the received data
+      const data: IBackupData = JSON.parse(backupFile.data);
+
+      if (data.lastCategoryId && data.lastCategoryId > lastCategoryId) {
+        setLastCategoryId(data.lastCategoryId);
+      }
+
       if (data.statCategories) {
-        let successMessage = 'Successfully imported backup file';
+        let successMessage = 'Successfully imported backup';
+        const skippedCategories: string[] = [];
 
         // Go through the old stat categories and add any that are not to be overwritten
         // by the backup file due to having the same id
-        for (let i of statCategories) {
-          if (!data.statCategories.find((el) => el.id === i.id)) {
-            data.statCategories.push(i);
+        if (verbose) console.log(`Ignoring stat categories: ${statCategories}`);
+
+        data.statCategories.filter((statCategory) => {
+          if (!statCategories.find((el) => el.id === statCategory.id || el.name === statCategory.name)) {
+            return true;
           } else {
-            successMessage += ', but there were stat categories with duplicate IDs that were skipped';
+            skippedCategories.push(statCategory.name);
+            return false;
           }
+        });
+
+        if (skippedCategories.length > 0) {
+          successMessage +=
+            ', but these stat categories in the backup were skipped due to the IDs or names overlapping with one of your existing stat categories: ';
+          skippedCategories.forEach((el) => (successMessage += `${el}, `));
+          successMessage = successMessage.slice(0, -2);
         }
 
         setStatCategories(data.statCategories);
 
-        for (let i of data.backup) {
-          setData(i.categoryId, i.request, i.data);
+        for (let i of dataPoints) {
+          for (let statCategory of data.statCategories) {
+            setData(statCategory.id, i, data[i][statCategory.id]);
+          }
         }
 
-        return successMessage;
+        return { message: successMessage, error: '' };
       } else {
-        return 'Backup file is invalid';
+        return { error: 'Backup file is invalid', message: '' };
       }
     } else {
-      return 'Error while trying to access backup file';
+      return { error: 'Error while trying to access backup file', message: '' };
     }
   } catch (err) {
-    console.log(err);
-    return `Error while importing backup file: ${err}`;
+    return { error: `Error while importing backup file: ${err}`, message: '' };
   }
 };
 
@@ -240,7 +261,6 @@ const getBackupDir = async (): Promise<ScopedStorage.FileType> => {
 
     await AsyncStorage.setItem('backupDirectory', JSON.stringify(backupDir));
   }
-
   return backupDir;
 };
 

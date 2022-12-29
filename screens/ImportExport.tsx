@@ -1,42 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../redux/store';
+import { exportData, importData } from '../redux/importExportSlice';
 import GS from '../shared/GlobalStyles';
-import * as SM from '../shared/StorageManager';
 
 const ImportExport = () => {
-  const { statCategories } = useSelector((state: RootState) => state.main);
+  const dispatch = useDispatch<AppDispatch>();
+  const { exportSuccess, exportError, importSuccess, importError } = useSelector(
+    (state: RootState) => state.importExport,
+  );
+  const { statCategories, lastCategoryId } = useSelector((state: RootState) => state.main);
 
-  const [exportMessage, setExportMessage] = useState<string>('');
-  const [importMessage, setImportMessage] = useState<string>('');
+  useEffect(() => {
+    console.log('Suc', importSuccess, 'err', importError);
+  }, [importSuccess, importError]);
 
-  const exportData = async () => {
-    const message = await SM.exportData();
-    setExportMessage(message);
-    setImportMessage('');
+  const onExportData = () => {
+    dispatch(exportData());
   };
 
-  const importData = async () => {
-    const message = await SM.importData(statCategories);
-    setImportMessage(message);
-    setExportMessage('');
+  const onImportData = () => {
+    dispatch(importData({ statCategories, lastCategoryId }));
   };
 
   return (
     <View style={GS.container}>
       <Text style={GS.normalText}>
         Press "Export" to export all of your stats in .json format. You can use this file to back up your data
-        and restore it later using the "Import" button below. WARNING: this will overwrite any existing stat
-        categories that have the same name as one of the stat categories in the backup file.
+        and restore it later using the "Import" button below.
       </Text>
-      {exportMessage !== '' && <Text style={{ ...GS.normalText, color: 'grey' }}>{exportMessage}</Text>}
+      {exportSuccess !== '' && <Text style={{ ...GS.normalText, color: 'grey' }}>{exportSuccess}</Text>}
+      {exportError !== '' && <Text style={{ ...GS.normalText, color: 'red' }}>{exportError}</Text>}
       <View style={styles.button}>
-        <Button onPress={exportData} title="Export" color="red" />
+        <Button onPress={onExportData} title="Export" color="red" />
       </View>
-      {importMessage !== '' && <Text style={{ ...GS.normalText, color: 'grey' }}>{importMessage}</Text>}
+      {importSuccess !== '' && <Text style={{ ...GS.normalText, color: 'grey' }}>{importSuccess}</Text>}
+      {importError !== '' && <Text style={{ ...GS.normalText, color: 'red' }}>{importError}</Text>}
       <View style={styles.button}>
-        <Button onPress={importData} title="Import" color="blue" />
+        <Button onPress={onImportData} title="Import" color="blue" />
       </View>
     </View>
   );

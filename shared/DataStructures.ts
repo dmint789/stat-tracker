@@ -3,18 +3,14 @@
  * and (4) things listed under dataPoints. backupDirectory is the only thing not needed for the export.
  */
 
-// List of data types stored with keys in the format "Stat Category Name_dataPoint"
+// List of data types stored with keys in the format "<StatCategoryId>_dataPoint"
 export const dataPoints = ['statTypes', 'entries'];
 
-interface IBackup {
-  categoryId: number;
-  request: string;
-  data: any;
-}
-
-export class BackupData {
-  statCategories: IStatCategory[] = [];
-  backup: IBackup[] = [];
+export interface IBackupData {
+  statCategories: IStatCategory[];
+  lastCategoryId: number;
+  statTypes: object; // object with keys <StatCategoryId>
+  entries: object; // object with keys <StatCategoryId>
 }
 
 export interface IStatCategory {

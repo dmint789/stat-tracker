@@ -128,7 +128,11 @@ const AddEditStatType = ({ navigation, route }) => {
           onChangeText={(value) => setUnit(value)}
         />
         <Text style={styles.label}>Variant:</Text>
-        <Select options={options} selected={variant} onSelect={changeVariant} />
+        <Select
+          options={passedData?.statType ? [options.find((el) => el.value === variant)] : options}
+          selected={variant}
+          onSelect={changeVariant}
+        />
         {getCanHaveMultipleValues() && (
           // Checkbox disabled if editing stat type
           <Checkbox checked={multipleValues} disabled={!!passedData?.statType} onChange={setMultipleValues}>

@@ -28,15 +28,11 @@ const Menu = ({ navigation }) => {
 
   useEffect(() => {
     SM.getStatCategories().then((result) => {
-      if (result !== null) {
-        dispatch(initStatCategories(result));
-      }
+      if (result !== null) dispatch(initStatCategories(result));
     });
 
     SM.getLastCategoryId().then((result) => {
-      if (result !== null) {
-        dispatch(initLastCategoryId(result));
-      }
+      if (result !== null) dispatch(initLastCategoryId(result));
     });
   }, []);
 
