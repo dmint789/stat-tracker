@@ -36,9 +36,12 @@ const WorkingEntryList: React.FC<{
               </Text>
               {stat.values.length > 1 && (statType?.showBest || statType?.showAvg || statType?.showSum) && (
                 <Text style={{ ...GS.text, ...GS.grayText }}>
-                  {statType?.showBest && `Best: ${stat.multiValueStats.best}  `}
-                  {statType?.showAvg && `Avg: ${stat.multiValueStats.avg}  `}
-                  {statType?.showSum && `Sum: ${stat.multiValueStats.sum}`}
+                  {statType.showBest &&
+                    `Best: ${
+                      statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low
+                    }  `}
+                  {statType.showAvg && `Avg: ${stat.multiValueStats.avg}  `}
+                  {statType.showSum && `Sum: ${stat.multiValueStats.sum}`}
                 </Text>
               )}
             </TouchableOpacity>

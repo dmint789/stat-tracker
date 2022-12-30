@@ -15,6 +15,7 @@ const AddEditStatType = ({ navigation, route }) => {
   const [name, setName] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [variant, setVariant] = useState<StatTypeVariant>(StatTypeVariant.TEXT);
+  const [higherIsBetter, setHigherIsBetter] = useState<boolean>(true);
   // const [choices, setChoices] = useState([]);
   // const [formula, setFormula] = useState<string>('');
   const [multipleValues, setMultipleValues] = useState<boolean>(false);
@@ -22,16 +23,20 @@ const AddEditStatType = ({ navigation, route }) => {
   const [showAvg, setShowAvg] = useState<boolean>(false);
   const [showSum, setShowSum] = useState<boolean>(false);
   const [trackPBs, setTrackPBs] = useState<boolean>(false);
-  const [higherIsBetter, setHigherIsBetter] = useState<boolean>(true);
 
   // If statType is null, we're adding a new stat type
   const passedData: {
     statType?: IStatType;
   } = route.params;
 
-  const options: ISelectOption[] = [
+  const variantOptions: ISelectOption[] = [
     { label: 'Text', value: StatTypeVariant.TEXT },
     { label: 'Number', value: StatTypeVariant.NUMBER },
+  ];
+
+  const higherLowerIsBetterOptions: ISelectOption[] = [
+    { label: 'Higher is better', value: 1 },
+    { label: 'Lower is better', value: 0 },
   ];
 
   useEffect(() => {
@@ -43,12 +48,12 @@ const AddEditStatType = ({ navigation, route }) => {
       setName(statType.name);
       if (statType.unit) setUnit(statType.unit);
       setVariant(statType.variant);
+      if (statType.higherIsBetter !== undefined) setHigherIsBetter(statType.higherIsBetter);
       if (statType.multipleValues !== undefined) setMultipleValues(statType.multipleValues);
       if (statType.showBest !== undefined) setShowBest(statType.showBest);
       if (statType.showAvg !== undefined) setShowAvg(statType.showAvg);
       if (statType.showSum !== undefined) setShowSum(statType.showSum);
       if (statType.trackPBs !== undefined) setTrackPBs(statType.trackPBs);
-      if (statType.higherIsBetter !== undefined) setTrackPBs(statType.higherIsBetter);
     } else {
       navigation.setOptions({ title: 'Add Stat Type' });
     }
@@ -56,6 +61,10 @@ const AddEditStatType = ({ navigation, route }) => {
 
   const changeVariant = (value: StatTypeVariant) => {
     setVariant(value);
+  };
+
+  const changeHigherLowerIsBetter = (value: number) => {
+    setHigherIsBetter(!!value); // value will be either 1 or 0
   };
 
   const getShowMultiNumericOptions = (): boolean => {
@@ -86,15 +95,15 @@ const AddEditStatType = ({ navigation, route }) => {
       };
 
       if (unit) statType.unit = unit;
+      if (variant === StatTypeVariant.NUMBER) {
+        statType.higherIsBetter = higherIsBetter;
+        statType.trackPBs = trackPBs;
+      }
       if (getCanHaveMultipleValues()) statType.multipleValues = multipleValues;
       if (getShowMultiNumericOptions()) {
         statType.showBest = showBest;
         statType.showAvg = showAvg;
         statType.showSum = showSum;
-      }
-      if (variant === StatTypeVariant.NUMBER) {
-        statType.trackPBs = trackPBs;
-        if (trackPBs) statType.higherIsBetter = higherIsBetter;
       }
 
       if (passedData?.statType) {
@@ -126,12 +135,24 @@ const AddEditStatType = ({ navigation, route }) => {
           placeholderTextColor="grey"
           onChangeText={(value) => setUnit(value)}
         />
-        <Text style={styles.label}>Variant:</Text>
+        <Text style={styles.label}>Variant</Text>
         <Select
-          options={passedData?.statType ? [options.find((el) => el.value === variant)] : options}
+          options={
+            passedData?.statType ? [variantOptions.find((el) => el.value === variant)] : variantOptions
+          }
           selected={variant}
           onSelect={changeVariant}
         />
+        {variant === StatTypeVariant.NUMBER && (
+          <View style={{ marginHorizontal: 18 }}>
+            <Select
+              options={higherLowerIsBetterOptions}
+              selected={Number(higherIsBetter)}
+              onSelect={changeHigherLowerIsBetter}
+              horizontal
+            />
+          </View>
+        )}
         {getCanHaveMultipleValues() && (
           // Checkbox disabled if editing stat type
           <Checkbox checked={multipleValues} disabled={!!passedData?.statType} onChange={setMultipleValues}>
@@ -157,13 +178,6 @@ const AddEditStatType = ({ navigation, route }) => {
             Track PBs
           </Checkbox>
         )}
-        {trackPBs && (
-          <View style={{ marginLeft: 24 }}>
-            <Checkbox checked={higherIsBetter} onChange={setHigherIsBetter}>
-              Higher is better
-            </Checkbox>
-          </View>
-        )}
         <View style={{ marginVertical: 20 }}>
           <Button
             onPress={addEditStatType}
@@ -180,7 +194,9 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 10,
     marginBottom: 20,
+    textAlign: 'center',
     fontSize: 22,
+    fontWeight: 'bold',
     color: 'black',
   },
 });

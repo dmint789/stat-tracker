@@ -7,11 +7,12 @@ type Props = {
   options: ISelectOption[];
   selected: number; // corresponds to the value field of ISelectOption
   onSelect: (value: number) => void;
+  horizontal?: boolean;
 };
 
-const Select: React.FC<Props> = ({ options, selected, onSelect }) => {
+const Select: React.FC<Props> = ({ options, selected, onSelect, horizontal = false }) => {
   return (
-    <View>
+    <View style={horizontal ? { flexDirection: 'row', justifyContent: 'space-between' } : {}}>
       {options.map((option) => (
         <TouchableOpacity
           key={option.value}

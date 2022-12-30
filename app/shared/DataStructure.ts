@@ -30,6 +30,13 @@ export enum StatTypeVariant {
 }
 
 export interface IMultiValueStat {
+  low: number; // lowest value
+  high: number; // highest value
+  avg: number;
+  sum: number;
+}
+
+export interface IMultiValuePB {
   best: number;
   avg: number;
   sum: number;
@@ -41,20 +48,20 @@ export interface IStatType {
   unit?: string;
   order: number; // goes from 1 to statTypes.length with no gaps
   variant: StatTypeVariant;
+  higherIsBetter?: boolean; // NUMBER only
   // choices?: string[]; // MULTIPLE_CHOICE only
   // formula?: string; // FORMULA only
   multipleValues?: boolean; // TEXT and NUMBER only
-  showBest?: boolean;
-  showAvg?: boolean;
-  showSum?: boolean;
-  trackPBs?: boolean;
-  // trackWorst?: boolean;
-  higherIsBetter?: boolean; // only set if trackPBs or trackWorst is on
+  showBest?: boolean; // NUMBER only
+  showAvg?: boolean; // NUMBER only
+  showSum?: boolean; // NUMBER only
+  trackPBs?: boolean; // TEXT (manual) and NUMBER only
+  // trackWorst?: boolean; // NUMBER only
   // If this is unset and trackPBs is on, that means there aren't any pbs yet for this stat type
   pbs?: {
     allTime: {
-      entryId: number | IMultiValueStat;
-      result: number | IMultiValueStat;
+      entryId: number | IMultiValuePB;
+      result: number | IMultiValuePB;
     };
   };
 }

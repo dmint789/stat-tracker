@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
-import { IEntry, IStatType, IMultiValueStat, IStat } from '../shared/DataStructure';
+import { IEntry, IStatType, IStat } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 
@@ -27,6 +27,11 @@ const Entry: React.FC<{
 
   const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
     const isPB = statType?.trackPBs && statType.pbs?.allTime.entryId[key] === entry.id;
+
+    if (key === 'best') {
+      // @ts-ignore
+      key = statType?.higherIsBetter ? 'high' : 'low';
+    }
 
     return <Text style={isPB ? styles.pbStyle : {}}>{stat.multiValueStats[key]}</Text>;
   };

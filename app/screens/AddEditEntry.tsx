@@ -124,7 +124,8 @@ const AddEditEntry = ({ navigation, route }) => {
 
       if (selectedStatType.multipleValues) {
         mvs.sum = formatted.reduce((acc, val) => acc + val, 0);
-        mvs.best = selectedStatType.higherIsBetter ? Math.max(...formatted) : Math.min(...formatted);
+        mvs.low = Math.min(...formatted);
+        mvs.high = Math.max(...formatted);
         mvs.avg = Math.round((mvs.sum / formatted.length + Number.EPSILON) * 100) / 100;
       }
     } else {

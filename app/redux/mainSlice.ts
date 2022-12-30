@@ -2,13 +2,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import * as SM from '../shared/StorageManager';
 import { isNewerOrSameDate } from '../shared/GlobalFunctions';
 import {
-  IMultiValueStat,
+  IMultiValuePB,
   IStatCategory,
   IEntry,
   IStatType,
   IStat,
   StatTypeVariant,
 } from '../shared/DataStructure';
+
+const verbose = true;
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -58,23 +60,29 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
               avg: entry.id,
               sum: entry.id,
             },
-            result: { ...stat.multiValueStats },
+            result: {
+              best: statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low,
+              avg: stat.multiValueStats.avg,
+              sum: stat.multiValueStats.sum,
+            },
           },
         };
 
         pbUpdated = true;
       } else {
-        const pbs = statType.pbs.allTime.result as IMultiValueStat;
+        const pbs = statType.pbs.allTime.result as IMultiValuePB;
+        const convertKey = (key) => (key === 'best' ? (statType.higherIsBetter ? 'high' : 'low') : key);
 
         ['best', 'avg', 'sum'].forEach((key) => {
           if (
             pbs[key] === null ||
-            (stat.multiValueStats[key] > pbs[key] && statType.higherIsBetter) ||
-            (stat.multiValueStats[key] < pbs[key] && !statType.higherIsBetter) ||
-            (stat.multiValueStats[key] === pbs[key] && !isNewerOrSameDate(entry.date, state.entries[0].date))
+            (stat.multiValueStats[convertKey(key)] > pbs[key] && statType.higherIsBetter) ||
+            (stat.multiValueStats[convertKey(key)] < pbs[key] && !statType.higherIsBetter) ||
+            (stat.multiValueStats[convertKey(key)] === pbs[key] &&
+              !isNewerOrSameDate(entry.date, state.entries[0].date))
           ) {
             statType.pbs.allTime.entryId[key] = entry.id;
-            statType.pbs.allTime.result[key] = stat.multiValueStats[key];
+            statType.pbs.allTime.result[key] = stat.multiValueStats[convertKey(key)];
 
             pbUpdated = true;
           }
@@ -87,6 +95,8 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
 };
 
 const checkPBFromScratch = (state: any, statType: IStatType) => {
+  if (verbose) console.log(`Checking PB from scratch for stat type ${statType.name}`);
+
   for (let i = state.entries.length - 1; i >= 0; i--) {
     updateStatTypePB(state, statType, state.entries[i]);
   }
@@ -294,9 +304,13 @@ const mainSlice = createSlice({
     editStatType: (state, action: PayloadAction<IStatType>) => {
       state.statTypes = state.statTypes.map((el) => {
         if (el.id === action.payload.id) {
+          console.log('ST', JSON.stringify(action.payload), JSON.stringify(el));
           if (el.trackPBs && !action.payload.trackPBs) {
             delete action.payload.pbs;
-          } else if (!el.trackPBs && action.payload.trackPBs) {
+          } else if (
+            action.payload.trackPBs &&
+            (!el.trackPBs || action.payload.higherIsBetter !== el.higherIsBetter)
+          ) {
             checkPBFromScratch(state, action.payload);
           }
 
