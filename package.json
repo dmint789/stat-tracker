@@ -13,7 +13,8 @@
     "test-release": "react-native run-android --variant=release",
     "emulator": "emulator -avd Pixel_3a_API_31",
     "rn-upgrade": "react-native upgrade",
-    "rn-new-version": "react-native-version --never-amend",
+    "rn-new-ver": "react-native-version --never-amend",
+    "git-new-ver": "echo Version: && read VERSION && git tag -af $VERSION -m \"Version $VERSION\" && git push -f origin --tags",
     "test": "jest",
     "lint": "eslint ."
   },
