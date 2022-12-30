@@ -24,6 +24,8 @@ const verbose = true;
 
 // The return value is whether or not the PB got updated
 const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boolean => {
+  if (verbose) console.log(`Checking if entry ${entry.id} has the PB for stat type ${statType.name}`);
+
   let pbUpdated = false;
   const stat = entry.stats.find((el: IStat) => el.type === statType.id);
 
@@ -43,7 +45,10 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
         (stat.values[0] > statType.pbs.allTime.result && statType.higherIsBetter) ||
         (stat.values[0] < statType.pbs.allTime.result && !statType.higherIsBetter) ||
         (stat.values[0] === statType.pbs.allTime.result &&
-          !isNewerOrSameDate(entry.date, state.entries[0].date))
+          !isNewerOrSameDate(
+            entry.date,
+            state.entries.find((el) => el.id === statType.pbs.allTime.entryId).date,
+          ))
       ) {
         statType.pbs.allTime.entryId = entry.id;
         statType.pbs.allTime.result = stat.values[0] as number;
@@ -79,7 +84,10 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
             (stat.multiValueStats[convertKey(key)] > pbs[key] && statType.higherIsBetter) ||
             (stat.multiValueStats[convertKey(key)] < pbs[key] && !statType.higherIsBetter) ||
             (stat.multiValueStats[convertKey(key)] === pbs[key] &&
-              !isNewerOrSameDate(entry.date, state.entries[0].date))
+              !isNewerOrSameDate(
+                entry.date,
+                state.entries.find((el) => el.id === statType.pbs.allTime.entryId[key]).date,
+              ))
           ) {
             statType.pbs.allTime.entryId[key] = entry.id;
             statType.pbs.allTime.result[key] = stat.multiValueStats[convertKey(key)];
@@ -107,6 +115,8 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
 
   for (let statType of state.statTypes) {
     if (statType.trackPBs && statType.variant === StatTypeVariant.NUMBER) {
+      if (verbose) console.log(`Updating PB for stat type ${statType.name}`);
+
       let pbUpdated = false;
 
       // Update PB if it could have gotten better or it's a tie, but happened earlier
@@ -304,7 +314,6 @@ const mainSlice = createSlice({
     editStatType: (state, action: PayloadAction<IStatType>) => {
       state.statTypes = state.statTypes.map((el) => {
         if (el.id === action.payload.id) {
-          console.log('ST', JSON.stringify(action.payload), JSON.stringify(el));
           if (el.trackPBs && !action.payload.trackPBs) {
             delete action.payload.pbs;
           } else if (

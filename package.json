@@ -14,7 +14,7 @@
     "emulator": "emulator -avd Pixel_3a_API_31",
     "rn-upgrade": "react-native upgrade",
     "rn-new-ver": "react-native-version --never-amend",
-    "git-new-ver": "echo Version: && read VERSION && git tag -af $VERSION -m \"Version $VERSION\" && git push -f origin --tags",
+    "new-version": "yarn rn-new-ver && VER=$(jq -r .version ./package.json) && git tag -af \"v$VER\" -m \"Version $VER\" && git push -f origin --tags && git tag",
     "test": "jest",
     "lint": "eslint ."
   },
