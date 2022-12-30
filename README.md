@@ -1,14 +1,18 @@
 # Stat Tracker
 
-Mobile app for tracking various statistics, like things related to work, education, hobbies, health, etc. Can be used for writing down daily statistics, like weight, gym exercises, new entries related to your hobbies, and so on.
+Mobile app for tracking various statistics, like things related to work, education, hobbies, health, etc. Shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
+
+![](https://denimintsaev.com/api/stat_tracker_1.jpg)
+
+![](https://denimintsaev.com/api/stat_tracker_2.jpg)
 
 ## Download
 
-You can download a WORK IN PROGRESS build of this app on the [releases page](https://github.com/dmint789/stat-tracker/releases). Keep in mind that future releases could be incompatible with the version you download. However, it will still be possible to change your old backup file to the new format if and when the format changes. This disclaimer will be removed once this app reaches version 1.0.
+You can download a **WORK IN PROGRESS** build of this app on the [releases page](https://github.com/dmint789/stat-tracker/releases). Keep in mind that future releases could be incompatible with the version you download. However, it will still be possible to change your old backup file to the new format. If you need to have this done, feel free to contact me (cube327@tuta.io). This disclaimer will be removed once this app reaches version 1.0.
 
 ## Setting Up The Dev Environment
 
-In order to set up the dev environment to contribute to this project you will need to have git, node and yarn installed. Pull this repository and run this command in the root directory of this project:
+In order to set up the dev environment to contribute to this project you will need to have Git, Node 14+, Yarn, Android Studio and JDK11 installed. See further instructions on how to set up the development environment for React Native [here](https://reactnative.dev/docs/environment-setup). Clone this repository and run this command in the root directory of this project:
 
 ```
 yarn install
@@ -16,25 +20,8 @@ yarn install
 
 ## Building Debug APK
 
-In order to build a debug APK file, use this command:
+Use this command to build a debug APK:
 
 ```
 yarn debug-apk
-```
-
-## Building Release APK
-
-In order to build a release APK file you will need to generate a keystore, place the file in the `android/app` directory, and also create a `keystore.properties` file with the following contents:
-
-```
-storePassword=[YOUR KEYSTORE PASSWORD]
-keyPassword=[YOUR KEY PASSWORD (may be the same as the one above)]
-keyAlias=[YOUR KEY ALIAS]
-storeFile=[NAME OF YOUR KEYSTORE FILE].keystore
-```
-
-Then use this command:
-
-```
-yarn release-apk
 ```

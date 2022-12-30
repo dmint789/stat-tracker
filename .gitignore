@@ -65,4 +65,4 @@ buck-out/
 
 
 # Added Manually
-android/app/rsc/main/res/drawable-*
+android/app/src/main/res/drawable-*

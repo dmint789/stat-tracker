@@ -134,6 +134,64 @@ export const deleteStatCategory = async (category: IStatCategory, newStatCategor
   }
 };
 
+export const importData = async (
+  statCategories: IStatCategory[],
+  lastCategoryId: number,
+): Promise<{ message: string; error: string }> => {
+  try {
+    if (verbose) console.log('Importing backup file');
+
+    const backupFile = await ScopedStorage.openDocument(true, 'utf8');
+
+    if (verbose) console.log('Backup file data:', backupFile.data);
+
+    const data: IBackupData = JSON.parse(backupFile.data);
+
+    if (data.lastCategoryId > lastCategoryId) {
+      setLastCategoryId(data.lastCategoryId);
+    }
+
+    if (data.statCategories) {
+      let successMessage = 'Successfully imported backup';
+      const skippedCategories: string[] = [];
+
+      // Go through the old stat categories and add any that are not to be overwritten
+      // by the backup file due to having the same id
+      if (verbose && statCategories.length) console.log(`Ignoring stat categories: ${statCategories}`);
+
+      data.statCategories = data.statCategories.filter((statCategory) => {
+        if (!statCategories.find((el) => el.id === statCategory.id || el.name === statCategory.name)) {
+          return true;
+        } else {
+          skippedCategories.push(statCategory.name);
+          return false;
+        }
+      });
+
+      if (skippedCategories.length > 0) {
+        successMessage +=
+          ', but these stat categories in the backup were skipped due to the IDs or names overlapping with one of your existing stat categories: ';
+        skippedCategories.forEach((el) => (successMessage += `${el}, `));
+        successMessage = successMessage.slice(0, -2);
+      }
+
+      setStatCategories(data.statCategories);
+
+      for (let i of dataPoints) {
+        for (let statCategory of data.statCategories) {
+          setData(statCategory.id, i, data[i][statCategory.id]);
+        }
+      }
+
+      return { message: successMessage, error: '' };
+    } else {
+      return { error: 'Backup file is invalid', message: '' };
+    }
+  } catch (err) {
+    return { error: `Error while importing backup file: ${err}`, message: '' };
+  }
+};
+
 export const exportData = async (): Promise<{ message: string; error: string }> => {
   try {
     if (verbose) console.log('Exporting backup file');
@@ -174,64 +232,6 @@ export const exportData = async (): Promise<{ message: string; error: string }> 
     }
   } catch (err) {
     return { error: String(err), message: '' };
-  }
-};
-
-export const importData = async (
-  statCategories: IStatCategory[],
-  lastCategoryId: number,
-): Promise<{ message: string; error: string }> => {
-  try {
-    if (verbose) console.log('Importing backup file');
-
-    const backupFile = await ScopedStorage.openDocument(true, 'utf8');
-
-    if (verbose) console.log('Backup file data:', backupFile.data);
-
-    const data: IBackupData = JSON.parse(backupFile.data);
-
-    if (data.lastCategoryId > lastCategoryId) {
-      setLastCategoryId(data.lastCategoryId);
-    }
-
-    if (data.statCategories) {
-      let successMessage = 'Successfully imported backup';
-      const skippedCategories: string[] = [];
-
-      // Go through the old stat categories and add any that are not to be overwritten
-      // by the backup file due to having the same id
-      if (verbose && statCategories.length) console.log(`Ignoring stat categories: ${statCategories}`);
-
-      data.statCategories.filter((statCategory) => {
-        if (!statCategories.find((el) => el.id === statCategory.id || el.name === statCategory.name)) {
-          return true;
-        } else {
-          skippedCategories.push(statCategory.name);
-          return false;
-        }
-      });
-
-      if (skippedCategories.length > 0) {
-        successMessage +=
-          ', but these stat categories in the backup were skipped due to the IDs or names overlapping with one of your existing stat categories: ';
-        skippedCategories.forEach((el) => (successMessage += `${el}, `));
-        successMessage = successMessage.slice(0, -2);
-      }
-
-      setStatCategories(data.statCategories);
-
-      for (let i of dataPoints) {
-        for (let statCategory of data.statCategories) {
-          setData(statCategory.id, i, data[i][statCategory.id]);
-        }
-      }
-
-      return { message: successMessage, error: '' };
-    } else {
-      return { error: 'Backup file is invalid', message: '' };
-    }
-  } catch (err) {
-    return { error: `Error while importing backup file: ${err}`, message: '' };
   }
 };
 
