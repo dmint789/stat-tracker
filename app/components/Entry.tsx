@@ -87,7 +87,7 @@ const Entry: React.FC<{
 
 const styles = StyleSheet.create({
   pbStyle: {
-    color: '#0c0',
+    color: 'blue',
     fontWeight: 'bold',
   },
 });

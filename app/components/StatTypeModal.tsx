@@ -67,11 +67,13 @@ const ChooseStatModal: React.FC<{
       <View style={GS.modalContainer}>
         <ScrollView keyboardShouldPersistTaps="always">
           <View style={GS.modalBackground}>
-            <TouchableOpacity onPress={() => setReordering((prevReordering) => !prevReordering)}>
-              <Text style={{ ...GS.text, marginBottom: 16, textAlign: 'right', color: 'blue' }}>
-                {reordering ? 'Done' : 'Reorder'}
-              </Text>
-            </TouchableOpacity>
+            {filteredStatTypes.length === statTypes.length && statTypes.length > 1 && (
+              <TouchableOpacity onPress={() => setReordering((prevReordering) => !prevReordering)}>
+                <Text style={{ ...GS.text, marginBottom: 16, textAlign: 'right', color: 'blue' }}>
+                  {reordering ? 'Done' : 'Reorder'}
+                </Text>
+              </TouchableOpacity>
+            )}
             {filteredStatTypes.map((item) => (
               <TouchableOpacity onPress={() => submitStatType(item)} key={item.id}>
                 <View style={GS.smallCard}>
