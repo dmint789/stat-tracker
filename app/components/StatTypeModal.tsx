@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { reorderStatTypes, deleteStatType } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import { IStatType } from '../shared/DataStructures';
+import { IStatType } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 

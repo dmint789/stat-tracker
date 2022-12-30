@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
-import { IStat, IStatType } from '../shared/DataStructures';
+import { IStat, IStatType } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 

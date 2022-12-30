@@ -11,7 +11,7 @@ import {
 } from '../redux/mainSlice';
 import * as SM from '../shared/StorageManager';
 import GS from '../shared/GlobalStyles';
-import { IStatCategory, IStatType, IEntry } from '../shared/DataStructures';
+import { IStatCategory, IStatType, IEntry } from '../shared/DataStructure';
 
 import StatCategory from '../components/StatCategory';
 import AddEditCategoryModal from '../components/AddEditCategoryModal';

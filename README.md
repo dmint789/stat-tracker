@@ -2,13 +2,13 @@
 
 Mobile app for tracking various statistics, like things related to work, education, hobbies, health, etc. Shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
 
-<img src="https://denimintsaev.com/api/stat_tracker_1.jpg" width="400"/>
+<img src="https://denimintsaev.com/api/stat_tracker_1.jpg" width="300"/>
 
-<img src="https://denimintsaev.com/api/stat_tracker_2.jpg" width="400"/>
+<img src="https://denimintsaev.com/api/stat_tracker_2.jpg" width="300"/>
 
-<img src="https://denimintsaev.com/api/stat_tracker_3.jpg" width="400"/>
+<img src="https://denimintsaev.com/api/stat_tracker_3.jpg" width="300"/>
 
-<img src="https://denimintsaev.com/api/stat_tracker_4.jpg" width="400"/>
+<img src="https://denimintsaev.com/api/stat_tracker_4.jpg" width="300"/>
 
 ## Download
 

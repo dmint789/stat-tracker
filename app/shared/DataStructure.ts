@@ -1,5 +1,5 @@
 /**
- * In async storage we have keys for (1) "statCategories", (2) "lastCategoryId", (3) "backupDirectory",
+ * In async storage there are keys for (1) "statCategories", (2) "lastCategoryId", (3) "backupDirectory",
  * and (4) things listed under dataPoints. backupDirectory is the only thing not needed for the export.
  */
 
@@ -23,9 +23,8 @@ export interface IStatCategory {
 }
 
 export enum StatTypeVariant {
-  NON_NUMERIC,
-  HIGHER_IS_BETTER,
-  LOWER_IS_BETTER,
+  TEXT,
+  NUMBER,
   MULTIPLE_CHOICE,
   FORMULA,
 }
@@ -44,13 +43,14 @@ export interface IStatType {
   variant: StatTypeVariant;
   // choices?: string[]; // MULTIPLE_CHOICE only
   // formula?: string; // FORMULA only
-  multipleValues?: boolean; // NON_NUMERIC, LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  showBest?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  showAvg?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  showSum?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  trackPBs?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  // trackWorst?: boolean; // LOWER_IS_BETTER and HIGHER_IS_BETTER only
-  // If this is unset that means there aren't any pbs yet for this stat type
+  multipleValues?: boolean; // TEXT and NUMBER only
+  showBest?: boolean;
+  showAvg?: boolean;
+  showSum?: boolean;
+  trackPBs?: boolean;
+  // trackWorst?: boolean;
+  higherIsBetter?: boolean; // only set if trackPBs or trackWorst is on
+  // If this is unset and trackPBs is on, that means there aren't any pbs yet for this stat type
   pbs?: {
     allTime: {
       entryId: number | IMultiValueStat;
@@ -75,7 +75,7 @@ export interface IStat {
 
 export interface IDate {
   day: number;
-  month: number;
+  month: number; // 1 - 12
   year: number;
   text: string;
 }

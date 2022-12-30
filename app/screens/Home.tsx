@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { deleteEntry } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import { IEntry } from '../shared/DataStructures';
+import { IEntry } from '../shared/DataStructure';
 
 import Entry from '../components/Entry';
 import MyButton from '../components/MyButton';

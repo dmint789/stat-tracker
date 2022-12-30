@@ -5,9 +5,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addEntry, editEntry } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import { getIsNumericVariant } from '../shared/GlobalFunctions';
 import { formatDate } from '../shared/GlobalFunctions';
-import { IEntry, IStatType, IStat, StatTypeVariant, IMultiValueStat } from '../shared/DataStructures';
+import { IEntry, IStatType, IStat, StatTypeVariant, IMultiValueStat } from '../shared/DataStructure';
 
 import WorkingEntryList from '../components/WorkingEntryList';
 import StatTypeModal from '../components/StatTypeModal';
@@ -87,7 +86,7 @@ const AddEditEntry = ({ navigation, route }) => {
       if (showAlerts) Alert.alert('Error', 'Please enter a stat value', [{ text: 'Ok' }]);
       return false;
     } else if (
-      getIsNumericVariant(selectedStatType.variant) &&
+      selectedStatType.variant === StatTypeVariant.NUMBER &&
       statValues.find((el: string | number) => isNaN(Number(el))) !== undefined
     ) {
       if (showAlerts) {
@@ -120,15 +119,12 @@ const AddEditEntry = ({ navigation, route }) => {
     let formatted;
     const mvs = {} as IMultiValueStat;
 
-    if (getIsNumericVariant(selectedStatType.variant)) {
+    if (selectedStatType.variant === StatTypeVariant.NUMBER) {
       formatted = statValues.filter((val) => val !== '').map((val) => Number(val)) as number[];
 
       if (selectedStatType.multipleValues) {
         mvs.sum = formatted.reduce((acc, val) => acc + val, 0);
-        mvs.best =
-          selectedStatType.variant === StatTypeVariant.HIGHER_IS_BETTER
-            ? Math.max(...formatted)
-            : Math.min(...formatted);
+        mvs.best = selectedStatType.higherIsBetter ? Math.max(...formatted) : Math.min(...formatted);
         mvs.avg = Math.round((mvs.sum / formatted.length + Number.EPSILON) * 100) / 100;
       }
     } else {
@@ -273,6 +269,7 @@ const AddEditEntry = ({ navigation, route }) => {
             placeholder="Value"
             placeholderTextColor="grey"
             multiline
+            keyboardType={selectedStatType?.variant === StatTypeVariant.NUMBER ? 'numeric' : 'default'}
             value={String(value)}
             onChangeText={(val: string) => updateStatValues(index, val)}
           />

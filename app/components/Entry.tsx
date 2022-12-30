@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
-import { IEntry, IStatType, IMultiValueStat } from '../shared/DataStructures';
+import { IEntry, IStatType, IMultiValueStat, IStat } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 
@@ -14,19 +14,21 @@ const Entry: React.FC<{
 }> = ({ entry, onDeleteEntry, onEditEntry }) => {
   const { statTypes } = useSelector((state: RootState) => state.main);
 
-  const getValueTextElement = (
-    value: string | number,
-    statType: IStatType,
-    key = null as 'best' | 'avg' | 'sum',
-  ) => {
-    const isPB =
-      statType?.trackPBs &&
-      ((!key && statType.pbs?.allTime.entryId === entry.id) ||
-        (key &&
-          statType.pbs?.allTime.entryId[key] === entry.id &&
-          statType.pbs?.allTime.result[key] === value));
+  const getIsPBValue = (value: string | number, statType: IStatType): boolean => {
+    if (!statType?.trackPBs) return false;
+    // This is for when statType.multipleValues = false
+    else if (statType.pbs?.allTime.entryId === entry.id) return true;
+    // This is for when statType.multipleValues = true
+    else
+      return (
+        statType.pbs?.allTime.entryId['best'] === entry.id && statType.pbs?.allTime.result['best'] === value
+      );
+  };
 
-    return <Text style={isPB ? styles.pbStyle : {}}>{value}</Text>;
+  const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
+    const isPB = statType?.trackPBs && statType.pbs?.allTime.entryId[key] === entry.id;
+
+    return <Text style={isPB ? styles.pbStyle : {}}>{stat.multiValueStats[key]}</Text>;
   };
 
   return (
@@ -37,11 +39,12 @@ const Entry: React.FC<{
         // Best/avg/sum should be shown if needed and if there are multiple values or the best/avg/sum is a PB
         const showBest = statType?.showBest && stat.values.length > 1;
         const showAvg =
-          statType?.showAvg &&
-          (stat.values.length > 1 || (statType.pbs?.allTime.entryId as IMultiValueStat)?.avg === entry.id);
+          statType?.showAvg && (stat.values.length > 1 || statType.pbs?.allTime.entryId['avg'] === entry.id);
         const showSum =
-          statType?.showSum &&
-          (stat.values.length > 1 || (statType.pbs?.allTime.entryId as IMultiValueStat)?.sum === entry.id);
+          statType?.showSum && (stat.values.length > 1 || statType.pbs?.allTime.entryId['sum'] === entry.id);
+
+        // This is for stats with pb tracking and multiple values
+        let pbValueShown = false;
 
         return (
           <View key={stat.id}>
@@ -49,7 +52,12 @@ const Entry: React.FC<{
               <Text style={GS.grayText}>{statType?.name || '(Deleted)'}: </Text>
               {stat.values.map((value, i) => (
                 <Text key={i}>
-                  {getValueTextElement(value, statType, statType?.multipleValues ? 'best' : null)}
+                  {/* Make sure only the first best value in a multivalue stat with ties is highlighted */}
+                  <Text
+                    style={!pbValueShown && (pbValueShown = getIsPBValue(value, statType)) && styles.pbStyle}
+                  >
+                    {value}
+                  </Text>
                   {i !== stat.values.length - 1 && ', '}
                 </Text>
               ))}
@@ -57,11 +65,9 @@ const Entry: React.FC<{
             {(showBest || showAvg || showSum) && (
               <Text style={{ ...GS.grayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
                 {/* &#8194; is the En space character */}
-                {showBest && (
-                  <>Best: {getValueTextElement(stat.multiValueStats.best, statType, 'best')}&#8194;</>
-                )}
-                {showAvg && <>Avg: {getValueTextElement(stat.multiValueStats.avg, statType, 'avg')}&#8194;</>}
-                {showSum && <>Sum: {getValueTextElement(stat.multiValueStats.sum, statType, 'sum')}</>}
+                {showBest && <>Best: {getMultiStatTextElement(stat, statType, 'best')}&#8194;</>}
+                {showAvg && <>Avg: {getMultiStatTextElement(stat, statType, 'avg')}&#8194;</>}
+                {showSum && <>Sum: {getMultiStatTextElement(stat, statType, 'sum')}</>}
               </Text>
             )}
           </View>

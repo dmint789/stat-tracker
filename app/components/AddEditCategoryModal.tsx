@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addStatCategory, editStatCategory } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import { IStatCategory } from '../shared/DataStructures';
+import { IStatCategory } from '../shared/DataStructure';
 
 const AddEditCategoryModal: React.FC<{
   prevCategory?: IStatCategory;

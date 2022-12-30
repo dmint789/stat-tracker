@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ScopedStorage from 'react-native-scoped-storage';
 import { formatDate } from './GlobalFunctions';
-import { IStatCategory, IBackupData, dataPoints } from './DataStructures';
+import { IStatCategory, IBackupData, dataPoints } from './DataStructure';
 
-const verbose = false;
+const verbose = true;
 
 export const getData = async (categoryId: number, request: string) => {
   const key: string = categoryId + '_' + request;

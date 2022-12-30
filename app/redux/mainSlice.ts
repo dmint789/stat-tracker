@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import * as SM from '../shared/StorageManager';
+import { isNewerOrSameDate } from '../shared/GlobalFunctions';
 import {
   IMultiValueStat,
   IStatCategory,
@@ -7,11 +8,21 @@ import {
   IStatType,
   IStat,
   StatTypeVariant,
-} from '../shared/DataStructures';
-import { getIsNumericVariant } from '../shared/GlobalFunctions';
+} from '../shared/DataStructure';
 
-const updateStatTypePB = (statType: IStatType, entry: IEntry): boolean => {
-  let pbsUpdated = false;
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+// WHEN AN ENTRY IS ADDED OR ONE HAS THE DATE EDITED, IT SHOULD BE PLACED
+// IN THE RIGHT PLACE ACCORDING TO DATE. IF DATES ARE THE SAME,
+// THE NEW ONE IS CONSIDERED MORE RECENT.
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+// The return value is whether or not the PB got updated
+const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boolean => {
+  let pbUpdated = false;
   const stat = entry.stats.find((el: IStat) => el.type === statType.id);
 
   if (stat) {
@@ -25,16 +36,17 @@ const updateStatTypePB = (statType: IStatType, entry: IEntry): boolean => {
           },
         };
 
-        pbsUpdated = true;
+        pbUpdated = true;
       } else if (
-        (statType.variant === StatTypeVariant.HIGHER_IS_BETTER) ===
-          stat.values[0] > statType.pbs.allTime.result &&
-        stat.values[0] !== statType.pbs.allTime.result
+        (stat.values[0] > statType.pbs.allTime.result && statType.higherIsBetter) ||
+        (stat.values[0] < statType.pbs.allTime.result && !statType.higherIsBetter) ||
+        (stat.values[0] === statType.pbs.allTime.result &&
+          !isNewerOrSameDate(entry.date, state.entries[0].date))
       ) {
         statType.pbs.allTime.entryId = entry.id;
         statType.pbs.allTime.result = stat.values[0] as number;
 
-        pbsUpdated = true;
+        pbUpdated = true;
       }
     } else {
       // If adding PB for the first time
@@ -50,72 +62,117 @@ const updateStatTypePB = (statType: IStatType, entry: IEntry): boolean => {
           },
         };
 
-        pbsUpdated = true;
+        pbUpdated = true;
       } else {
         const pbs = statType.pbs.allTime.result as IMultiValueStat;
-        Object.keys(pbs).forEach((key) => {
+
+        ['best', 'avg', 'sum'].forEach((key) => {
           if (
             pbs[key] === null ||
-            ((statType.variant === StatTypeVariant.HIGHER_IS_BETTER) ===
-              stat.multiValueStats[key] > pbs[key] &&
-              stat.multiValueStats[key] !== pbs[key])
+            (stat.multiValueStats[key] > pbs[key] && statType.higherIsBetter) ||
+            (stat.multiValueStats[key] < pbs[key] && !statType.higherIsBetter) ||
+            (stat.multiValueStats[key] === pbs[key] && !isNewerOrSameDate(entry.date, state.entries[0].date))
           ) {
             statType.pbs.allTime.entryId[key] = entry.id;
             statType.pbs.allTime.result[key] = stat.multiValueStats[key];
 
-            pbsUpdated = true;
+            pbUpdated = true;
           }
         });
       }
     }
   }
-  return pbsUpdated;
+
+  return pbUpdated;
+};
+
+const checkPBFromScratch = (state: any, statType: IStatType) => {
+  for (let i = state.entries.length - 1; i >= 0; i--) {
+    updateStatTypePB(state, statType, state.entries[i]);
+  }
 };
 
 const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') => {
-  let pbsUpdated = false;
+  let PBsUpdated = false;
 
   for (let statType of state.statTypes) {
-    if (statType.trackPBs && getIsNumericVariant(statType.variant)) {
+    if (statType.trackPBs && statType.variant === StatTypeVariant.NUMBER) {
+      let pbUpdated = false;
+
+      // Update PB if it could have gotten better or it's a tie, but happened earlier
       if (mode !== 'delete') {
-        pbsUpdated = updateStatTypePB(statType, entry) || pbsUpdated;
+        pbUpdated = updateStatTypePB(state, statType, entry) || pbUpdated;
       }
 
-      if (mode !== 'add') {
+      // Update PB if it could have gotten worse
+      // Skip checking PB if it was already updated and the stat type only has single values
+      if (mode !== 'add' && (!pbUpdated || statType.multipleValues)) {
         let isPrevPB = false;
+        const tempStatType: IStatType = {
+          ...statType,
+          pbs: {
+            allTime: {
+              entryId: { ...statType.pbs.allTime.entryId },
+              result: { ...statType.pbs.allTime.result },
+            },
+          },
+        };
 
         if (!statType.multipleValues && statType.pbs.allTime.entryId === entry.id) {
           isPrevPB = true;
-          statType.pbs = null;
+          tempStatType.pbs = null;
         } else if (statType.multipleValues) {
-          Object.keys(statType.pbs.allTime.entryId).forEach((key) => {
+          ['best', 'avg', 'sum'].forEach((key) => {
             if (statType.pbs.allTime.entryId[key] === entry.id) {
               isPrevPB = true;
-              statType.pbs.allTime.result[key] = null;
-              statType.pbs.allTime.entryId[key] = null;
+              tempStatType.pbs.allTime.entryId[key] = null;
+              tempStatType.pbs.allTime.result[key] = null;
             }
           });
         }
 
         if (isPrevPB) {
-          for (let e of state.entries as IEntry[]) {
-            pbsUpdated = updateStatTypePB(statType, e) || pbsUpdated;
-          }
+          checkPBFromScratch(state, tempStatType);
 
-          // If a PB is left unset after the loop, that means there are no entries left with this stat type
-          if (
-            (!statType.multipleValues && statType.pbs === null) ||
-            (statType.multipleValues && statType.pbs.allTime.entryId.best === null)
-          ) {
-            pbsUpdated = true;
-            delete statType.pbs;
+          if (!tempStatType.multipleValues) {
+            // If this is null, that means no entries are left with this stat type
+            if (tempStatType.pbs === null) {
+              pbUpdated = true;
+              delete statType.pbs;
+            } else if (
+              tempStatType.pbs.allTime.result !== statType.pbs.allTime.result ||
+              tempStatType.pbs.allTime.entryId !== statType.pbs.allTime.entryId
+            ) {
+              pbUpdated = true;
+              statType.pbs = tempStatType.pbs;
+            }
+          } else {
+            // If this is null, that means no entries are left with this stat type.
+            // It doesn't have to be best, because avg and sum would also be null if best is null.
+            if (tempStatType.pbs.allTime.entryId['best'] === null) {
+              pbUpdated = true;
+              delete statType.pbs;
+            } else {
+              if (
+                !!['best', 'avg', 'sum'].find(
+                  (key) =>
+                    tempStatType.pbs.allTime.entryId[key] !== statType.pbs.allTime.entryId[key] ||
+                    tempStatType.pbs.allTime.result[key] !== statType.pbs.allTime.result[key],
+                )
+              ) {
+                pbUpdated = true;
+                statType.pbs = tempStatType.pbs;
+              }
+            }
           }
         }
+
+        PBsUpdated = pbUpdated || PBsUpdated;
       }
     }
   }
 
-  if (pbsUpdated) SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
+  if (PBsUpdated) SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
 };
 
 const initialState = {
@@ -240,9 +297,7 @@ const mainSlice = createSlice({
           if (el.trackPBs && !action.payload.trackPBs) {
             delete action.payload.pbs;
           } else if (!el.trackPBs && action.payload.trackPBs) {
-            for (let entry of state.entries as IEntry[]) {
-              updateStatTypePB(action.payload, entry);
-            }
+            checkPBFromScratch(state, action.payload);
           }
 
           SM.setData(state.statCategory.id, 'statTypes', state.statTypes);

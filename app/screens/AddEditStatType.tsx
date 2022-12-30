@@ -4,8 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addStatType, editStatType } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
-import { getIsNumericVariant } from '../shared/GlobalFunctions';
-import { IStatType, ISelectOption, StatTypeVariant } from '../shared/DataStructures';
+import { IStatType, ISelectOption, StatTypeVariant } from '../shared/DataStructure';
 import Checkbox from '../components/Checkbox';
 import Select from '../components/Select';
 
@@ -15,7 +14,7 @@ const AddEditStatType = ({ navigation, route }) => {
 
   const [name, setName] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
-  const [variant, setVariant] = useState<StatTypeVariant>(StatTypeVariant.NON_NUMERIC);
+  const [variant, setVariant] = useState<StatTypeVariant>(StatTypeVariant.TEXT);
   // const [choices, setChoices] = useState([]);
   // const [formula, setFormula] = useState<string>('');
   const [multipleValues, setMultipleValues] = useState<boolean>(false);
@@ -23,6 +22,7 @@ const AddEditStatType = ({ navigation, route }) => {
   const [showAvg, setShowAvg] = useState<boolean>(false);
   const [showSum, setShowSum] = useState<boolean>(false);
   const [trackPBs, setTrackPBs] = useState<boolean>(false);
+  const [higherIsBetter, setHigherIsBetter] = useState<boolean>(true);
 
   // If statType is null, we're adding a new stat type
   const passedData: {
@@ -30,9 +30,8 @@ const AddEditStatType = ({ navigation, route }) => {
   } = route.params;
 
   const options: ISelectOption[] = [
-    { label: 'Text', value: StatTypeVariant.NON_NUMERIC },
-    { label: 'Number (higher is better)', value: StatTypeVariant.HIGHER_IS_BETTER },
-    { label: 'Number (lower is better)', value: StatTypeVariant.LOWER_IS_BETTER },
+    { label: 'Text', value: StatTypeVariant.TEXT },
+    { label: 'Number', value: StatTypeVariant.NUMBER },
   ];
 
   useEffect(() => {
@@ -49,6 +48,7 @@ const AddEditStatType = ({ navigation, route }) => {
       if (statType.showAvg !== undefined) setShowAvg(statType.showAvg);
       if (statType.showSum !== undefined) setShowSum(statType.showSum);
       if (statType.trackPBs !== undefined) setTrackPBs(statType.trackPBs);
+      if (statType.higherIsBetter !== undefined) setTrackPBs(statType.higherIsBetter);
     } else {
       navigation.setOptions({ title: 'Add Stat Type' });
     }
@@ -59,15 +59,11 @@ const AddEditStatType = ({ navigation, route }) => {
   };
 
   const getShowMultiNumericOptions = (): boolean => {
-    return multipleValues && getIsNumericVariant(variant);
+    return multipleValues && variant === StatTypeVariant.NUMBER;
   };
 
   const getCanHaveMultipleValues = (): boolean => {
-    return [
-      StatTypeVariant.NON_NUMERIC,
-      StatTypeVariant.HIGHER_IS_BETTER,
-      StatTypeVariant.LOWER_IS_BETTER,
-    ].includes(variant);
+    return [StatTypeVariant.TEXT, StatTypeVariant.NUMBER].includes(variant);
   };
 
   const isValidStatType = (): boolean => {
@@ -96,7 +92,10 @@ const AddEditStatType = ({ navigation, route }) => {
         statType.showAvg = showAvg;
         statType.showSum = showSum;
       }
-      if (getIsNumericVariant(variant)) statType.trackPBs = trackPBs;
+      if (variant === StatTypeVariant.NUMBER) {
+        statType.trackPBs = trackPBs;
+        if (trackPBs) statType.higherIsBetter = higherIsBetter;
+      }
 
       if (passedData?.statType) {
         if (passedData.statType.pbs) statType.pbs = passedData.statType.pbs;
@@ -140,7 +139,7 @@ const AddEditStatType = ({ navigation, route }) => {
           </Checkbox>
         )}
         {getShowMultiNumericOptions() && (
-          <>
+          <View style={{ marginLeft: 24 }}>
             <Checkbox checked={showBest} onChange={setShowBest}>
               Show best values
             </Checkbox>
@@ -150,12 +149,20 @@ const AddEditStatType = ({ navigation, route }) => {
             <Checkbox checked={showSum} onChange={setShowSum}>
               Show the sum of all values
             </Checkbox>
-          </>
+          </View>
         )}
-        {getIsNumericVariant(variant) && (
+        {/* Track PBs{variant === StatTypeVariant.TEXT ? ' (manual)' : ''} */}
+        {variant === StatTypeVariant.NUMBER && (
           <Checkbox checked={trackPBs} onChange={setTrackPBs}>
-            Track PBs{variant === StatTypeVariant.NON_NUMERIC ? ' (manual)' : ''}
+            Track PBs
           </Checkbox>
+        )}
+        {trackPBs && (
+          <View style={{ marginLeft: 24 }}>
+            <Checkbox checked={higherIsBetter} onChange={setHigherIsBetter}>
+              Higher is better
+            </Checkbox>
+          </View>
         )}
         <View style={{ marginVertical: 20 }}>
           <Button

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import GS from '../shared/GlobalStyles';
-import { ISelectOption } from '../shared/DataStructures';
+import { ISelectOption } from '../shared/DataStructure';
 
 type Props = {
   options: ISelectOption[];

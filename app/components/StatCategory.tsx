@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import GS from '../shared/GlobalStyles';
-import { IStatCategory } from '../shared/DataStructures';
+import { IStatCategory } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 

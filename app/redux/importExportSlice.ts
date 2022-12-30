@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { IStatCategory } from '../shared/DataStructures';
+import { IStatCategory } from '../shared/DataStructure';
 import * as SM from '../shared/StorageManager';
 
 const initialState = {
