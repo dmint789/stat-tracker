@@ -203,7 +203,6 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
       }
     }
   }
-  console.log(PBsUpdated);
 
   if (PBsUpdated) SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
 };

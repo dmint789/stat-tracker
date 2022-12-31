@@ -151,14 +151,18 @@ const AddEditEntry = ({ navigation, route }) => {
 
   // Delete a stat from the list or edit it (delete from the list, but put values in the inputs)
   const deleteEditStat = (stat: IStat, edit = false) => {
-    setStats((prevStats: IStat[]) => prevStats.filter((el) => el.id !== stat.id));
+    if (edit && !!statValues.find((el) => el !== '')) {
+      Alert.alert('Error', 'Please enter your current stat or clear it', [{ text: 'Ok' }]);
+    } else {
+      setStats((prevStats: IStat[]) => prevStats.filter((el) => el.id !== stat.id));
 
-    if (edit) {
-      const newValues = statTypes.find((el) => el.id === stat.type)?.multipleValues
-        ? [...stat.values, '']
-        : stat.values;
-      setStatValues(newValues.map((el) => String(el)));
-      selectStatType(stat.type);
+      if (edit) {
+        const newValues = statTypes.find((el) => el.id === stat.type)?.multipleValues
+          ? [...stat.values, '']
+          : stat.values;
+        setStatValues(newValues.map((el) => String(el)));
+        selectStatType(stat.type);
+      }
     }
   };
 
@@ -196,11 +200,13 @@ const AddEditEntry = ({ navigation, route }) => {
 
   const onAddStatType = () => {
     setStatModalOpen(false);
+    setStatValues(['']);
     navigation.navigate('AddEditStatType');
   };
 
   const onEditStatType = (statType: IStatType) => {
     setStatModalOpen(false);
+    setStatValues(['']);
     navigation.navigate('AddEditStatType', { statType });
   };
 
@@ -265,7 +271,7 @@ const AddEditEntry = ({ navigation, route }) => {
           <TextInput
             key={String(index)}
             style={GS.input}
-            placeholder={selectedStatType ? 'Value' : 'Please select stat type first'}
+            placeholder={selectedStatType ? 'Value' : 'Please select a stat type first'}
             placeholderTextColor="grey"
             multiline
             editable={selectedStatType !== null}
