@@ -11,16 +11,14 @@ export const getData = async (categoryId: number, request: string) => {
   try {
     if (verbose) console.log(`Getting data for key ${key}`);
 
-    const data = await AsyncStorage.getItem(key);
-    const parsedData = JSON.parse(data);
+    const data = JSON.parse(await AsyncStorage.getItem(key));
 
-    if (verbose) console.log(data);
+    if (verbose) console.log(JSON.stringify(data, null, 2));
 
-    if (parsedData) return parsedData;
-    else throw new Error('Retrieved data is invalid');
+    if (data) return data;
+    else if (verbose) console.log(`No data found for key ${key}`);
   } catch (err) {
-    console.log(`Error while searching for key ${key}:`);
-    console.log(err);
+    console.error(`Error while searching for key ${key}: ${err}`);
   }
 
   return null;
@@ -30,17 +28,14 @@ export const setData = async (categoryId: number, request: string, data: any) =>
   const key = categoryId + '_' + request;
 
   try {
-    const dataString = JSON.stringify(data);
-
     if (verbose) {
       console.log(`Setting data for key ${key}:`);
-      console.log(dataString);
+      console.log(JSON.stringify(data, null, 2));
     }
 
-    await AsyncStorage.setItem(key, dataString);
+    await AsyncStorage.setItem(key, JSON.stringify(data));
   } catch (err) {
-    console.log(`Error while setting data for key ${key}:`);
-    console.log(err);
+    console.error(`Error while setting data for key ${key}: ${err}`);
   }
 };
 
@@ -63,7 +58,7 @@ export const getStatCategories = async (): Promise<IStatCategory[]> => {
 
     let data: IStatCategory[] = JSON.parse(await AsyncStorage.getItem('statCategories'));
 
-    if (verbose) console.log(data);
+    if (verbose) console.log(JSON.stringify(data, null, 2));
 
     // Check that the data is valid (there is always an id property in every element of the array)
     if (data?.length > 0 && typeof data[0].id === 'number') return data;
@@ -109,7 +104,7 @@ export const setStatCategories = async (statCategories: IStatCategory[]) => {
   try {
     if (verbose) {
       console.log('Setting statCategories to:');
-      console.log(statCategories);
+      console.log(JSON.stringify(statCategories, null, 2));
     }
 
     await AsyncStorage.setItem('statCategories', JSON.stringify(statCategories));
@@ -143,9 +138,12 @@ export const importData = async (
 
     const backupFile = await ScopedStorage.openDocument(true, 'utf8');
 
-    if (verbose) console.log('Backup file data:', backupFile.data);
-
     const data: IBackupData = JSON.parse(backupFile.data);
+
+    if (verbose) {
+      console.log('Backup file data:');
+      console.log(JSON.stringify(data, null, 2));
+    }
 
     if (data.lastCategoryId > lastCategoryId) {
       setLastCategoryId(data.lastCategoryId);
@@ -199,7 +197,7 @@ export const exportData = async (): Promise<{ message: string; error: string }> 
     const backupDir: ScopedStorage.FileType = await getBackupDir();
 
     if (backupDir) {
-      const backupFileName: string = 'Stat_Tracker_Backup_' + formatDate(new Date(), false);
+      const backupFileName: string = 'Stat_Tracker_Backup_' + formatDate(new Date(), '_', true);
       const data: IBackupData = {
         statCategories: (await getStatCategories()) || [],
         lastCategoryId: await getLastCategoryId(),
@@ -213,7 +211,7 @@ export const exportData = async (): Promise<{ message: string; error: string }> 
         }
       }
 
-      if (verbose) console.log('Data to be exported:', JSON.stringify(data));
+      if (verbose) console.log('Data to be exported:', JSON.stringify(data, null, 2));
 
       await ScopedStorage.writeFile(
         backupDir.uri,

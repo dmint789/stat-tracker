@@ -1,8 +1,7 @@
 import { IDate } from './DataStructure';
 
-// This outputs a text version of a given date. pretty = false means don't use the pretty
-// formatting and include the time too. Used for backup file names.
-export const formatDate = (date: Date, pretty = true): string => {
+// Separator being unset means output the pretty date. In that case includeTime is ignored.
+export const formatDate = (date: Date, separator = '', includeTime = false): string => {
   let output = '';
   const months = [
     'January',
@@ -19,17 +18,27 @@ export const formatDate = (date: Date, pretty = true): string => {
     'December',
   ];
 
-  if (pretty) {
+  if (!separator) {
     output += date.getDate() + ' ';
     output += months[date.getMonth()] + ' ';
     output += date.getFullYear();
   } else {
-    output += date.getFullYear() + '_';
+    output += date.getFullYear() + separator;
     // The Date class saves months with 0 indexing
-    output += (date.getMonth() >= 9 ? '' : '0') + (date.getMonth() + 1) + '_';
-    output += (date.getDate() >= 10 ? '' : '0') + date.getDate() + '_';
-    output += date.toTimeString().slice(0, 8).replace(/:/g, '_');
+    output += (date.getMonth() >= 9 ? '' : '0') + (date.getMonth() + 1) + separator;
+    output += (date.getDate() >= 10 ? '' : '0') + date.getDate() + separator;
+    if (includeTime) output += date.toTimeString().slice(0, 8).replace(/:/g, separator);
   }
+
+  return output;
+};
+
+export const formatIDate = (date: IDate, separator = '.'): string => {
+  let output = '';
+
+  output += (date.day >= 10 ? '' : '0') + date.day + separator;
+  output += (date.month >= 10 ? '' : '0') + date.month + separator;
+  output += date.year;
 
   return output;
 };

@@ -10,7 +10,7 @@ import {
   StatTypeVariant,
 } from '../shared/DataStructure';
 
-const verbose = true;
+const verbose = false;
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -127,70 +127,83 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
       // Update PB if it could have gotten worse
       // Skip checking PB if it was already updated and the stat type only has single values
       if (mode !== 'add' && (!pbUpdated || statType.multipleValues)) {
-        let isPrevPB = false;
-        const tempStatType: IStatType = {
-          ...statType,
-          pbs: {
-            allTime: {
-              entryId: { ...statType.pbs.allTime.entryId },
-              result: { ...statType.pbs.allTime.result },
+        if (statType.pbs) {
+          let isPrevPB = false;
+          const tempStatType: IStatType = {
+            ...statType,
+            pbs: {
+              allTime: {
+                entryId: { ...statType.pbs.allTime.entryId },
+                result: { ...statType.pbs.allTime.result },
+              },
             },
-          },
-        };
+          };
 
-        if (!statType.multipleValues && statType.pbs.allTime.entryId === entry.id) {
-          isPrevPB = true;
-          tempStatType.pbs = null;
-        } else if (statType.multipleValues) {
-          ['best', 'avg', 'sum'].forEach((key) => {
-            if (statType.pbs.allTime.entryId[key] === entry.id) {
-              isPrevPB = true;
-              tempStatType.pbs.allTime.entryId[key] = null;
-              tempStatType.pbs.allTime.result[key] = null;
-            }
-          });
-        }
+          if (!statType.multipleValues && statType.pbs.allTime.entryId === entry.id) {
+            isPrevPB = true;
+            tempStatType.pbs = null;
+          } else if (statType.multipleValues) {
+            ['best', 'avg', 'sum'].forEach((key) => {
+              if (statType.pbs.allTime.entryId[key] === entry.id) {
+                isPrevPB = true;
+                tempStatType.pbs.allTime.entryId[key] = null;
+                tempStatType.pbs.allTime.result[key] = null;
+              }
+            });
+          }
 
-        if (isPrevPB) {
-          checkPBFromScratch(state, tempStatType);
+          if (isPrevPB) {
+            checkPBFromScratch(state, tempStatType);
 
-          if (!tempStatType.multipleValues) {
-            // If this is null, that means no entries are left with this stat type
-            if (tempStatType.pbs === null) {
-              pbUpdated = true;
-              delete statType.pbs;
-            } else if (
-              tempStatType.pbs.allTime.result !== statType.pbs.allTime.result ||
-              tempStatType.pbs.allTime.entryId !== statType.pbs.allTime.entryId
-            ) {
-              pbUpdated = true;
-              statType.pbs = tempStatType.pbs;
-            }
-          } else {
-            // If this is null, that means no entries are left with this stat type.
-            // It doesn't have to be best, because avg and sum would also be null if best is null.
-            if (tempStatType.pbs.allTime.entryId['best'] === null) {
-              pbUpdated = true;
-              delete statType.pbs;
-            } else {
-              if (
-                !!['best', 'avg', 'sum'].find(
-                  (key) =>
-                    tempStatType.pbs.allTime.entryId[key] !== statType.pbs.allTime.entryId[key] ||
-                    tempStatType.pbs.allTime.result[key] !== statType.pbs.allTime.result[key],
-                )
+            if (!tempStatType.multipleValues) {
+              // If this is null, that means no entries are left with this stat type
+              if (tempStatType.pbs === null) {
+                pbUpdated = true;
+                delete statType.pbs;
+              } else if (
+                tempStatType.pbs.allTime.result !== statType.pbs.allTime.result ||
+                tempStatType.pbs.allTime.entryId !== statType.pbs.allTime.entryId
               ) {
                 pbUpdated = true;
                 statType.pbs = tempStatType.pbs;
               }
+            } else {
+              // If this is null, that means no entries are left with this stat type.
+              // It doesn't have to be best, because avg and sum would also be null if best is null.
+              if (tempStatType.pbs.allTime.entryId['best'] === null) {
+                pbUpdated = true;
+                delete statType.pbs;
+              } else {
+                if (
+                  !!['best', 'avg', 'sum'].find(
+                    (key) =>
+                      tempStatType.pbs.allTime.entryId[key] !== statType.pbs.allTime.entryId[key] ||
+                      tempStatType.pbs.allTime.result[key] !== statType.pbs.allTime.result[key],
+                  )
+                ) {
+                  pbUpdated = true;
+                  statType.pbs = tempStatType.pbs;
+                }
+              }
             }
           }
+        } else {
+          console.error('Stat type has no PB, which cannot be the case!');
         }
+      }
 
-        PBsUpdated = pbUpdated || PBsUpdated;
+      PBsUpdated = pbUpdated || PBsUpdated;
+
+      if (verbose) {
+        if (pbUpdated) {
+          console.log('PB updated to: ', JSON.stringify(statType.pbs, null, 2));
+        } else {
+          console.log('PB not updated');
+        }
       }
     }
   }
+  console.log(PBsUpdated);
 
   if (PBsUpdated) SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
 };

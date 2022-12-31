@@ -22,7 +22,7 @@ const AddEditEntry = ({ navigation, route }) => {
   // Stat choice from the list of filtered stat types
   const [selectedStatType, setSelectedStatType] = useState<IStatType>(statTypes[0] || null);
   // The type here is different from the type of values in IStat
-  const [statValues, setStatValues] = useState<Array<string | number>>(['']);
+  const [statValues, setStatValues] = useState<string[]>(['']);
   const [comment, setComment] = useState<string>('');
   const [date, setDate] = useState<Date>(new Date());
   const [textDate, setTextDate] = useState<string>('');
@@ -87,7 +87,7 @@ const AddEditEntry = ({ navigation, route }) => {
       return false;
     } else if (
       selectedStatType.variant === StatTypeVariant.NUMBER &&
-      statValues.find((el: string | number) => isNaN(Number(el))) !== undefined
+      !!statValues.find((el: string) => isNaN(Number(el)))
     ) {
       if (showAlerts) {
         const error = selectedStatType.multipleValues
@@ -100,10 +100,8 @@ const AddEditEntry = ({ navigation, route }) => {
   };
 
   const updateStatValues = (index: number, value: string) => {
-    setStatValues((prevStatValues) => {
-      const newStatValues = prevStatValues.map((prevValue: string | number, i) =>
-        i === index ? value : prevValue,
-      );
+    setStatValues((prevStatValues: string[]) => {
+      const newStatValues = prevStatValues.map((prevValue, i) => (i === index ? value : prevValue));
 
       // Add extra value input, if no empty ones are left and the stat type allows multiple values
       if (selectedStatType?.multipleValues && newStatValues.findIndex((val) => val === '') === -1) {
@@ -116,11 +114,11 @@ const AddEditEntry = ({ navigation, route }) => {
 
   // Assumes the new stat is valid
   const getNewStats = (prevStats = stats): IStat[] => {
-    let formatted;
+    let formatted = statValues.filter((val) => val !== '') as string[] | number[];
     const mvs = {} as IMultiValueStat;
 
     if (selectedStatType.variant === StatTypeVariant.NUMBER) {
-      formatted = statValues.filter((val) => val !== '').map((val) => Number(val)) as number[];
+      formatted = formatted.map((val) => Number(val));
 
       if (selectedStatType.multipleValues) {
         mvs.sum = formatted.reduce((acc, val) => acc + val, 0);
@@ -128,8 +126,6 @@ const AddEditEntry = ({ navigation, route }) => {
         mvs.high = Math.max(...formatted);
         mvs.avg = Math.round((mvs.sum / formatted.length + Number.EPSILON) * 100) / 100;
       }
-    } else {
-      formatted = statValues.filter((val) => val !== '').map((val) => String(val)) as string[];
     }
 
     const newStat: IStat = {
@@ -161,7 +157,7 @@ const AddEditEntry = ({ navigation, route }) => {
       const newValues = statTypes.find((el) => el.id === stat.type)?.multipleValues
         ? [...stat.values, '']
         : stat.values;
-      setStatValues(newValues);
+      setStatValues(newValues.map((el) => String(el)));
       selectStatType(stat.type);
     }
   };
@@ -250,28 +246,31 @@ const AddEditEntry = ({ navigation, route }) => {
         {/* Stat */}
         <View style={styles.nameView}>
           {selectedStatType ? (
-            <Text style={{ ...GS.text, flex: 1 }}>
+            <Text style={{ ...GS.text, flex: 1, marginVertical: 6 }}>
               {selectedStatType.name}
               {selectedStatType.unit ? ` (${selectedStatType.unit})` : ''}
             </Text>
           ) : (
-            <Text style={{ ...GS.text, flex: 1 }}>Stat</Text>
+            <Text style={{ ...GS.text, flex: 1, marginVertical: 6 }}>Stat</Text>
           )}
-          {filteredStatTypes.length === 0 ? (
-            <Button onPress={onAddStatType} title="Create Stat" color="green" />
-          ) : (
-            <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
-          )}
+          {/* Don't show any button when entering stat values */}
+          {(!selectedStatType || !statValues.find((el) => el !== '')) &&
+            (filteredStatTypes.length === 0 ? (
+              <Button onPress={onAddStatType} title="Create Stat" color="green" />
+            ) : (
+              <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
+            ))}
         </View>
-        {statValues.map((value: string | number, index: number) => (
+        {statValues.map((value: string, index: number) => (
           <TextInput
             key={String(index)}
             style={GS.input}
-            placeholder="Value"
+            placeholder={selectedStatType ? 'Value' : 'Please select stat type first'}
             placeholderTextColor="grey"
             multiline
+            editable={selectedStatType !== null}
             keyboardType={selectedStatType?.variant === StatTypeVariant.NUMBER ? 'numeric' : 'default'}
-            value={String(value)}
+            value={value}
             onChangeText={(val: string) => updateStatValues(index, val)}
           />
         ))}

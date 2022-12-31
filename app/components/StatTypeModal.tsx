@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { reorderStatTypes, deleteStatType } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
+import { formatIDate } from '../shared/GlobalFunctions';
 import { IStatType } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
@@ -17,7 +18,7 @@ const ChooseStatModal: React.FC<{
   onEditStatType: (statType: IStatType) => void;
 }> = ({ modalOpen, setStatModalOpen, filteredStatTypes, selectStatType, onAddStatType, onEditStatType }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { statTypes } = useSelector((state: RootState) => state.main);
+  const { statTypes, entries } = useSelector((state: RootState) => state.main);
 
   const [reordering, setReordering] = useState<boolean>(false);
 
@@ -28,7 +29,19 @@ const ChooseStatModal: React.FC<{
   };
 
   const onDeleteStatType = (statType: IStatType) => {
-    Alert.alert('Confirmation', `Are you sure you want to delete the stat type ${statType.name}?`, [
+    let message = `Are you sure you want to delete the stat type ${statType.name}?`;
+    const orphanEntries = entries.filter((el) => !!el.stats.find((st) => st.type === statType.id));
+
+    if (orphanEntries.length > 0) {
+      message += ` You have ${orphanEntries.length} entries that use it! They were made on these dates: `;
+      const iterations = Math.min(3, orphanEntries.length);
+      for (let i = 0; i < iterations; i++) {
+        message += formatIDate(orphanEntries[i].date);
+        message += i !== iterations - 1 ? ', ' : ' ...';
+      }
+    }
+
+    Alert.alert(orphanEntries.length === 0 ? 'Confirmation' : 'WARNING!', message, [
       { text: 'Cancel' },
       {
         text: 'Ok',
@@ -36,9 +49,7 @@ const ChooseStatModal: React.FC<{
           dispatch(deleteStatType(statType.id));
 
           // -1, because it won't be updated until the next tick
-          if (statTypes.length - 1 === 0) {
-            setStatModalOpen(false);
-          }
+          if (statTypes.length - 1 === 0) setStatModalOpen(false);
         },
       },
     ]);
