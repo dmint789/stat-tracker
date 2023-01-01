@@ -4,12 +4,13 @@ import DatePicker from 'react-native-date-picker';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addEntry, editEntry } from '../redux/mainSlice';
-import GS from '../shared/GlobalStyles';
+import GS, { xxsGap, mdGap } from '../shared/GlobalStyles';
 import { formatDate } from '../shared/GlobalFunctions';
 import { IEntry, IStatType, IStat, StatTypeVariant, IMultiValueStat } from '../shared/DataStructure';
 
 import WorkingEntryList from '../components/WorkingEntryList';
 import StatTypeModal from '../components/StatTypeModal';
+import Gap from '../components/Gap';
 
 const AddEditEntry = ({ navigation, route }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,7 +26,6 @@ const AddEditEntry = ({ navigation, route }) => {
   const [statValues, setStatValues] = useState<string[]>(['']);
   const [comment, setComment] = useState<string>('');
   const [date, setDate] = useState<Date>(new Date());
-  const [textDate, setTextDate] = useState<string>('');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [statModalOpen, setStatModalOpen] = useState(false);
 
@@ -47,10 +47,8 @@ const AddEditEntry = ({ navigation, route }) => {
       setComment(entry.comment);
       // The month has to be given with 0 indexing
       setDate(new Date(entry.date.year, entry.date.month - 1, entry.date.day));
-      setTextDate(entry.date.text);
     } else {
       navigation.setOptions({ title: 'Add Entry' });
-      setTextDate(formatDate(date));
     }
 
     if (passedData?.statType) {
@@ -82,6 +80,14 @@ const AddEditEntry = ({ navigation, route }) => {
     if (!selectedStatType) {
       if (showAlerts) Alert.alert('Error', 'Please choose a stat type', [{ text: 'Ok' }]);
       return false;
+    } else if (!selectedStatType.multipleValues && statValues.filter((el) => el !== '').length > 1) {
+      if (showAlerts)
+        Alert.alert(
+          'Error',
+          'This stat type does not allow multiple values. Please select a different stat type or enter just one value.',
+          [{ text: 'Ok' }],
+        );
+      return false;
     } else if (!statValues.find((el) => el !== '')) {
       if (showAlerts) Alert.alert('Error', 'Please enter a stat value', [{ text: 'Ok' }]);
       return false;
@@ -101,11 +107,19 @@ const AddEditEntry = ({ navigation, route }) => {
 
   const updateStatValues = (index: number, value: string) => {
     setStatValues((prevStatValues: string[]) => {
-      const newStatValues = prevStatValues.map((prevValue, i) => (i === index ? value : prevValue));
+      let newStatValues = prevStatValues.map((prevValue, i) => (i === index ? value : prevValue));
+      const emptyValues = newStatValues.filter((el) => el === '');
 
-      // Add extra value input, if no empty ones are left and the stat type allows multiple values
-      if (selectedStatType?.multipleValues && newStatValues.findIndex((val) => val === '') === -1) {
-        newStatValues.push('');
+      if (selectedStatType?.multipleValues) {
+        if (emptyValues.length === 0) {
+          newStatValues.push('');
+        } else if (emptyValues.length > 1) {
+          for (let i = newStatValues.length - 1; i >= 0; i--) {
+            if (newStatValues[i] === '' && newStatValues[i - 1] === '') {
+              newStatValues.pop();
+            } else break;
+          }
+        }
       }
 
       return newStatValues;
@@ -135,10 +149,7 @@ const AddEditEntry = ({ navigation, route }) => {
     };
     if (Object.keys(mvs).length > 0) newStat.multiValueStats = mvs;
 
-    return [...prevStats, newStat].sort(
-      (a, b) =>
-        statTypes.find((el) => el.id === a.type).order - statTypes.find((el) => el.id === b.type).order,
-    );
+    return [...prevStats, newStat];
   };
 
   // Add new stat to the list of stats in the current entry
@@ -161,7 +172,7 @@ const AddEditEntry = ({ navigation, route }) => {
           ? [...stat.values, '']
           : stat.values;
         setStatValues(newValues.map((el) => String(el)));
-        selectStatType(stat.type);
+        setSelectedStatType(statTypes.find((el) => el.id === stat.type) || null);
       }
     }
   };
@@ -178,7 +189,6 @@ const AddEditEntry = ({ navigation, route }) => {
           day: date.getDate(),
           month: date.getMonth() + 1,
           year: date.getFullYear(),
-          text: textDate,
         },
       };
 
@@ -195,7 +205,27 @@ const AddEditEntry = ({ navigation, route }) => {
   };
 
   const selectStatType = (id: number) => {
-    setSelectedStatType(statTypes.find((el) => el.id === id) || null);
+    const statType = statTypes.find((el) => el.id === id);
+    const nonEmptyValues = statValues.filter((el) => el !== '');
+
+    if (selectedStatType.multipleValues && !statType.multipleValues) {
+      if (nonEmptyValues.length > 1) {
+        Alert.alert(
+          'Error',
+          'You cannot select this stat type, because you have multiple values entered and this stat type does not allow that',
+          [{ text: 'Ok' }],
+        );
+      } else {
+        setStatValues(nonEmptyValues);
+        setSelectedStatType(statType);
+      }
+    } else {
+      // If there are no empty values and we're switching to a stat type that allows that, add ''
+      if (statType.multipleValues && statValues.length === nonEmptyValues.length)
+        setStatValues((prevStatValues) => [...prevStatValues, '']);
+
+      setSelectedStatType(statType);
+    }
   };
 
   const onAddStatType = () => {
@@ -237,7 +267,7 @@ const AddEditEntry = ({ navigation, route }) => {
   };
 
   return (
-    <View style={GS.container}>
+    <View style={GS.scrollContainer}>
       <ScrollView keyboardShouldPersistTaps="always" style={GS.scrollableArea}>
         {stats.length > 0 && <WorkingEntryList stats={stats} deleteEditStat={deleteEditStat} />}
         <StatTypeModal
@@ -260,29 +290,26 @@ const AddEditEntry = ({ navigation, route }) => {
             <Text style={{ ...GS.text, flex: 1, marginVertical: 6 }}>Stat</Text>
           )}
           {/* Don't show any button when entering stat values */}
-          {(!selectedStatType || !statValues.find((el) => el !== '')) &&
-            (filteredStatTypes.length === 0 ? (
-              <Button onPress={onAddStatType} title="Create Stat" color="green" />
-            ) : (
-              <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
-            ))}
+          {filteredStatTypes.length === 0 ? (
+            <Button onPress={onAddStatType} title="Create Stat" color="green" />
+          ) : (
+            <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
+          )}
         </View>
         {statValues.map((value: string, index: number) => (
           <TextInput
             key={String(index)}
             style={GS.input}
-            placeholder={selectedStatType ? 'Value' : 'Please select a stat type first'}
+            placeholder="Value"
             placeholderTextColor="grey"
             multiline
-            editable={selectedStatType !== null}
             keyboardType={selectedStatType?.variant === StatTypeVariant.NUMBER ? 'numeric' : 'default'}
             value={value}
             onChangeText={(val: string) => updateStatValues(index, val)}
           />
         ))}
-        <View style={{ marginBottom: 10 }}>
-          <Button color={isValidStat(false) ? 'green' : 'grey'} title="Add Stat" onPress={addStat} />
-        </View>
+        <Button color={isValidStat(false) ? 'green' : 'grey'} title="Add Stat" onPress={addStat} />
+        <Gap />
 
         {/* Comment */}
         <TextInput
@@ -295,7 +322,7 @@ const AddEditEntry = ({ navigation, route }) => {
         />
         {/* Date */}
         <View style={styles.date}>
-          <Text style={GS.text}>{textDate}</Text>
+          <Text style={GS.text}>{formatDate(date)}</Text>
           <Button onPress={() => setDatePickerOpen(true)} title="Edit" color="blue" />
         </View>
         <DatePicker
@@ -306,17 +333,14 @@ const AddEditEntry = ({ navigation, route }) => {
           onConfirm={(date) => {
             setDatePickerOpen(false);
             setDate(date);
-            setTextDate(formatDate(date));
           }}
           onCancel={() => setDatePickerOpen(false)}
         />
-        <View style={{ marginBottom: 20 }}>
-          <Button
-            onPress={addEditEntry}
-            title={prevEntryId ? 'Edit Entry' : 'Add Entry'}
-            color={prevEntryId ? 'blue' : 'red'}
-          />
-        </View>
+        <Button
+          onPress={addEditEntry}
+          title={prevEntryId ? 'Edit Entry' : 'Add Entry'}
+          color={prevEntryId ? 'blue' : 'red'}
+        />
       </ScrollView>
     </View>
   );
@@ -327,8 +351,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 14,
-    padding: 6,
+    marginVertical: mdGap,
+    padding: xxsGap,
     borderWidth: 1,
     borderColor: 'grey',
   },
@@ -336,7 +360,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: mdGap,
   },
 });
 

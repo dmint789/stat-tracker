@@ -23,7 +23,7 @@ const Checkbox: React.FC<Props> = ({ children, checked, disabled = false, onChan
       <View style={{ ...styles.checkbox, backgroundColor: disabled ? 'lightgray' : 'pink' }}>
         {checked && <Icon name="check" size={24} color={disabled ? 'gray' : 'red'} />}
       </View>
-      <Text style={GS.blackText}>{children}</Text>
+      <Text style={GS.text}>{children}</Text>
     </TouchableOpacity>
   );
 };

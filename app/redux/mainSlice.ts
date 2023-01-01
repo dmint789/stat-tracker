@@ -10,17 +10,37 @@ import {
   StatTypeVariant,
 } from '../shared/DataStructure';
 
-const verbose = false;
+const verbose = true;
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-// WHEN AN ENTRY IS ADDED OR ONE HAS THE DATE EDITED, IT SHOULD BE PLACED
-// IN THE RIGHT PLACE ACCORDING TO DATE. IF DATES ARE THE SAME,
-// THE NEW ONE IS CONSIDERED MORE RECENT.
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+const addEditEntry = (entries: IEntry[], entry: IEntry): IEntry[] => {
+  if (verbose) {
+    console.log('Adding or editing entry:');
+    console.log(JSON.stringify(entry, null, 2));
+  }
+
+  const newEntries: IEntry[] = [];
+  let inserted = false;
+
+  if (entries.length > 0) {
+    for (let e of entries) {
+      if (!inserted && isNewerOrSameDate(entry.date, e.date)) {
+        newEntries.push(entry);
+        inserted = true;
+      }
+      if (e.id !== entry.id) {
+        newEntries.push(e);
+      }
+    }
+
+    if (!inserted) newEntries.push(entry);
+  } else {
+    newEntries.push(entry);
+  }
+
+  return newEntries;
+};
+
+const convertKey = (key, statType) => (key === 'best' ? (statType.higherIsBetter ? 'high' : 'low') : key);
 
 // The return value is whether or not the PB got updated
 const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boolean => {
@@ -76,21 +96,20 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
         pbUpdated = true;
       } else {
         const pbs = statType.pbs.allTime.result as IMultiValuePB;
-        const convertKey = (key) => (key === 'best' ? (statType.higherIsBetter ? 'high' : 'low') : key);
 
         ['best', 'avg', 'sum'].forEach((key) => {
           if (
             pbs[key] === null ||
-            (stat.multiValueStats[convertKey(key)] > pbs[key] && statType.higherIsBetter) ||
-            (stat.multiValueStats[convertKey(key)] < pbs[key] && !statType.higherIsBetter) ||
-            (stat.multiValueStats[convertKey(key)] === pbs[key] &&
+            (stat.multiValueStats[convertKey(key, statType)] > pbs[key] && statType.higherIsBetter) ||
+            (stat.multiValueStats[convertKey(key, statType)] < pbs[key] && !statType.higherIsBetter) ||
+            (stat.multiValueStats[convertKey(key, statType)] === pbs[key] &&
               !isNewerOrSameDate(
                 entry.date,
                 state.entries.find((el) => el.id === statType.pbs.allTime.entryId[key]).date,
               ))
           ) {
             statType.pbs.allTime.entryId[key] = entry.id;
-            statType.pbs.allTime.result[key] = stat.multiValueStats[convertKey(key)];
+            statType.pbs.allTime.result[key] = stat.multiValueStats[convertKey(key, statType)];
 
             pbUpdated = true;
           }
@@ -139,12 +158,23 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
             },
           };
 
-          if (!statType.multipleValues && statType.pbs.allTime.entryId === entry.id) {
+          // Check that the entry held the PB for the stat type before and the value is different or deleted now
+          if (
+            !statType.multipleValues &&
+            statType.pbs.allTime.entryId === entry.id &&
+            statType.pbs.allTime.result !== entry.stats.find((el) => el.type === statType.id)?.values[0]
+          ) {
             isPrevPB = true;
             tempStatType.pbs = null;
           } else if (statType.multipleValues) {
             ['best', 'avg', 'sum'].forEach((key) => {
-              if (statType.pbs.allTime.entryId[key] === entry.id) {
+              if (
+                statType.pbs.allTime.entryId[key] === entry.id &&
+                statType.pbs.allTime.result[key] !==
+                  entry.stats.find((el) => el.type === statType.id)?.multiValueStats[
+                    convertKey(key, statType)
+                  ]
+              ) {
                 isPrevPB = true;
                 tempStatType.pbs.allTime.entryId[key] = null;
                 tempStatType.pbs.allTime.result[key] = null;
@@ -268,7 +298,7 @@ const mainSlice = createSlice({
      * Entries
      */
     addEntry: (state, action: PayloadAction<IEntry>) => {
-      state.entries.unshift(action.payload);
+      state.entries = addEditEntry(state.entries, action.payload);
       SM.setData(state.statCategory.id, 'entries', state.entries);
 
       // Update PBs if needed
@@ -276,14 +306,15 @@ const mainSlice = createSlice({
 
       // Update stat category
       state.statCategory.lastEntryId++;
-      state.statCategory.totalEntries++;
+      state.statCategory.totalEntries = state.entries.length;
       state.statCategories = state.statCategories.map((el) =>
         el.id === state.statCategory.id ? state.statCategory : el,
       );
       SM.setStatCategories(state.statCategories);
     },
+    // This is the same as the first part of addEntry
     editEntry: (state, action: PayloadAction<IEntry>) => {
-      state.entries = state.entries.map((el) => (el.id === action.payload.id ? action.payload : el));
+      state.entries = addEditEntry(state.entries, action.payload);
       SM.setData(state.statCategory.id, 'entries', state.entries);
 
       // Update PBs if needed

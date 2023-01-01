@@ -1,6 +1,6 @@
 {
   "name": "Stat_Tracker",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "private": true,
   "scripts": {
     "dev": "alacritty -e yarn emulator & alacritty -e yarn start && sleep 2 & alacritty -e yarn android &",

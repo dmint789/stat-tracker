@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import GS from '../shared/GlobalStyles';
+import GS, { xxsGap, xsGap, mdGap } from '../shared/GlobalStyles';
+import { sortStats } from '../shared/GlobalFunctions';
 import { IStat, IStatType } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
@@ -24,18 +25,19 @@ const WorkingEntryList: React.FC<{
   };
 
   return (
-    <View style={styles.container}>
-      {stats.map((stat) => {
+    <View style={{ marginTop: 6 }}>
+      {sortStats(stats, statTypes).map((stat) => {
         const statType = statTypes.find((el) => el.id === stat.type);
+
         return (
           <View style={styles.stat} key={stat.id}>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => deleteEditStat(stat, true)}>
-              <Text style={GS.text}>
-                <Text style={GS.grayText}>{statType?.name || '(Deleted)'}: </Text>
+              <Text style={GS.textMar}>
+                <Text style={GS.darkGrayText}>{statType?.name || '(Deleted)'}: </Text>
                 {getStatValues(stat, statType)}
               </Text>
               {stat.values.length > 1 && (statType?.showBest || statType?.showAvg || statType?.showSum) && (
-                <Text style={{ ...GS.text, ...GS.grayText }}>
+                <Text style={GS.darkGrayText}>
                   {statType.showBest &&
                     `Best: ${
                       statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low
@@ -55,17 +57,16 @@ const WorkingEntryList: React.FC<{
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 6,
-  },
   stat: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 14,
-    paddingHorizontal: 20,
+    marginTop: mdGap,
+    paddingHorizontal: xsGap,
+    paddingBottom: xxsGap,
+    // Same as the input border bottom
     borderBottomWidth: 1,
-    borderBottomColor: 'lightgrey',
+    borderBottomColor: 'lightgray',
   },
 });
 

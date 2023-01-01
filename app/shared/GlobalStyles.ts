@@ -1,9 +1,40 @@
 import { StyleSheet } from 'react-native';
 
+export const xsFontSize = 16;
+export const smFontSize = 17;
+export const mdFontSize = 18;
+export const lgFontSize = 22;
+
+export const darkGray = '#555';
+
+export const xxsGap = 6;
+export const xsGap = 10;
+export const smGap = 12;
+export const mdGap = 16;
+export const lgGap = 20;
+export const xlGap = 30;
+
+const largeShadow = {
+  shadowColor: 'black',
+  shadowOpacity: 0.5,
+  elevation: 16,
+};
+
+const smallShadow = {
+  shadowColor: 'black',
+  shadowOpacity: 0.5,
+  elevation: 5,
+};
+
+const cardStyle = {
+  borderRadius: 10,
+  backgroundColor: 'pink',
+};
+
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
   },
   modalContainer: {
     flex: 1,
@@ -16,95 +47,102 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     maxHeight: '62%',
     width: '80%',
-    marginBottom: 20,
-    padding: 20,
+    padding: lgGap,
     borderRadius: 30,
-    backgroundColor: '#fff',
-    shadowColor: '#000000',
-    shadowOpacity: 0.5,
-    elevation: 16,
+    backgroundColor: 'white',
+    ...largeShadow,
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: 'white',
   },
   scrollableArea: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: lgGap,
   },
-  text: {
-    marginBottom: 6,
-    fontSize: 18,
+  textMar: {
+    marginBottom: xxsGap,
+    fontSize: mdFontSize,
     color: 'black',
   },
-  blackText: {
-    fontSize: 18,
+  text: {
+    fontSize: mdFontSize,
     color: 'black',
   },
   whiteText: {
-    fontSize: 18,
+    fontSize: mdFontSize,
     color: 'white',
   },
-  grayText: {
-    color: '#555',
+  darkGrayText: {
+    fontSize: mdFontSize,
+    color: darkGray,
   },
   commentText: {
-    marginBottom: 10,
-    fontSize: 17,
-    color: '#555',
+    marginBottom: xsGap,
+    fontSize: smFontSize,
+    color: darkGray,
   },
   normalText: {
-    margin: 20,
-    fontSize: 18,
+    fontSize: mdFontSize,
+    color: 'black',
+    marginBottom: lgGap,
+  },
+  titleText: {
+    marginTop: xxsGap,
+    marginBottom: mdGap,
+    textAlign: 'center',
+    fontSize: lgFontSize,
+    fontWeight: 'bold',
     color: 'black',
   },
-  smallText: {
-    fontSize: 16,
-    color: 'grey',
+  smallGrayText: {
+    fontSize: xsFontSize,
+    color: 'gray',
   },
   infoText: {
-    margin: 20,
+    margin: lgGap,
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: mdFontSize,
     color: 'black',
   },
   input: {
-    color: 'black',
-    fontSize: 18,
-    marginBottom: 10,
-    paddingVertical: 6,
+    maxHeight: 130,
+    marginBottom: xsGap,
+    paddingVertical: xxsGap,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: 'lightgray',
+    fontSize: mdFontSize,
+    color: 'black',
   },
-  card: {
+  bigCard: {
+    ...cardStyle,
     position: 'relative',
-    marginTop: 12,
-    marginHorizontal: 20,
-    padding: 16,
-    borderRadius: 10,
-    backgroundColor: 'pink',
-    shadowColor: '#000000',
-    shadowOpacity: 0.5,
-    elevation: 5,
+    marginTop: smGap,
+    marginHorizontal: mdGap,
+    padding: mdGap,
+    ...smallShadow,
   },
   smallCard: {
+    ...cardStyle,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: 'pink',
+    marginBottom: xsGap,
+    paddingVertical: xsGap,
+    paddingHorizontal: mdGap,
   },
-  button: {
+  buttonRowButton: {
     flex: 1,
-    marginHorizontal: 10,
+    margin: xsGap,
   },
   buttonRow: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: lgGap,
   },
-  bottomButtons: {
+  cardButtons: {
     position: 'absolute',
     flexDirection: 'row',
-    bottom: 10,
-    right: 10,
+    bottom: xsGap,
+    right: xsGap,
   },
 });

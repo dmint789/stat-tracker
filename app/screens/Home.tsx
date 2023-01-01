@@ -41,7 +41,7 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <View style={GS.container}>
+    <View style={GS.scrollContainer}>
       {/* Views in React Native are flexbox components by default. */}
       {/* The items inside are automatically flex items. */}
 

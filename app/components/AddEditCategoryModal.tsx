@@ -90,14 +90,14 @@ const AddEditCategoryModal: React.FC<{
             multiline
           />
           <View style={GS.buttonRow}>
-            <View style={GS.button}>
+            <View style={GS.buttonRowButton}>
               <Button
                 onPress={() => onButtonPressed()}
                 title={prevCategory ? 'Edit' : 'Add'}
                 color={prevCategory ? 'blue' : 'green'}
               />
             </View>
-            <View style={GS.button}>
+            <View style={GS.buttonRowButton}>
               <Button onPress={() => setModalOpen(false)} title="Cancel" color="grey" />
             </View>
           </View>

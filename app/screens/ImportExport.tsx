@@ -26,17 +26,17 @@ const ImportExport = () => {
 
   return (
     <View style={GS.container}>
-      <Text style={GS.normalText}>
+      <Text style={styles.text}>
         Press "Export" to export all of your stats in .json format. You can use this file to back up your data
         and restore it later using the "Import" button below.
       </Text>
-      {exportSuccess !== '' && <Text style={{ ...GS.normalText, color: 'grey' }}>{exportSuccess}</Text>}
-      {exportError !== '' && <Text style={{ ...GS.normalText, color: 'red' }}>{exportError}</Text>}
+      {exportSuccess !== '' && <Text style={{ ...styles.text, color: 'grey' }}>{exportSuccess}</Text>}
+      {exportError !== '' && <Text style={{ ...styles.text, color: 'red' }}>{exportError}</Text>}
       <View style={styles.button}>
         <Button onPress={onExportData} title="Export" color="red" />
       </View>
-      {importSuccess !== '' && <Text style={{ ...GS.normalText, color: 'grey' }}>{importSuccess}</Text>}
-      {importError !== '' && <Text style={{ ...GS.normalText, color: 'red' }}>{importError}</Text>}
+      {importSuccess !== '' && <Text style={{ ...styles.text, color: 'grey' }}>{importSuccess}</Text>}
+      {importError !== '' && <Text style={{ ...styles.text, color: 'red' }}>{importError}</Text>}
       <View style={styles.button}>
         <Button onPress={onImportData} title="Import" color="blue" />
       </View>
@@ -48,6 +48,10 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 10,
     marginHorizontal: 40,
+  },
+  text: {
+    ...GS.normalText,
+    margin: 20,
   },
 });
 

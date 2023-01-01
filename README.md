@@ -1,6 +1,6 @@
 # Stat Tracker
 
-This is a mobile app for tracking various daily statistics and personal bests. You can use it for things like your work, education, hobbies, health, or whatever it is you can find it useful for in your personal life. It shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
+This is a mobile app for tracking various daily statistics and personal bests. You can use it for things like work, education, hobbies, health, or whatever it is you can find it useful for in your personal life. It shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
 
 ## Download
 

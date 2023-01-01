@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addStatType, editStatType } from '../redux/mainSlice';
 import GS from '../shared/GlobalStyles';
 import { IStatType, ISelectOption, StatTypeVariant } from '../shared/DataStructure';
+
 import Checkbox from '../components/Checkbox';
+import Gap from '../components/Gap';
 import Select from '../components/Select';
 
 const AddEditStatType = ({ navigation, route }) => {
@@ -119,7 +121,7 @@ const AddEditStatType = ({ navigation, route }) => {
   };
 
   return (
-    <View style={GS.container}>
+    <View style={GS.scrollContainer}>
       <ScrollView keyboardShouldPersistTaps="always" style={GS.scrollableArea}>
         <TextInput
           style={{ ...GS.input, marginTop: 15 }}
@@ -135,7 +137,7 @@ const AddEditStatType = ({ navigation, route }) => {
           placeholderTextColor="grey"
           onChangeText={(value) => setUnit(value)}
         />
-        <Text style={styles.label}>Variant</Text>
+        <Text style={GS.titleText}>Variant</Text>
         <Select
           options={
             passedData?.statType ? [variantOptions.find((el) => el.value === variant)] : variantOptions
@@ -178,27 +180,15 @@ const AddEditStatType = ({ navigation, route }) => {
             Track PBs
           </Checkbox>
         )}
-        <View style={{ marginVertical: 20 }}>
-          <Button
-            onPress={addEditStatType}
-            title={passedData?.statType ? 'Edit Stat Type' : 'Add Stat Type'}
-            color={passedData?.statType ? 'blue' : 'red'}
-          />
-        </View>
+        <Gap size="lg" />
+        <Button
+          onPress={addEditStatType}
+          title={passedData?.statType ? 'Edit Stat Type' : 'Add Stat Type'}
+          color={passedData?.statType ? 'blue' : 'red'}
+        />
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  label: {
-    marginTop: 10,
-    marginBottom: 20,
-    textAlign: 'center',
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-});
 
 export default AddEditStatType;

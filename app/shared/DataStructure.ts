@@ -1,9 +1,15 @@
 /**
  * In async storage there are keys for (1) "statCategories", (2) "lastCategoryId", (3) "backupDirectory",
  * and (4) things listed under dataPoints. backupDirectory is the only thing not needed for the export.
+ *
+ * List of data types stored in async storage with keys in the format "<StatCategoryId>_dataPoint"
+ * In exports these are stored as:
+ * dataPoint: {
+ *   "StatCategoryId": [...],
+ *   "StatCategoryId": [...],
+ *   ...
+ * }
  */
-
-// List of data types stored with keys in the format "<StatCategoryId>_dataPoint"
 export const dataPoints = ['statTypes', 'entries'];
 
 export interface IBackupData {
@@ -84,7 +90,6 @@ export interface IDate {
   day: number;
   month: number; // 1 - 12
   year: number;
-  text: string;
 }
 
 export interface ISelectOption {

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
+import { formatIDate, sortStats } from '../shared/GlobalFunctions';
 import { IEntry, IStatType, IStat } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
@@ -27,18 +28,20 @@ const Entry: React.FC<{
 
   const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
     const isPB = statType?.trackPBs && statType.pbs?.allTime.entryId[key] === entry.id;
+    let mvsKey: 'high' | 'low' | 'avg' | 'sum';
 
     if (key === 'best') {
-      // @ts-ignore
-      key = statType?.higherIsBetter ? 'high' : 'low';
+      mvsKey = statType?.higherIsBetter ? 'high' : 'low';
+    } else {
+      mvsKey = key;
     }
 
-    return <Text style={isPB ? styles.pbStyle : {}}>{stat.multiValueStats[key]}</Text>;
+    return <Text style={isPB ? styles.pbStyle : {}}>{stat.multiValueStats[mvsKey]}</Text>;
   };
 
   return (
-    <TouchableOpacity onPress={() => onEditEntry(entry)} style={GS.card}>
-      {entry.stats.map((stat) => {
+    <TouchableOpacity onPress={() => onEditEntry(entry)} style={GS.bigCard}>
+      {sortStats(entry.stats, statTypes).map((stat) => {
         const statType = statTypes.find((el) => el.id === stat.type);
 
         // Best/avg/sum should be shown if needed and if there are multiple values or the best/avg/sum is a PB
@@ -53,8 +56,8 @@ const Entry: React.FC<{
 
         return (
           <View key={stat.id}>
-            <Text style={GS.text}>
-              <Text style={GS.grayText}>{statType?.name || '(Deleted)'}: </Text>
+            <Text style={GS.textMar}>
+              <Text style={GS.darkGrayText}>{statType?.name || '(Deleted)'}: </Text>
               {stat.values.map((value, i) => (
                 <Text key={i}>
                   {/* Make sure only the first best value in a multivalue stat with ties is highlighted */}
@@ -63,12 +66,13 @@ const Entry: React.FC<{
                   >
                     {value}
                   </Text>
+                  {statType?.unit && ` ${statType?.unit}`}
                   {i !== stat.values.length - 1 && ', '}
                 </Text>
               ))}
             </Text>
             {(showBest || showAvg || showSum) && (
-              <Text style={{ ...GS.grayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
+              <Text style={{ ...GS.darkGrayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
                 {/* &#8194; is the En space character */}
                 {showBest && <>Best: {getMultiStatTextElement(stat, statType, 'best')}&#8194;</>}
                 {showAvg && <>Avg: {getMultiStatTextElement(stat, statType, 'avg')}&#8194;</>}
@@ -88,8 +92,8 @@ const Entry: React.FC<{
           {entry.comment}
         </Text>
       )}
-      <Text style={GS.smallText}>{entry.date.text}</Text>
-      <View style={GS.bottomButtons}>
+      <Text style={GS.smallGrayText}>{formatIDate(entry.date)}</Text>
+      <View style={GS.cardButtons}>
         <IconButton onPress={() => onDeleteEntry(entry)} />
       </View>
     </TouchableOpacity>

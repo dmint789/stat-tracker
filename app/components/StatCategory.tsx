@@ -18,11 +18,11 @@ const StatCategory: React.FC<Props> = ({ category, onPress, onEdit, onDelete }) 
   };
 
   return (
-    <TouchableOpacity onPress={() => onPress(category)} style={GS.card}>
+    <TouchableOpacity onPress={() => onPress(category)} style={GS.bigCard}>
       <Text style={styles.titleText}>{category.name}</Text>
       {category.note !== '' && <Text style={GS.commentText}>{category.note}</Text>}
-      <Text style={GS.smallText}>{getEntriesText()}</Text>
-      <View style={GS.bottomButtons}>
+      <Text style={GS.smallGrayText}>{getEntriesText()}</Text>
+      <View style={GS.cardButtons}>
         <IconButton type={'pencil'} color={'gray'} onPress={() => onEdit(category)} />
         <IconButton onPress={() => onDelete(category)} />
       </View>

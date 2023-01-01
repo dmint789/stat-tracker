@@ -1,22 +1,23 @@
-import { IDate } from './DataStructure';
+import { IStatType, IStat, IDate } from './DataStructure';
+
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 // Separator being unset means output the pretty date. In that case includeTime is ignored.
 export const formatDate = (date: Date, separator = '', includeTime = false): string => {
   let output = '';
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
 
   if (!separator) {
     output += date.getDate() + ' ';
@@ -33,12 +34,18 @@ export const formatDate = (date: Date, separator = '', includeTime = false): str
   return output;
 };
 
-export const formatIDate = (date: IDate, separator = '.'): string => {
+export const formatIDate = (date: IDate, separator = ''): string => {
   let output = '';
 
-  output += (date.day >= 10 ? '' : '0') + date.day + separator;
-  output += (date.month >= 10 ? '' : '0') + date.month + separator;
-  output += date.year;
+  if (!separator) {
+    output += date.day + ' ';
+    output += months[date.month - 1] + ' ';
+    output += date.year;
+  } else {
+    output += (date.day < 10 && '0') + date.day + separator;
+    output += (date.month < 10 && '0') + date.month + separator;
+    output += date.year;
+  }
 
   return output;
 };
@@ -52,4 +59,10 @@ export const isNewerOrSameDate = (date1: IDate, date2: IDate): boolean => {
       return date1.day >= date2.day;
     } else return false;
   } else return false;
+};
+
+export const sortStats = (stats: IStat[], statTypes: IStatType[]): IStat[] => {
+  return [...stats].sort(
+    (a, b) => statTypes.find((el) => el.id === a.type).order - statTypes.find((el) => el.id === b.type).order,
+  );
 };

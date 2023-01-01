@@ -22,7 +22,7 @@ const Select: React.FC<Props> = ({ options, selected, onSelect, horizontal = fal
             backgroundColor: option.value === selected ? 'red' : 'pink',
           }}
         >
-          <Text style={option.value === selected ? GS.whiteText : GS.blackText}>{option.label}</Text>
+          <Text style={option.value === selected ? GS.whiteText : GS.text}>{option.label}</Text>
         </TouchableOpacity>
       ))}
     </View>

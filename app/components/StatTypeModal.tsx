@@ -3,7 +3,7 @@ import { Alert, Button, Modal, View, Text, ScrollView, TouchableOpacity } from '
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { reorderStatTypes, deleteStatType } from '../redux/mainSlice';
-import GS from '../shared/GlobalStyles';
+import GS, { smGap } from '../shared/GlobalStyles';
 import { formatIDate } from '../shared/GlobalFunctions';
 import { IStatType } from '../shared/DataStructure';
 
@@ -34,12 +34,12 @@ const ChooseStatModal: React.FC<{
 
     if (orphanEntries.length > 0) {
       if (orphanEntries.length === 1)
-        message += ` You have an entry from ${formatIDate(orphanEntries[0].date)} that uses it!`;
+        message += ` You have an entry from ${formatIDate(orphanEntries[0].date, '.')} that uses it!`;
       else {
         message += ` You have ${orphanEntries.length} entries that use it! They were made on these dates: `;
         const iterations = Math.min(3, orphanEntries.length);
         for (let i = 0; i < iterations; i++) {
-          message += formatIDate(orphanEntries[i].date);
+          message += formatIDate(orphanEntries[i].date, '.');
           message += i !== iterations - 1 ? ', ' : orphanEntries.length > 3 ? ' ...' : '';
         }
       }
@@ -83,7 +83,7 @@ const ChooseStatModal: React.FC<{
         <View style={GS.modalBackground}>
           {filteredStatTypes.length === statTypes.length && statTypes.length > 1 && (
             <TouchableOpacity onPress={() => setReordering((prevReordering) => !prevReordering)}>
-              <Text style={{ ...GS.text, marginBottom: 16, textAlign: 'right', color: 'blue' }}>
+              <Text style={{ ...GS.text, marginBottom: smGap, textAlign: 'right', color: 'blue' }}>
                 {reordering ? 'Done' : 'Reorder'}
               </Text>
             </TouchableOpacity>
@@ -121,10 +121,10 @@ const ChooseStatModal: React.FC<{
           </ScrollView>
 
           <View style={GS.buttonRow}>
-            <View style={GS.button}>
+            <View style={GS.buttonRowButton}>
               <Button onPress={onAddStatType} title="New" color="green" />
             </View>
-            <View style={GS.button}>
+            <View style={GS.buttonRowButton}>
               <Button onPress={onCancel} title="Cancel" color="grey" />
             </View>
           </View>
