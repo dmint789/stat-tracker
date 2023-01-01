@@ -2,6 +2,14 @@
 
 This is a mobile app for tracking various daily statistics and personal bests. You can use it for things like your work, education, hobbies, health, or whatever it is you can find it useful for in your personal life. It shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
 
+## Download
+
+You can download a **WORK IN PROGRESS** build of this app on the [releases page](https://github.com/dmint789/stat-tracker/releases). Keep in mind that future releases could be incompatible with the version you download. However, it will still be possible to change your old backup file to the new format. If you need to have this done, feel free to contact me (cube327@tuta.io). This disclaimer will be removed once this app reaches version 1.0.
+
+## Support the project
+
+If you would like to support this project, feel free to become a patron on my [Patreon page](https://patreon.com/denimintsaev). If you don't want to contribute monthly, you can just wait until your first payment goes through at the start of the next month and unsubscribe. I appreciate any and all contributions.
+
 ## Planned features
 
 This is a list of just **some** of the features I plan to add in the future:
@@ -11,14 +19,6 @@ This is a list of just **some** of the features I plan to add in the future:
 3. Showing past PBs
 4. Seeing a history of all of your PBs
 5. Getting an overview of various statistics about your data
-
-## Download
-
-You can download a **WORK IN PROGRESS** build of this app on the [releases page](https://github.com/dmint789/stat-tracker/releases). Keep in mind that future releases could be incompatible with the version you download. However, it will still be possible to change your old backup file to the new format. If you need to have this done, feel free to contact me (cube327@tuta.io). This disclaimer will be removed once this app reaches version 1.0.
-
-## Support the project
-
-If you would like to support this project, feel free to become a patron on my [Patreon page](https://patreon.com/denimintsaev). If you don't want to contribute monthly, you can just wait until your first payment goes through at the start of the next month and unsubscribe. I appreciate any and all contributions.
 
 ## Screenshots
 
