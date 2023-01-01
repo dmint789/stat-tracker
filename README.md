@@ -1,6 +1,16 @@
 # Stat Tracker
 
-Mobile app for tracking various statistics, like things related to work, education, hobbies, health, etc. Shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
+This is a mobile app for tracking various daily statistics and personal bests. You can use it for things like your work, education, hobbies, health, or whatever it is you can find it useful for in your personal life. It shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
+
+## Planned features
+
+This is a list of just **some** of the features I plan to add in the future:
+
+1. Tracking PBs for the year/month
+2. Tracking worst results
+3. Showing past PBs
+4. Seeing a history of all of your PBs
+5. Getting an overview of various statistics about your data
 
 ## Download
 
