@@ -15,7 +15,7 @@
     "rn-upgrade": "react-native upgrade",
     "rn-new-version": "react-native-version --never-amend",
     "git-new-version": "VER=$(jq -r .version ./package.json) && git tag -af \"v$VER\" -m \"Version $VER\" && git push -f origin --tags && git tag",
-    "new-version": "yarn rn-new-version && git push && yarn git-new-version",
+    "new-version": "yarn rn-new-version && git commit -a && git push && yarn git-new-version",
     "test": "jest",
     "lint": "eslint ."
   },

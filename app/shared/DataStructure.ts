@@ -47,15 +47,22 @@ export interface IMultiValuePB {
 //   sum?: number;
 // }
 
+export interface IChoice {
+  id: number;
+  label: string;
+  // color: SelectColor;
+}
+
 export interface IStatType {
   id: number;
   name: string;
   unit?: string;
   order: number; // goes from 1 to statTypes.length with no gaps
   variant: StatTypeVariant;
-  // default?: string | number;
+  // for MULTIPLE_CHOICE this is the id of the default choice
+  defaultValue?: string | number;
   higherIsBetter?: boolean; // NUMBER only
-  // choices?: string[]; // MULTIPLE_CHOICE only
+  choices?: IChoice[]; // MULTIPLE_CHOICE only
   // formula?: string; // FORMULA only
   multipleValues?: boolean; // TEXT and NUMBER only
   showBest?: boolean; // NUMBER only
@@ -85,6 +92,16 @@ export interface IStatType {
   //     entryId: IMultiValueWorst;
   //     result: IMultiValueWorst;
   //   }
+  //   Only tracks the worst for the most recent year
+  //   year: {
+  //     entryId: IMultiValuePB;
+  //     result: IMultiValuePB;
+  //   };
+  //   Only tracks the worst for the most recent month
+  //   month: {
+  //     entryId: IMultiValuePB;
+  //     result: IMultiValuePB
+  //   };
   // }
 }
 
@@ -105,7 +122,7 @@ export interface IMultiValueStat {
 export interface IStat {
   id: number;
   type: number | null; // ID of stat type or null if not yet chosen
-  values: string[] | number[] | null; // Null if stat type is a formula
+  values?: string[] | number[]; // unset if stat type is a formula
   multiValueStats?: IMultiValueStat;
   // hadPB?: boolean;
 }
@@ -116,7 +133,10 @@ export interface IDate {
   year: number;
 }
 
+export type SelectColor = 'red' | 'gray';
+
 export interface ISelectOption {
   label: string;
-  value: StatTypeVariant;
+  value: number;
+  color?: SelectColor; // default is red
 }

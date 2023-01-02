@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import GS from '../shared/GlobalStyles';
-import { ISelectOption } from '../shared/DataStructure';
+import { ISelectOption, SelectColor } from '../shared/DataStructure';
 
 type Props = {
   options: ISelectOption[];
@@ -11,6 +11,19 @@ type Props = {
 };
 
 const Select: React.FC<Props> = ({ options, selected, onSelect, horizontal = false }) => {
+  const getColor = (option: ISelectOption): string => {
+    if (option.value === selected) {
+      return option.color || 'red';
+    } else {
+      switch (option.color) {
+        case 'gray':
+          return 'lightgray';
+        default:
+          return 'pink';
+      }
+    }
+  };
+
   return (
     <View style={horizontal ? { flexDirection: 'row', justifyContent: 'space-between' } : {}}>
       {options.map((option) => (
@@ -19,7 +32,7 @@ const Select: React.FC<Props> = ({ options, selected, onSelect, horizontal = fal
           onPress={() => onSelect(option.value)}
           style={{
             ...GS.smallCard,
-            backgroundColor: option.value === selected ? 'red' : 'pink',
+            backgroundColor: getColor(option),
           }}
         >
           <Text style={option.value === selected ? GS.whiteText : GS.text}>{option.label}</Text>

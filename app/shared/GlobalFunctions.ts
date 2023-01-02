@@ -1,4 +1,4 @@
-import { IStatType, IStat, IDate } from './DataStructure';
+import { IStatType, IStat, IDate, StatTypeVariant } from './DataStructure';
 
 const months = [
   'January',

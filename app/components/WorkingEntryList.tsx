@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS, { xxsGap, xsGap, mdGap } from '../shared/GlobalStyles';
 import { sortStats } from '../shared/GlobalFunctions';
-import { IStat, IStatType } from '../shared/DataStructure';
+import { IStat, IStatType, StatTypeVariant } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 
@@ -15,12 +15,18 @@ const WorkingEntryList: React.FC<{
   const { statTypes } = useSelector((state: RootState) => state.main);
 
   const getStatValues = (stat: IStat, statType: IStatType): string => {
-    if (stat.values.length === 1) return String(stat.values[0]);
-    else {
-      return stat.values
-        .map((val) => val + (statType?.unit ? ` ${statType.unit}` : '') + ', ')
-        .join('')
-        .slice(0, -2);
+    if (statType.variant !== StatTypeVariant.MULTIPLE_CHOICE) {
+      const unit = statType?.unit ? ` ${statType.unit}` : '';
+
+      if (stat.values.length === 1) return String(stat.values[0]) + unit;
+      else {
+        return stat.values
+          .map((val) => val + unit + ', ')
+          .join('')
+          .slice(0, -2);
+      }
+    } else {
+      return statType.choices.find((el) => el.id === stat.values[0]).label;
     }
   };
 

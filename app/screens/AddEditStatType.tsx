@@ -3,12 +3,13 @@ import { Alert, Button, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addStatType, editStatType } from '../redux/mainSlice';
-import GS from '../shared/GlobalStyles';
+import GS, { lgGap, mdGap } from '../shared/GlobalStyles';
 import { IStatType, ISelectOption, StatTypeVariant } from '../shared/DataStructure';
 
 import Checkbox from '../components/Checkbox';
 import Gap from '../components/Gap';
 import Select from '../components/Select';
+import MultiValueInput from '../components/MultiValueInput';
 
 const AddEditStatType = ({ navigation, route }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,8 +18,11 @@ const AddEditStatType = ({ navigation, route }) => {
   const [name, setName] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [variant, setVariant] = useState<StatTypeVariant>(StatTypeVariant.TEXT);
+  // This is a string when used with NUMBER or TEXT variants and a number when used with MULTIPLE_CHOICE
+  const [defaultValue, setDefaultValue] = useState<string | number>('');
   const [higherIsBetter, setHigherIsBetter] = useState<boolean>(true);
-  // const [choices, setChoices] = useState([]);
+  const [choices, setChoices] = useState(['']);
+  const [choicesAccepted, setChoicesAccepted] = useState<boolean>(false);
   // const [formula, setFormula] = useState<string>('');
   const [multipleValues, setMultipleValues] = useState<boolean>(false);
   const [showBest, setShowBest] = useState<boolean>(true);
@@ -26,7 +30,7 @@ const AddEditStatType = ({ navigation, route }) => {
   const [showSum, setShowSum] = useState<boolean>(false);
   const [trackPBs, setTrackPBs] = useState<boolean>(false);
 
-  // If statType is null, we're adding a new stat type
+  // If statType is not set, we're adding a new stat type
   const passedData: {
     statType?: IStatType;
   } = route.params;
@@ -34,6 +38,7 @@ const AddEditStatType = ({ navigation, route }) => {
   const variantOptions: ISelectOption[] = [
     { label: 'Text', value: StatTypeVariant.TEXT },
     { label: 'Number', value: StatTypeVariant.NUMBER },
+    { label: 'Multiple choice', value: StatTypeVariant.MULTIPLE_CHOICE },
   ];
 
   const higherLowerIsBetterOptions: ISelectOption[] = [
@@ -48,9 +53,15 @@ const AddEditStatType = ({ navigation, route }) => {
       const { statType } = passedData;
 
       setName(statType.name);
-      if (statType.unit) setUnit(statType.unit);
+      setUnit(statType.unit || '');
       setVariant(statType.variant);
+      if (statType.defaultValue !== undefined) setDefaultValue(statType.defaultValue);
+      else if (statType.variant === StatTypeVariant.MULTIPLE_CHOICE) setDefaultValue(0);
       if (statType.higherIsBetter !== undefined) setHigherIsBetter(statType.higherIsBetter);
+      if (statType.choices !== undefined) {
+        setChoices(statType.choices.map((el) => el.label));
+        setChoicesAccepted(true);
+      }
       if (statType.multipleValues !== undefined) setMultipleValues(statType.multipleValues);
       if (statType.showBest !== undefined) setShowBest(statType.showBest);
       if (statType.showAvg !== undefined) setShowAvg(statType.showAvg);
@@ -62,6 +73,21 @@ const AddEditStatType = ({ navigation, route }) => {
   }, [passedData]);
 
   const changeVariant = (value: StatTypeVariant) => {
+    switch (value) {
+      case StatTypeVariant.TEXT:
+        // If defaultValue is of type number, that means it was last edited for MULTIPLE_CHOICE
+        if (typeof defaultValue === 'number') setDefaultValue('');
+        break;
+      case StatTypeVariant.NUMBER:
+        if (typeof defaultValue === 'number' || isNaN(Number(defaultValue))) setDefaultValue('');
+        break;
+      case StatTypeVariant.MULTIPLE_CHOICE:
+        setDefaultValue(0);
+        break;
+      default:
+        throw new Error('Unexpected stat type variant when changing variant!');
+    }
+
     setVariant(value);
   };
 
@@ -84,7 +110,42 @@ const AddEditStatType = ({ navigation, route }) => {
     } else if (statTypes.find((el) => el.name === name && el.id !== passedData?.statType.id)) {
       Alert.alert('Error', 'A stat type with that name already exists', [{ text: 'Ok' }]);
       return false;
+    } else if (variant === StatTypeVariant.NUMBER && isNaN(Number(defaultValue))) {
+      Alert.alert('Error', 'The default value for a numeric stat type must be a number', [{ text: 'Ok' }]);
+      return false;
+    } else if (variant === StatTypeVariant.MULTIPLE_CHOICE && !choicesAccepted) {
+      Alert.alert('Error', 'You must accept your options first', [{ text: 'Ok' }]);
+      return false;
     } else return true;
+  };
+
+  const isValidChoices = (): boolean => {
+    return choices.filter((el) => el !== '').length >= 2;
+  };
+
+  const acceptChoices = () => {
+    const nonEmptyChoices = choices.filter((el) => el !== '');
+
+    if (nonEmptyChoices.length >= 2) {
+      setChoices(nonEmptyChoices);
+      setChoicesAccepted(true);
+    } else {
+      Alert.alert('Error', 'Please enter at least two choices', [{ text: 'Ok' }]);
+    }
+  };
+
+  const getChoicesOptions = (): ISelectOption[] => {
+    return [
+      {
+        label: 'None',
+        value: 0,
+        color: 'gray',
+      },
+      ...choices.map((choice, i) => ({
+        label: choice,
+        value: i + 1,
+      })),
+    ];
   };
 
   const addEditStatType = () => {
@@ -96,10 +157,19 @@ const AddEditStatType = ({ navigation, route }) => {
         variant,
       };
 
-      if (unit) statType.unit = unit;
+      if (unit && variant !== StatTypeVariant.MULTIPLE_CHOICE) statType.unit = unit;
       if (variant === StatTypeVariant.NUMBER) {
         statType.higherIsBetter = higherIsBetter;
         statType.trackPBs = trackPBs;
+      } else if (variant === StatTypeVariant.MULTIPLE_CHOICE) {
+        statType.choices = choices.map((val, i) => ({
+          id: i + 1,
+          label: val,
+        }));
+      }
+      // If defaultValue is '' or 0, don't save it
+      if (defaultValue && !multipleValues) {
+        statType.defaultValue = variant === StatTypeVariant.NUMBER ? Number(defaultValue) : defaultValue;
       }
       if (getCanHaveMultipleValues()) statType.multipleValues = multipleValues;
       if (getShowMultiNumericOptions()) {
@@ -130,13 +200,26 @@ const AddEditStatType = ({ navigation, route }) => {
           placeholderTextColor="grey"
           onChangeText={(value) => setName(value)}
         />
-        <TextInput
-          style={GS.input}
-          value={unit}
-          placeholder="Unit of measurement (km, lb, etc.)"
-          placeholderTextColor="grey"
-          onChangeText={(value) => setUnit(value)}
-        />
+        {variant !== StatTypeVariant.MULTIPLE_CHOICE && (
+          <>
+            <TextInput
+              style={GS.input}
+              value={unit}
+              placeholder="Unit of measurement (km, lb, etc.)"
+              placeholderTextColor="grey"
+              onChangeText={(value) => setUnit(value)}
+            />
+            {!multipleValues && (
+              <TextInput
+                style={GS.input}
+                value={String(defaultValue)}
+                placeholder="Default value (leave empty if not needed)"
+                placeholderTextColor="grey"
+                onChangeText={(value) => setDefaultValue(value)}
+              />
+            )}
+          </>
+        )}
         <Text style={GS.titleText}>Variant</Text>
         <Select
           options={
@@ -146,7 +229,7 @@ const AddEditStatType = ({ navigation, route }) => {
           onSelect={changeVariant}
         />
         {variant === StatTypeVariant.NUMBER && (
-          <View style={{ marginHorizontal: 18 }}>
+          <View style={{ marginTop: lgGap, marginHorizontal: lgGap }}>
             <Select
               options={higherLowerIsBetterOptions}
               selected={Number(higherIsBetter)}
@@ -155,6 +238,31 @@ const AddEditStatType = ({ navigation, route }) => {
             />
           </View>
         )}
+        {variant === StatTypeVariant.MULTIPLE_CHOICE &&
+          (!choicesAccepted ? (
+            <>
+              <MultiValueInput values={choices} setValues={setChoices} placeholder="Option" appendNumber />
+              <Button
+                color={isValidChoices() ? 'green' : 'grey'}
+                title="Accept Options"
+                onPress={acceptChoices}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={GS.titleText}>Default Option</Text>
+              <View style={{ marginBottom: mdGap, marginHorizontal: lgGap }}>
+                <Select
+                  options={getChoicesOptions()}
+                  selected={defaultValue as number}
+                  onSelect={(value: number) => setDefaultValue(value)}
+                />
+              </View>
+              {!passedData?.statType && (
+                <Button color="blue" title="Edit Options" onPress={() => setChoicesAccepted(false)} />
+              )}
+            </>
+          ))}
         {getCanHaveMultipleValues() && (
           // Checkbox disabled if editing stat type
           <Checkbox checked={multipleValues} disabled={!!passedData?.statType} onChange={setMultipleValues}>

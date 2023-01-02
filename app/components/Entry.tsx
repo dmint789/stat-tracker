@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS from '../shared/GlobalStyles';
 import { formatIDate, sortStats } from '../shared/GlobalFunctions';
-import { IEntry, IStatType, IStat } from '../shared/DataStructure';
+import { IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
 
@@ -58,7 +58,9 @@ const Entry: React.FC<{
                   <Text
                     style={!pbValueShown && (pbValueShown = getIsPBValue(value, statType)) && styles.pbStyle}
                   >
-                    {value}
+                    {statType?.variant !== StatTypeVariant.MULTIPLE_CHOICE
+                      ? value
+                      : statType.choices.find((el) => el.id === value).label}
                   </Text>
                   {statType?.unit && ` ${statType?.unit}`}
                   {i !== stat.values.length - 1 && ', '}
