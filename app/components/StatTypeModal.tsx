@@ -13,17 +13,16 @@ const ChooseStatModal: React.FC<{
   modalOpen: boolean;
   setStatModalOpen: React.Dispatch<SetStateAction<boolean>>;
   filteredStatTypes: IStatType[];
-  selectStatType: (id: number) => void;
-  onAddStatType: () => void;
-  onEditStatType: (statType: IStatType) => void;
-}> = ({ modalOpen, setStatModalOpen, filteredStatTypes, selectStatType, onAddStatType, onEditStatType }) => {
+  selectStatType: (statType: IStatType) => void;
+  onAddEditStatType: (statType?: IStatType) => void;
+}> = ({ modalOpen, setStatModalOpen, filteredStatTypes, selectStatType, onAddEditStatType }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { statTypes, entries } = useSelector((state: RootState) => state.main);
 
   const [reordering, setReordering] = useState<boolean>(false);
 
   const submitStatType = (statType: IStatType) => {
-    selectStatType(statType.id);
+    selectStatType(statType);
     setReordering(false);
     setStatModalOpen(false);
   };
@@ -98,7 +97,7 @@ const ChooseStatModal: React.FC<{
                   </Text>
                   {!reordering ? (
                     <>
-                      <IconButton type={'pencil'} color={'gray'} onPress={() => onEditStatType(item)} />
+                      <IconButton type={'pencil'} color={'gray'} onPress={() => onAddEditStatType(item)} />
                       <IconButton onPress={() => onDeleteStatType(item)} />
                     </>
                   ) : (
@@ -122,7 +121,7 @@ const ChooseStatModal: React.FC<{
 
           <View style={GS.buttonRow}>
             <View style={GS.buttonRowButton}>
-              <Button onPress={onAddStatType} title="New" color="green" />
+              <Button onPress={() => onAddEditStatType()} title="New" color="green" />
             </View>
             <View style={GS.buttonRowButton}>
               <Button onPress={onCancel} title="Cancel" color="grey" />

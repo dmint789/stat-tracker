@@ -41,6 +41,7 @@ const AddEditEntry = ({ navigation, route }) => {
   const passedData: {
     entry?: IEntry; // if null we're adding a new entry, if set we're editing an entry
     statType?: IStatType; // if set, we're adding or editing a stat type
+    newStatType?: boolean;
   } = route.params;
 
   useEffect(() => {
@@ -65,6 +66,7 @@ const AddEditEntry = ({ navigation, route }) => {
       setPrevEntryId(entry.id);
       setStats(entry.stats);
       setComment(entry.comment);
+
       // The month has to be given with 0 indexing
       if (entry.date) {
         setDate(new Date(entry.date.year, entry.date.month - 1, entry.date.day));
@@ -75,7 +77,7 @@ const AddEditEntry = ({ navigation, route }) => {
       if (passedData.statType.defaultValue && !statValues.find((el) => el !== '')) {
         addStatWithDefault(passedData.statType);
       } else {
-        setSelectedStatType(passedData.statType);
+        selectStatType(passedData.statType, passedData.newStatType ? 'added' : 'edited');
       }
     }
   }, [passedData]);
@@ -181,7 +183,7 @@ const AddEditEntry = ({ navigation, route }) => {
   // Delete a stat from the list or edit it (delete from the list, but put values in the inputs)
   const deleteEditStat = (stat: IStat, edit = false) => {
     if (edit && !!statValues.find((el) => el !== '')) {
-      Alert.alert('Error', 'Please enter your current stat or clear it', [{ text: 'Ok' }]);
+      Alert.alert('Notice', 'Please enter your current stat or clear it', [{ text: 'Ok' }]);
     } else {
       setStats((prevStats: IStat[]) => prevStats.filter((el) => el.id !== stat.id));
 
@@ -201,7 +203,7 @@ const AddEditEntry = ({ navigation, route }) => {
   };
 
   const addEditEntry = () => {
-    const unenteredStatExists = statValues.find((el) => el !== '');
+    const unenteredStatExists = !!statValues.find((el) => el !== '');
 
     if (!unenteredStatExists || isValidStat()) {
       const entry: IEntry = {
@@ -230,50 +232,53 @@ const AddEditEntry = ({ navigation, route }) => {
     }
   };
 
-  const selectStatType = (id: number) => {
-    const statType = statTypes.find((el) => el.id === id);
+  const getValueWord = (): string => {
+    return statValues.filter((el) => el !== '').length > 1 ? 'values' : 'value';
+  };
 
+  // Assumes stat type has no problems with it
+  const selectStatType = (statType: IStatType, mode: 'select' | 'added' | 'edited' = 'select') => {
     if (statType.variant !== StatTypeVariant.MULTIPLE_CHOICE) {
       const nonEmptyValues = statValues.filter((el) => el !== '');
 
-      if (selectedStatType.multipleValues && !statType.multipleValues) {
-        if (nonEmptyValues.length > 1) {
-          Alert.alert(
-            'Error',
-            'You cannot select this stat type, because you have multiple values entered and this stat type does not allow that',
-            [{ text: 'Ok' }],
-          );
-        } else {
-          setStatValues(nonEmptyValues);
-          setSelectedStatType(statType);
-        }
+      if (nonEmptyValues.length > 1 && !statType.multipleValues) {
+        const message1 =
+          'You cannot select this stat type, because you have multiple values entered and this stat type does not allow that';
+        const message2 = `The stat you just ${mode} does not allow multiple values, so it's not possible to switch to it automatically.`;
+
+        Alert.alert('Notice', mode === 'select' ? message1 : message2, [{ text: 'Ok' }]);
       } else {
-        // If there are no empty values and we're switching to a stat type that allows that, add ''
-        if (statType.multipleValues && statValues.length === nonEmptyValues.length)
+        // If there are no empty values and we're switching to a stat type that allows multiple values, add ''.
+        // If there is an empty value and multiple values is enabled - don't do anything.
+        if (statType.multipleValues && statValues.length === nonEmptyValues.length) {
           setStatValues((prevStatValues) => [...prevStatValues, '']);
+        } else if (!statType.multipleValues) {
+          // At this point nonEmptyValues can only have a single value at most, because it would have
+          // gotten caught by (nonEmptyValues.length > 1 && !statType.multipleValues) otherwise
+          setStatValues(nonEmptyValues.length === 1 ? nonEmptyValues : ['']);
+        }
 
         setSelectedStatType(statType);
       }
-    } else if (!statValues.find((el) => el !== '')) {
+    }
+    // If there are no filled-in values
+    else if (!statValues.find((el) => el !== '')) {
       setStatValues(['']);
       setSelectedStatType(statType);
     } else {
-      Alert.alert(
-        'Error',
-        `This is a multiple choice stat type. If you proceed, the ${
-          selectedStatType.multipleValues ? 'values' : 'value'
-        } you have entered will be lost. Proceed?`,
-        [
-          { text: 'Cancel' },
-          {
-            text: 'Ok',
-            onPress: () => {
-              setStatValues(['']);
-              setSelectedStatType(statType);
-            },
+      const message1 = `This is a multiple choice stat type. If you proceed, the ${getValueWord()} you have entered will be lost. Proceed?`;
+      const message2 = `You have created a multiple choice stat type. If you switch to it, the ${getValueWord()} you have entered will be lost. Switch to the new stat type?`;
+
+      Alert.alert(mode === 'select' ? 'Warning' : 'Notice', mode === 'select' ? message1 : message2, [
+        { text: 'Cancel' },
+        {
+          text: 'Ok',
+          onPress: () => {
+            setStatValues(['']);
+            setSelectedStatType(statType);
           },
-        ],
-      );
+        },
+      ]);
     }
   };
 
@@ -295,16 +300,12 @@ const AddEditEntry = ({ navigation, route }) => {
     }));
   };
 
-  const onAddStatType = () => {
+  // statType = null means add stat type
+  const onAddEditStatType = (statType: IStatType = null) => {
     setStatModalOpen(false);
-    setStatValues(['']);
-    navigation.navigate('AddEditStatType');
-  };
 
-  const onEditStatType = (statType: IStatType) => {
-    setStatModalOpen(false);
-    setStatValues(['']);
-    navigation.navigate('AddEditStatType', { statType });
+    const params = statType ? { statType } : undefined;
+    navigation.navigate('AddEditStatType', params);
   };
 
   // Filter out stat types that have already been entered and update statChoice if needed
@@ -342,8 +343,7 @@ const AddEditEntry = ({ navigation, route }) => {
           setStatModalOpen={setStatModalOpen}
           filteredStatTypes={filteredStatTypes}
           selectStatType={selectStatType}
-          onAddStatType={onAddStatType}
-          onEditStatType={onEditStatType}
+          onAddEditStatType={onAddEditStatType}
         />
 
         {/* Stat */}
@@ -358,7 +358,7 @@ const AddEditEntry = ({ navigation, route }) => {
           )}
           {/* Don't show any button when entering stat values */}
           {filteredStatTypes.length === 0 ? (
-            <Button onPress={onAddStatType} title="Create Stat" color="green" />
+            <Button onPress={() => onAddEditStatType()} title="Create Stat" color="green" />
           ) : (
             <Button onPress={() => setStatModalOpen(true)} title="Change Stat" color="blue" />
           )}

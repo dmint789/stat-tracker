@@ -15,7 +15,7 @@ const WorkingEntryList: React.FC<{
   const { statTypes } = useSelector((state: RootState) => state.main);
 
   const getStatValues = (stat: IStat, statType: IStatType): string => {
-    if (statType.variant !== StatTypeVariant.MULTIPLE_CHOICE) {
+    if (statType?.variant !== StatTypeVariant.MULTIPLE_CHOICE) {
       const unit = statType?.unit ? ` ${statType.unit}` : '';
 
       if (stat.values.length === 1) return String(stat.values[0]) + unit;

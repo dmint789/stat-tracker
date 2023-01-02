@@ -59,7 +59,7 @@ const AddEditCategoryModal: React.FC<{
         Alert.alert('Error', 'You already have a stat category with this name', [{ text: 'Ok' }]);
       }
     } else {
-      Alert.alert('Error', 'Please fill in the name of the stat category', [{ text: 'Ok' }]);
+      Alert.alert('Notice', 'Please fill in the name of the stat category', [{ text: 'Ok' }]);
     }
   };
 

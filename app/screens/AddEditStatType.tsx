@@ -186,7 +186,7 @@ const AddEditStatType = ({ navigation, route }) => {
         dispatch(addStatType(statType));
       }
 
-      navigation.navigate('AddEditEntry', { statType });
+      navigation.navigate('AddEditEntry', { statType, newStatType: !passedData?.statType });
     }
   };
 

@@ -68,7 +68,13 @@ export const isNewerOrSameDate = (date1: IDate, date2: IDate): boolean => {
 };
 
 export const sortStats = (stats: IStat[], statTypes: IStatType[]): IStat[] => {
-  return [...stats].sort(
-    (a, b) => statTypes.find((el) => el.id === a.type).order - statTypes.find((el) => el.id === b.type).order,
-  );
+  return [...stats].sort((a, b) => {
+    const statTypeA = statTypes.find((el) => el.id === a.type);
+    const statTypeB = statTypes.find((el) => el.id === b.type);
+
+    if (!statTypeA) return statTypeB ? 1 : -1;
+    if (!statTypeB) return -1;
+
+    return statTypeA.order - statTypeB.order;
+  });
 };
