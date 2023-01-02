@@ -4,21 +4,21 @@ This is a mobile app for tracking various daily statistics and personal bests. Y
 
 ## Download
 
-You can download a **WORK IN PROGRESS** build of this app on the [releases page](https://github.com/dmint789/stat-tracker/releases). Keep in mind that future releases could be incompatible with the version you download. However, it will still be possible to change your old backup file to the new format. If you need to have this done, feel free to contact me (cube327@tuta.io). This disclaimer will be removed once this app reaches version 1.0.
+You can download a **WORK IN PROGRESS** build of this app on the [releases page](https://github.com/dmint789/stat-tracker/releases). Keep in mind that future releases could be incompatible with the version you download. However, it will still be possible to change your old backup file to the new format. If you need to have this done, feel free to send an email here: cube327@tuta.io. This disclaimer will be removed once this app reaches version 1.0.
 
 ## Support the project
 
-If you would like to support this project, feel free to become a patron on my [Patreon page](https://patreon.com/denimintsaev). If you don't want to contribute monthly, you can just wait until your first payment goes through at the start of the next month and unsubscribe. I appreciate any and all contributions.
+If you would like to support this project, feel free to become a patron on [Patreon](https://patreon.com/denimintsaev). If you don't want to contribute monthly, you can just wait until your first payment goes through at the start of the next month and unsubscribe. Any and all contributions are greatly appreciated!
 
 ## Planned features
 
-This is a list of just **some** of the features I plan to add in the future:
+This is a list of just **some** of the planned features:
 
 1. Tracking PBs for the year/month
 2. Tracking worst results
 3. Showing past PBs
-4. Seeing a history of all of your PBs
-5. Getting an overview of various statistics about your data
+4. Seeing a history of all PBs
+5. Creating formulae that automatically calculate something based on some of the entered numeric stat types
 
 ## Screenshots
 
@@ -48,8 +48,10 @@ yarn dev
 
 ## Building debug APK
 
-Use this command to build a debug APK:
+Use these commands to build a debug APK:
 
 ```
+yarn rn-new-version
+
 yarn debug-apk
 ```
