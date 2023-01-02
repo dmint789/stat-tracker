@@ -86,7 +86,7 @@ const Entry: React.FC<{
           {entry.comment}
         </Text>
       )}
-      <Text style={GS.smallGrayText}>{formatIDate(entry.date)}</Text>
+      {entry.date && <Text style={GS.smallGrayText}>{formatIDate(entry.date)}</Text>}
       <View style={GS.cardButtons}>
         <IconButton onPress={() => onDeleteEntry(entry)} />
       </View>

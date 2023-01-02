@@ -92,7 +92,7 @@ export interface IEntry {
   id: number;
   stats: IStat[];
   comment: string;
-  date: IDate;
+  date?: IDate;
 }
 
 export interface IMultiValueStat {

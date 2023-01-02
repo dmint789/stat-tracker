@@ -35,6 +35,8 @@ export const formatDate = (date: Date, separator = '', includeTime = false): str
 };
 
 export const formatIDate = (date: IDate, separator = ''): string => {
+  if (!date) return '(no date)';
+
   let output = '';
 
   if (!separator) {
@@ -52,6 +54,10 @@ export const formatIDate = (date: IDate, separator = ''): string => {
 
 // Returns true if date1 is more recent or the same as date2
 export const isNewerOrSameDate = (date1: IDate, date2: IDate): boolean => {
+  if (!date1) {
+    return !date2;
+  } else if (!date2) return true;
+
   if (date1.year > date2.year) return true;
   else if (date1.year === date2.year) {
     if (date1.month > date2.month) return true;

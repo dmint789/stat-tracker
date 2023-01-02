@@ -46,7 +46,11 @@ const AddEditEntry = ({ navigation, route }) => {
       setStats(entry.stats);
       setComment(entry.comment);
       // The month has to be given with 0 indexing
-      setDate(new Date(entry.date.year, entry.date.month - 1, entry.date.day));
+      if (entry.date) {
+        setDate(new Date(entry.date.year, entry.date.month - 1, entry.date.day));
+      } else {
+        setDate(null);
+      }
     } else {
       navigation.setOptions({ title: 'Add Entry' });
     }
@@ -185,12 +189,15 @@ const AddEditEntry = ({ navigation, route }) => {
         id: prevEntryId ? prevEntryId : statCategory.lastEntryId + 1,
         stats: unenteredStatExists ? getNewStats() : stats, // add last entered stat if needed
         comment,
-        date: {
+      };
+
+      if (date) {
+        entry.date = {
           day: date.getDate(),
           month: date.getMonth() + 1,
           year: date.getFullYear(),
-        },
-      };
+        };
+      }
 
       if (isValidEntry(entry)) {
         if (prevEntryId) {
@@ -322,20 +329,30 @@ const AddEditEntry = ({ navigation, route }) => {
         />
         {/* Date */}
         <View style={styles.date}>
-          <Text style={GS.text}>{formatDate(date)}</Text>
-          <Button onPress={() => setDatePickerOpen(true)} title="Edit" color="blue" />
+          <Text style={GS.text}>{date ? formatDate(date) : 'No date'}</Text>
+          {date ? (
+            <>
+              <View style={{ flexDirection: 'row' }}>
+                <Button onPress={() => setDatePickerOpen(true)} title="Edit" color="blue" />
+                <Gap />
+                <Button onPress={() => setDate(null)} title="Delete" color="red" />
+              </View>
+              <DatePicker
+                modal
+                mode="date"
+                open={datePickerOpen}
+                date={date}
+                onConfirm={(date) => {
+                  setDatePickerOpen(false);
+                  setDate(date);
+                }}
+                onCancel={() => setDatePickerOpen(false)}
+              />
+            </>
+          ) : (
+            <Button onPress={() => setDate(new Date())} title="Add Date" color="green" />
+          )}
         </View>
-        <DatePicker
-          modal
-          mode="date"
-          open={datePickerOpen}
-          date={date}
-          onConfirm={(date) => {
-            setDatePickerOpen(false);
-            setDate(date);
-          }}
-          onCancel={() => setDatePickerOpen(false)}
-        />
         <Button
           onPress={addEditEntry}
           title={prevEntryId ? 'Edit Entry' : 'Add Entry'}
