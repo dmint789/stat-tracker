@@ -186,6 +186,7 @@ const AddEditStatType = ({ navigation, route }) => {
           title={passedData?.statType ? 'Edit Stat Type' : 'Add Stat Type'}
           color={passedData?.statType ? 'blue' : 'red'}
         />
+        <Gap size="lg" />
       </ScrollView>
     </View>
   );

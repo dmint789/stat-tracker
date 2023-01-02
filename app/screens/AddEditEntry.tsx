@@ -341,6 +341,7 @@ const AddEditEntry = ({ navigation, route }) => {
           title={prevEntryId ? 'Edit Entry' : 'Add Entry'}
           color={prevEntryId ? 'blue' : 'red'}
         />
+        <Gap size="lg" />
       </ScrollView>
     </View>
   );

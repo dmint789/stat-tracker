@@ -1,9 +1,9 @@
 {
   "name": "Stat_Tracker",
-  "version": "0.4.4",
+  "version": "0.5",
   "private": true,
   "scripts": {
-    "dev": "alacritty -e yarn emulator & alacritty -e yarn start && sleep 2 & alacritty -e yarn android &",
+    "dev": "alacritty -e yarn emulator & alacritty -e yarn start && sleep 3 & alacritty -e yarn android &",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",

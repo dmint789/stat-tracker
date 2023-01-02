@@ -40,8 +40,6 @@ const addEditEntry = (entries: IEntry[], entry: IEntry): IEntry[] => {
   return newEntries;
 };
 
-const convertKey = (key, statType) => (key === 'best' ? (statType.higherIsBetter ? 'high' : 'low') : key);
-
 // The return value is whether or not the PB got updated
 const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boolean => {
   if (verbose) console.log(`Checking if entry ${entry.id} has the PB for stat type ${statType.name}`);
@@ -50,71 +48,49 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
   const stat = entry.stats.find((el: IStat) => el.type === statType.id);
 
   if (stat) {
+    let pbs = {} as IMultiValuePB; // for overwriting the keys of statType.pbs.allTime.result if PB is better
+
     if (!statType.multipleValues) {
-      // If adding PB for the first time
-      if (!statType.pbs) {
-        statType.pbs = {
-          allTime: {
-            entryId: entry.id,
-            result: stat.values[0] as number,
-          },
-        };
-
-        pbUpdated = true;
-      } else if (
-        (stat.values[0] > statType.pbs.allTime.result && statType.higherIsBetter) ||
-        (stat.values[0] < statType.pbs.allTime.result && !statType.higherIsBetter) ||
-        (stat.values[0] === statType.pbs.allTime.result &&
-          !isNewerOrSameDate(
-            entry.date,
-            state.entries.find((el) => el.id === statType.pbs.allTime.entryId).date,
-          ))
-      ) {
-        statType.pbs.allTime.entryId = entry.id;
-        statType.pbs.allTime.result = stat.values[0] as number;
-
-        pbUpdated = true;
-      }
+      pbs.best = stat.values[0] as number;
     } else {
-      // If adding PB for the first time
-      if (!statType.pbs) {
-        statType.pbs = {
-          allTime: {
-            entryId: {
-              best: entry.id,
-              avg: entry.id,
-              sum: entry.id,
-            },
-            result: {
-              best: statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low,
-              avg: stat.multiValueStats.avg,
-              sum: stat.multiValueStats.sum,
-            },
-          },
-        };
+      pbs.best = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
+      pbs.avg = stat.multiValueStats.avg;
+      pbs.sum = stat.multiValueStats.sum;
+    }
 
-        pbUpdated = true;
-      } else {
-        const pbs = statType.pbs.allTime.result as IMultiValuePB;
+    // If adding PB for the first time
+    if (!statType.pbs) {
+      statType.pbs = {
+        allTime: {
+          entryId: { best: entry.id },
+          result: pbs,
+        },
+      };
 
-        ['best', 'avg', 'sum'].forEach((key) => {
-          if (
-            pbs[key] === null ||
-            (stat.multiValueStats[convertKey(key, statType)] > pbs[key] && statType.higherIsBetter) ||
-            (stat.multiValueStats[convertKey(key, statType)] < pbs[key] && !statType.higherIsBetter) ||
-            (stat.multiValueStats[convertKey(key, statType)] === pbs[key] &&
-              !isNewerOrSameDate(
-                entry.date,
-                state.entries.find((el) => el.id === statType.pbs.allTime.entryId[key]).date,
-              ))
-          ) {
-            statType.pbs.allTime.entryId[key] = entry.id;
-            statType.pbs.allTime.result[key] = stat.multiValueStats[convertKey(key, statType)];
-
-            pbUpdated = true;
-          }
-        });
+      if (statType.multipleValues) {
+        statType.pbs.allTime.entryId.avg = entry.id;
+        statType.pbs.allTime.entryId.sum = entry.id;
       }
+
+      pbUpdated = true;
+    } else {
+      Object.keys(statType.pbs.allTime.entryId).forEach((key) => {
+        if (
+          statType.pbs.allTime.entryId[key] === null ||
+          (pbs[key] > statType.pbs.allTime.result[key] && statType.higherIsBetter) ||
+          (pbs[key] < statType.pbs.allTime.result[key] && !statType.higherIsBetter) ||
+          (pbs[key] === statType.pbs.allTime.result[key] &&
+            !isNewerOrSameDate(
+              entry.date,
+              state.entries.find((el) => el.id === statType.pbs.allTime.entryId[key]).date,
+            ))
+        ) {
+          statType.pbs.allTime.entryId[key] = entry.id;
+          statType.pbs.allTime.result[key] = pbs[key];
+
+          pbUpdated = true;
+        }
+      });
     }
   }
 
@@ -158,62 +134,32 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
             },
           };
 
-          // Check that the entry held the PB for the stat type before and the value is different or deleted now
-          if (
-            !statType.multipleValues &&
-            statType.pbs.allTime.entryId === entry.id &&
-            statType.pbs.allTime.result !== entry.stats.find((el) => el.type === statType.id)?.values[0]
-          ) {
-            isPrevPB = true;
-            tempStatType.pbs = null;
-          } else if (statType.multipleValues) {
-            ['best', 'avg', 'sum'].forEach((key) => {
-              if (
-                statType.pbs.allTime.entryId[key] === entry.id &&
-                statType.pbs.allTime.result[key] !==
-                  entry.stats.find((el) => el.type === statType.id)?.multiValueStats[
-                    convertKey(key, statType)
-                  ]
-              ) {
-                isPrevPB = true;
-                tempStatType.pbs.allTime.entryId[key] = null;
-                tempStatType.pbs.allTime.result[key] = null;
-              }
-            });
-          }
+          // Check that the entry held the PB for the stat type before
+          Object.keys(statType.pbs.allTime.entryId).forEach((key) => {
+            if (statType.pbs.allTime.entryId[key] === entry.id) {
+              isPrevPB = true;
+              tempStatType.pbs.allTime.entryId[key] = null;
+              tempStatType.pbs.allTime.result[key] = null;
+            }
+          });
 
           if (isPrevPB) {
             checkPBFromScratch(state, tempStatType);
 
-            if (!tempStatType.multipleValues) {
-              // If this is null, that means no entries are left with this stat type
-              if (tempStatType.pbs === null) {
-                pbUpdated = true;
-                delete statType.pbs;
-              } else if (
-                tempStatType.pbs.allTime.result !== statType.pbs.allTime.result ||
-                tempStatType.pbs.allTime.entryId !== statType.pbs.allTime.entryId
+            // If this is null, that means no entries are left with this stat type
+            if (tempStatType.pbs.allTime.entryId.best === null) {
+              pbUpdated = true;
+              delete statType.pbs;
+            } else {
+              if (
+                !!Object.keys(tempStatType.pbs.allTime.entryId).find(
+                  (key) =>
+                    tempStatType.pbs.allTime.entryId[key] !== statType.pbs.allTime.entryId[key] ||
+                    tempStatType.pbs.allTime.result[key] !== statType.pbs.allTime.result[key],
+                )
               ) {
                 pbUpdated = true;
                 statType.pbs = tempStatType.pbs;
-              }
-            } else {
-              // If this is null, that means no entries are left with this stat type.
-              // It doesn't have to be best, because avg and sum would also be null if best is null.
-              if (tempStatType.pbs.allTime.entryId['best'] === null) {
-                pbUpdated = true;
-                delete statType.pbs;
-              } else {
-                if (
-                  !!['best', 'avg', 'sum'].find(
-                    (key) =>
-                      tempStatType.pbs.allTime.entryId[key] !== statType.pbs.allTime.entryId[key] ||
-                      tempStatType.pbs.allTime.result[key] !== statType.pbs.allTime.result[key],
-                  )
-                ) {
-                  pbUpdated = true;
-                  statType.pbs = tempStatType.pbs;
-                }
               }
             }
           }
@@ -225,11 +171,8 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
       PBsUpdated = pbUpdated || PBsUpdated;
 
       if (verbose) {
-        if (pbUpdated) {
-          console.log('PB updated to: ', JSON.stringify(statType.pbs, null, 2));
-        } else {
-          console.log('PB not updated');
-        }
+        if (pbUpdated) console.log('PB updated to: ', JSON.stringify(statType.pbs, null, 2));
+        else console.log('PB not updated');
       }
     }
   }

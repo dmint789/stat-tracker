@@ -17,26 +17,20 @@ const Entry: React.FC<{
 
   const getIsPBValue = (value: string | number, statType: IStatType): boolean => {
     if (!statType?.trackPBs) return false;
-    // This is for when statType.multipleValues = false
-    else if (statType.pbs?.allTime.entryId === entry.id) return true;
-    // This is for when statType.multipleValues = true
-    else
-      return (
-        statType.pbs?.allTime.entryId['best'] === entry.id && statType.pbs?.allTime.result['best'] === value
-      );
+    else return statType.pbs?.allTime.entryId.best === entry.id && statType.pbs.allTime.result.best === value;
   };
 
   const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
     const isPB = statType?.trackPBs && statType.pbs?.allTime.entryId[key] === entry.id;
-    let mvsKey: 'high' | 'low' | 'avg' | 'sum';
+    let output: number;
 
     if (key === 'best') {
-      mvsKey = statType?.higherIsBetter ? 'high' : 'low';
+      output = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
     } else {
-      mvsKey = key;
+      output = stat.multiValueStats[key];
     }
 
-    return <Text style={isPB ? styles.pbStyle : {}}>{stat.multiValueStats[mvsKey]}</Text>;
+    return <Text style={isPB ? styles.pbStyle : {}}>{output}</Text>;
   };
 
   return (
@@ -47,9 +41,9 @@ const Entry: React.FC<{
         // Best/avg/sum should be shown if needed and if there are multiple values or the best/avg/sum is a PB
         const showBest = statType?.showBest && stat.values.length > 1;
         const showAvg =
-          statType?.showAvg && (stat.values.length > 1 || statType.pbs?.allTime.entryId['avg'] === entry.id);
+          statType?.showAvg && (stat.values.length > 1 || statType.pbs?.allTime.entryId.avg === entry.id);
         const showSum =
-          statType?.showSum && (stat.values.length > 1 || statType.pbs?.allTime.entryId['sum'] === entry.id);
+          statType?.showSum && (stat.values.length > 1 || statType.pbs?.allTime.entryId.sum === entry.id);
 
         // This is for stats with pb tracking and multiple values
         let pbValueShown = false;

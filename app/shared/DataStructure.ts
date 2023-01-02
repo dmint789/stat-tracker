@@ -35,18 +35,17 @@ export enum StatTypeVariant {
   FORMULA,
 }
 
-export interface IMultiValueStat {
-  low: number; // lowest value
-  high: number; // highest value
-  avg: number;
-  sum: number;
-}
-
 export interface IMultiValuePB {
   best: number;
-  avg: number;
-  sum: number;
+  avg?: number;
+  sum?: number;
 }
+
+// export interface IMultiValueWorst {
+//   worst: number;
+//   avg?: number;
+//   sum?: number;
+// }
 
 export interface IStatType {
   id: number;
@@ -54,6 +53,7 @@ export interface IStatType {
   unit?: string;
   order: number; // goes from 1 to statTypes.length with no gaps
   variant: StatTypeVariant;
+  // default?: string | number;
   higherIsBetter?: boolean; // NUMBER only
   // choices?: string[]; // MULTIPLE_CHOICE only
   // formula?: string; // FORMULA only
@@ -66,10 +66,26 @@ export interface IStatType {
   // If this is unset and trackPBs is on, that means there aren't any pbs yet for this stat type
   pbs?: {
     allTime: {
-      entryId: number | IMultiValuePB;
-      result: number | IMultiValuePB;
+      entryId: IMultiValuePB;
+      result: IMultiValuePB;
     };
+    // Only tracks the PB for the most recent year
+    // year: {
+    //   entryId: IMultiValuePB;
+    //   result: IMultiValuePB;
+    // };
+    // Only tracks the PB for the most recent month
+    // month: {
+    //   entryId: IMultiValuePB;
+    //   result: IMultiValuePB
+    // };
   };
+  // worsts?: {
+  //   allTime: {
+  //     entryId: IMultiValueWorst;
+  //     result: IMultiValueWorst;
+  //   }
+  // }
 }
 
 export interface IEntry {
@@ -79,11 +95,19 @@ export interface IEntry {
   date: IDate;
 }
 
+export interface IMultiValueStat {
+  low: number; // lowest value
+  high: number; // highest value
+  avg: number;
+  sum: number;
+}
+
 export interface IStat {
   id: number;
   type: number | null; // ID of stat type or null if not yet chosen
   values: string[] | number[] | null; // Null if stat type is a formula
   multiValueStats?: IMultiValueStat;
+  // hadPB?: boolean;
 }
 
 export interface IDate {
