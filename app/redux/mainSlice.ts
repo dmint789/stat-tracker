@@ -10,30 +10,74 @@ import {
   StatTypeVariant,
 } from '../shared/DataStructure';
 
-const verbose = true;
-
-const addEditEntry = (entries: IEntry[], entry: IEntry): IEntry[] => {
-  if (verbose) {
-    console.log('Adding or editing entry:');
+const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false): IEntry[] => {
+  if (__DEV__) {
+    console.log(`${newEntry ? 'Adding' : 'Editing'} entry:`);
     console.log(JSON.stringify(entry, null, 2));
   }
 
-  const newEntries: IEntry[] = [];
+  let newEntries: IEntry[] = [];
   let inserted = false;
 
   if (entries.length > 0) {
-    for (let e of entries) {
-      if (!inserted && isNewerOrSameDate(entry.date, e.date)) {
-        newEntries.push(entry);
-        inserted = true;
+    if (newEntry) {
+      if (!isNewerOrSameDate(entry.date, entries[0].date)) {
+        for (let e of entries) {
+          if (!inserted && isNewerOrSameDate(entry.date, e.date)) {
+            if (__DEV__) console.log('Adding entry in the middle');
+            newEntries.push(entry);
+            inserted = true;
+          }
+          newEntries.push(e);
+        }
+
+        // If it's to become the very last element in the array of entries
+        if (!inserted) {
+          if (__DEV__) console.log('Adding entry at the bottom');
+          newEntries.push(entry);
+        }
+      } else {
+        if (__DEV__) console.log('Adding entry at the top');
+        entries.unshift(entry);
+        newEntries = entries;
       }
-      if (e.id !== entry.id) {
-        newEntries.push(e);
+    } else {
+      let differentDate = true;
+      const uneditedEntry = entries.find((el) => el.id === entry.id);
+
+      if (!!uneditedEntry.date === !!entry.date) {
+        differentDate =
+          !!uneditedEntry.date &&
+          (uneditedEntry.date.day !== entry.date.day ||
+            uneditedEntry.date.month !== entry.date.month ||
+            uneditedEntry.date.year !== entry.date.year);
+      }
+
+      if (differentDate) {
+        for (let e of entries) {
+          if (!inserted && isNewerOrSameDate(entry.date, e.date)) {
+            if (__DEV__) console.log('Reordering the entry');
+            newEntries.push(entry);
+            inserted = true;
+          }
+          if (e.id !== entry.id) {
+            newEntries.push(e);
+          }
+        }
+
+        // If it's to become the very last element in the array of entries
+        if (!inserted) {
+          if (__DEV__) console.log('Reordering it to the bottom');
+          newEntries.push(entry);
+        }
+      } else {
+        if (__DEV__) console.log('Date is the same, not reordering');
+        newEntries = entries.map((el) => (el.id === entry.id ? entry : el));
       }
     }
-
-    if (!inserted) newEntries.push(entry);
   } else {
+    if (__DEV__) console.log('Adding first entry');
+    // When there are no entries in the array
     newEntries.push(entry);
   }
 
@@ -42,7 +86,7 @@ const addEditEntry = (entries: IEntry[], entry: IEntry): IEntry[] => {
 
 // The return value is whether or not the PB got updated
 const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boolean => {
-  if (verbose) console.log(`Checking if entry ${entry.id} has the PB for stat type ${statType.name}`);
+  if (__DEV__) console.log(`Checking if entry ${entry.id} has the PB for stat type ${statType.name}`);
 
   let pbUpdated = false;
   const stat = entry.stats.find((el: IStat) => el.type === statType.id);
@@ -98,7 +142,7 @@ const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boole
 };
 
 const checkPBFromScratch = (state: any, statType: IStatType) => {
-  if (verbose) console.log(`Checking PB from scratch for stat type ${statType.name}`);
+  if (__DEV__) console.log(`Checking PB from scratch for stat type ${statType.name}`);
 
   for (let i = state.entries.length - 1; i >= 0; i--) {
     updateStatTypePB(state, statType, state.entries[i]);
@@ -110,7 +154,7 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
 
   for (let statType of state.statTypes) {
     if (statType.trackPBs && statType.variant === StatTypeVariant.NUMBER) {
-      if (verbose) console.log(`Updating PB for stat type ${statType.name}`);
+      if (__DEV__) console.log(`Updating PB for stat type ${statType.name}`);
 
       let pbUpdated = false;
 
@@ -170,7 +214,7 @@ const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'delete') =
 
       PBsUpdated = pbUpdated || PBsUpdated;
 
-      if (verbose) {
+      if (__DEV__) {
         if (pbUpdated) console.log('PB updated to: ', JSON.stringify(statType.pbs, null, 2));
         else console.log('PB not updated');
       }
@@ -241,7 +285,7 @@ const mainSlice = createSlice({
      * Entries
      */
     addEntry: (state, action: PayloadAction<IEntry>) => {
-      state.entries = addEditEntry(state.entries, action.payload);
+      state.entries = addEditEntry(state.entries, action.payload, true);
       SM.setData(state.statCategory.id, 'entries', state.entries);
 
       // Update PBs if needed

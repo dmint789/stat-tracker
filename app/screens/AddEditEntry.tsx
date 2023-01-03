@@ -131,7 +131,8 @@ const AddEditEntry = ({ navigation, route }) => {
         Alert.alert('Error', error, [{ text: 'Ok' }]);
       }
       return false;
-    } else return true;
+    }
+    return true;
   };
 
   // Assumes the stat type has a default value

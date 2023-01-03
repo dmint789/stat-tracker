@@ -113,10 +113,16 @@ const AddEditStatType = ({ navigation, route }) => {
     } else if (variant === StatTypeVariant.NUMBER && isNaN(Number(defaultValue))) {
       Alert.alert('Error', 'The default value for a numeric stat type must be a number', [{ text: 'Ok' }]);
       return false;
-    } else if (variant === StatTypeVariant.MULTIPLE_CHOICE && !choicesAccepted) {
-      Alert.alert('Error', 'You must accept your options first', [{ text: 'Ok' }]);
-      return false;
-    } else return true;
+    } else if (variant === StatTypeVariant.MULTIPLE_CHOICE) {
+      if (!choicesAccepted) {
+        Alert.alert('Error', 'You must accept your options first', [{ text: 'Ok' }]);
+        return false;
+      } else if (!!passedData?.statType && choices.length < passedData.statType.choices.length) {
+        Alert.alert('Error', 'You cannot have fewer options than before', [{ text: 'Ok' }]);
+        return false;
+      }
+    }
+    return true;
   };
 
   const isValidChoices = (): boolean => {
@@ -129,9 +135,17 @@ const AddEditStatType = ({ navigation, route }) => {
     if (nonEmptyChoices.length >= 2) {
       setChoices(nonEmptyChoices);
       setChoicesAccepted(true);
+      if (defaultValue > nonEmptyChoices.length) {
+        setDefaultValue(0);
+      }
     } else {
       Alert.alert('Error', 'Please enter at least two choices', [{ text: 'Ok' }]);
     }
+  };
+
+  const editChoices = () => {
+    setChoicesAccepted(false);
+    setChoices((prevChoices) => [...prevChoices, '']);
   };
 
   const getChoicesOptions = (): ISelectOption[] => {
@@ -258,9 +272,7 @@ const AddEditStatType = ({ navigation, route }) => {
                   onSelect={(value: number) => setDefaultValue(value)}
                 />
               </View>
-              {!passedData?.statType && (
-                <Button color="blue" title="Edit Options" onPress={() => setChoicesAccepted(false)} />
-              )}
+              <Button color="blue" title="Edit Options" onPress={editChoices} />
             </>
           ))}
         {getCanHaveMultipleValues() && (

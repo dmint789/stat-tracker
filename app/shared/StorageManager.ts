@@ -3,7 +3,7 @@ import * as ScopedStorage from 'react-native-scoped-storage';
 import { formatDate } from './GlobalFunctions';
 import { IStatCategory, IBackupData, dataPoints } from './DataStructure';
 
-const verbose = true;
+const verbose = true && __DEV__;
 
 export const getData = async (categoryId: number, request: string) => {
   const key: string = categoryId + '_' + request;
@@ -141,6 +141,8 @@ export const importData = async (
     const data: IBackupData = JSON.parse(backupFile.data);
 
     if (verbose) {
+      console.log('Stat categories before import:');
+      console.log(JSON.stringify(statCategories, null, 2));
       console.log('Backup file data:');
       console.log(JSON.stringify(data, null, 2));
     }
@@ -173,13 +175,13 @@ export const importData = async (
         successMessage = successMessage.slice(0, -2);
       }
 
-      setStatCategories(data.statCategories);
-
       for (let i of dataPoints) {
         for (let statCategory of data.statCategories) {
           setData(statCategory.id, i, data[i][statCategory.id]);
         }
       }
+
+      setStatCategories([...statCategories, ...data.statCategories]);
 
       return { message: successMessage, error: '' };
     } else {
