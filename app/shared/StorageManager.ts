@@ -172,7 +172,7 @@ export const importData = async (
         successMessage +=
           ', but these stat categories in the backup were skipped due to the IDs or names overlapping with one of your existing stat categories: ';
         skippedCategories.forEach((el) => (successMessage += `${el}, `));
-        successMessage = successMessage.slice(0, -2);
+        successMessage = 'CAUTION! ' + successMessage.slice(0, -2);
       }
 
       for (let i of dataPoints) {

@@ -9,7 +9,7 @@
     "start": "react-native start",
     "bundle": "mkdir ./android/app/src/main/assets ; react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "debug-apk": "yarn bundle && cd android && ./gradlew assembleDebug",
-    "release-apk": "yarn bundle && cd android && rm -rf app/src/main/res/drawable-* && ./gradlew assembleRelease",
+    "release-apk": "VER=$(jq -r .version ./package.json) && yarn bundle && cd android && rm -rf app/src/main/res/drawable-* && ./gradlew assembleRelease && cd app/build/outputs/apk/release/ && mv app-release.apk stat-tracker-v$VER.apk",
     "test-release": "react-native run-android --variant=release",
     "emulator": "emulator -avd Pixel_3a_API_31",
     "rn-upgrade": "react-native upgrade",
