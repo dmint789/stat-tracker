@@ -3,7 +3,7 @@ import * as ScopedStorage from 'react-native-scoped-storage';
 import { formatDate } from './GlobalFunctions';
 import { IStatCategory, IBackupData, dataPoints } from './DataStructure';
 
-const verbose = true && __DEV__;
+const verbose: number = __DEV__ ? 1 : 0;
 
 export const getData = async (categoryId: number, request: string) => {
   const key: string = categoryId + '_' + request;
@@ -102,7 +102,7 @@ export const setLastCategoryId = async (id: number) => {
 
 export const setStatCategories = async (statCategories: IStatCategory[]) => {
   try {
-    if (verbose) {
+    if (verbose === 2) {
       console.log('Setting statCategories to:');
       console.log(JSON.stringify(statCategories, null, 2));
     }
