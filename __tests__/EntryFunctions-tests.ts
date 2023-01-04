@@ -303,9 +303,11 @@ test('edit entry with no PBs', () => {
   const entry = state.entries.find((el) => el.id === 12);
 
   entry.stats[0].values[0] = 82;
+  state.entries = addEditEntry(state.entries, entry);
   expect(updatePBs(state, entry, 'edit')).toBe(false);
 
   entry.stats[0].values[0] = 77;
+  state.entries = addEditEntry(state.entries, entry);
   expect(updatePBs(state, entry, 'edit')).toBe(true);
 
   // Expect weight PB to be updated
@@ -337,6 +339,60 @@ test('delete entry that had PBs', () => {
   expect(state.statTypes[1].pbs.allTime.result.sum).toBe(86);
 });
 
-// ADD TEST FOR EDITING THE DATE OF A PB THAT HAD A PB, AND PB CHANGES
+test('add entry that ties PB with past entry', () => {
+  const entry: IEntry = {
+    id: 13,
+    stats: [
+      {
+        id: 2,
+        type: 2,
+        values: [20, 21, 34],
+        multiValueStats: {
+          sum: 75,
+          low: 20,
+          high: 34,
+          avg: 25,
+        },
+      },
+    ],
+    comment: '',
+    date: {
+      day: 15,
+      month: 1,
+      year: 2023,
+    },
+  };
 
-// ADD TEST FOR CREATING NEW PB AND TYING WITH THE PREVIOUS PB, BUT PB STAYS THE SAME
+  state.entries = addEditEntry(state.entries, entry, true);
+  expect(updatePBs(state, entry, 'add')).toBe(false);
+});
+
+test('edit the date of an entry that had a PB tie to the same date as PB entry, and then to before it', () => {
+  const entry = state.entries.find((el) => el.id === 13);
+
+  entry.date = {
+    day: 11,
+    month: 1,
+    year: 2023,
+  };
+
+  state.entries = addEditEntry(state.entries, entry);
+  expect(updatePBs(state, entry, 'edit')).toBe(false);
+
+  entry.date = {
+    day: 9,
+    month: 1,
+    year: 2023,
+  };
+
+  state.entries = addEditEntry(state.entries, entry);
+  expect(updatePBs(state, entry, 'edit')).toBe(true);
+
+  // Expect Push-ups best PB to be updated, but not sum or avg
+  expect(state.statTypes[1].pbs.allTime.entryId.best).toBe(13);
+  expect(state.statTypes[1].pbs.allTime.result.best).toBe(34);
+  expect(state.statTypes[1].pbs.allTime.entryId.avg).toBe(9);
+  expect(state.statTypes[1].pbs.allTime.result.avg).toBe(28.67);
+  expect(state.statTypes[1].pbs.allTime.entryId.sum).toBe(9);
+  expect(state.statTypes[1].pbs.allTime.result.sum).toBe(86);
+});

@@ -1,8 +1,10 @@
 import { isNewerOrSameDate } from '../shared/GlobalFunctions';
 import { IMultiValuePB, IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructure';
 
+const verbose = false && __DEV__;
+
 export const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false): IEntry[] => {
-  if (__DEV__) {
+  if (verbose) {
     console.log(`${newEntry ? 'Adding' : 'Editing'} entry:`);
     console.log(JSON.stringify(entry, null, 2));
   }
@@ -15,7 +17,7 @@ export const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false)
       if (!isNewerOrSameDate(entry.date, entries[0].date)) {
         for (let e of entries) {
           if (!inserted && isNewerOrSameDate(entry.date, e.date)) {
-            if (__DEV__) console.log('Adding entry in the middle');
+            if (verbose) console.log('Adding entry in the middle');
             newEntries.push(entry);
             inserted = true;
           }
@@ -24,11 +26,11 @@ export const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false)
 
         // If it's to become the very last element in the array of entries
         if (!inserted) {
-          if (__DEV__) console.log('Adding entry at the bottom');
+          if (verbose) console.log('Adding entry at the bottom');
           newEntries.push(entry);
         }
       } else {
-        if (__DEV__) console.log('Adding entry at the top');
+        if (verbose) console.log('Adding entry at the top');
         newEntries = [entry, ...entries];
       }
     } else {
@@ -46,7 +48,7 @@ export const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false)
       if (differentDate) {
         for (let e of entries) {
           if (!inserted && isNewerOrSameDate(entry.date, e.date)) {
-            if (__DEV__) console.log('Reordering the entry');
+            if (verbose) console.log('Reordering the entry');
             newEntries.push(entry);
             inserted = true;
           }
@@ -57,16 +59,16 @@ export const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false)
 
         // If it's to become the very last element in the array of entries
         if (!inserted) {
-          if (__DEV__) console.log('Reordering it to the bottom');
+          if (verbose) console.log('Reordering it to the bottom');
           newEntries.push(entry);
         }
       } else {
-        if (__DEV__) console.log('Date is the same, not reordering');
+        if (verbose) console.log('Date is the same, not reordering');
         newEntries = entries.map((el) => (el.id === entry.id ? entry : el));
       }
     }
   } else {
-    if (__DEV__) console.log('Adding first entry');
+    if (verbose) console.log('Adding first entry');
     // When there are no entries in the array
     newEntries.push(entry);
   }
@@ -76,7 +78,7 @@ export const addEditEntry = (entries: IEntry[], entry: IEntry, newEntry = false)
 
 // The return value is whether or not the PB got updated
 export const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry): boolean => {
-  if (__DEV__) console.log(`Checking if entry ${entry.id} has the PB for stat type ${statType.name}`);
+  if (verbose) console.log(`Checking if entry ${entry.id} has the PB for stat type ${statType.name}`);
 
   let pbUpdated = false;
   const stat = entry.stats.find((el: IStat) => el.type === statType.id);
@@ -132,7 +134,7 @@ export const updateStatTypePB = (state: any, statType: IStatType, entry: IEntry)
 };
 
 export const checkPBFromScratch = (state: any, statType: IStatType) => {
-  if (__DEV__) console.log(`Checking PB from scratch for stat type ${statType.name}`);
+  if (verbose) console.log(`Checking PB from scratch for stat type ${statType.name}`);
 
   for (let i = state.entries.length - 1; i >= 0; i--) {
     updateStatTypePB(state, statType, state.entries[i]);
@@ -144,7 +146,7 @@ export const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'del
 
   for (let statType of state.statTypes) {
     if (statType.trackPBs && statType.variant === StatTypeVariant.NUMBER) {
-      if (__DEV__) console.log(`Updating PB for stat type ${statType.name}`);
+      if (verbose) console.log(`Updating PB for stat type ${statType.name}`);
 
       let pbUpdated = false;
 
@@ -204,7 +206,7 @@ export const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'del
 
       PBsUpdated = pbUpdated || PBsUpdated;
 
-      if (__DEV__) {
+      if (verbose) {
         if (pbUpdated) console.log('PB updated to: ', JSON.stringify(statType.pbs, null, 2));
         else console.log('PB not updated');
       }
