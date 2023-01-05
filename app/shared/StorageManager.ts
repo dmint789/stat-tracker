@@ -3,7 +3,7 @@ import * as ScopedStorage from 'react-native-scoped-storage';
 import { formatDate } from './GlobalFunctions';
 import { IStatCategory, IBackupData, dataPoints } from './DataStructure';
 
-const verbose: number = __DEV__ ? 1 : 0;
+const verbose: number = __DEV__ ? 0 : 0;
 
 export const getData = async (categoryId: number, request: string) => {
   const key: string = categoryId + '_' + request;

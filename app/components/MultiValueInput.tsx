@@ -9,22 +9,44 @@ const MultiValueInput: React.FC<{
   numeric?: boolean;
   allowMultiple?: boolean;
   appendNumber?: boolean;
-}> = ({ values, setValues, placeholder, numeric = false, allowMultiple = true, appendNumber = false }) => {
+  setHasUnsavedChanges?: React.Dispatch<SetStateAction<boolean>>;
+}> = ({
+  values,
+  setValues,
+  placeholder,
+  numeric = false,
+  allowMultiple = true,
+  appendNumber = false,
+  setHasUnsavedChanges,
+}) => {
   const updateStatValues = (index: number, value: string) => {
     setValues((prevValues: string[]) => {
-      let newValues = prevValues.map((prevValue, i) => (i === index ? value : prevValue));
-      const emptyValues = newValues.filter((el) => el === '');
+      let updated = false;
+      let newValues = prevValues.map((prevValue, i) => {
+        if (i === index) {
+          if (value !== prevValue) {
+            updated = true;
+            return value;
+          } else return prevValue;
+        } else return prevValue;
+      });
 
-      if (allowMultiple) {
-        if (emptyValues.length === 0) {
-          newValues.push('');
-        } else if (emptyValues.length > 1) {
-          for (let i = newValues.length - 1; i >= 0; i--) {
-            if (newValues[i] === '' && newValues[i - 1] === '') {
-              newValues.pop();
-            } else break;
+      if (updated) {
+        const emptyValues = newValues.filter((el) => el === '');
+
+        if (allowMultiple) {
+          if (emptyValues.length === 0) {
+            newValues.push('');
+          } else if (emptyValues.length > 1) {
+            for (let i = newValues.length - 1; i >= 0; i--) {
+              if (newValues[i] === '' && newValues[i - 1] === '') {
+                newValues.pop();
+              } else break;
+            }
           }
         }
+
+        setHasUnsavedChanges(true);
       }
 
       return newValues;

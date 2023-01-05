@@ -15,6 +15,7 @@ const AddEditStatType = ({ navigation, route }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { statCategory, statTypes } = useSelector((state: RootState) => state.main);
 
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [variant, setVariant] = useState<StatTypeVariant>(StatTypeVariant.TEXT);
@@ -71,6 +72,40 @@ const AddEditStatType = ({ navigation, route }) => {
       navigation.setOptions({ title: 'Add Stat Type' });
     }
   }, [passedData]);
+
+  useEffect(() => {
+    navigation.addListener('beforeRemove', (e) => {
+      if (!hasUnsavedChanges) return;
+
+      e.preventDefault();
+
+      Alert.alert('Notice', 'You have unsaved data. Are you sure you want to discard it and go back?', [
+        { text: 'Cancel', onPress: () => {} },
+        { text: 'Yes', onPress: () => navigation.dispatch(e.data.action) },
+      ]);
+    });
+  }, [navigation, hasUnsavedChanges]);
+
+  const changeName = (value: string) => {
+    if (value !== name) {
+      setName(value);
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  const changeUnit = (value: string) => {
+    if (value !== unit) {
+      setUnit(value);
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  const changeDefaultValue = (value: string) => {
+    if (value !== defaultValue) {
+      setDefaultValue(value);
+      setHasUnsavedChanges(true);
+    }
+  };
 
   const changeVariant = (value: StatTypeVariant) => {
     switch (value) {
@@ -212,7 +247,7 @@ const AddEditStatType = ({ navigation, route }) => {
           value={name}
           placeholder="Stat type name"
           placeholderTextColor="grey"
-          onChangeText={(value) => setName(value)}
+          onChangeText={changeName}
         />
         {variant !== StatTypeVariant.MULTIPLE_CHOICE && (
           <>
@@ -221,15 +256,15 @@ const AddEditStatType = ({ navigation, route }) => {
               value={unit}
               placeholder="Unit of measurement (km, lb, etc.)"
               placeholderTextColor="grey"
-              onChangeText={(value) => setUnit(value)}
+              onChangeText={changeUnit}
             />
             {!multipleValues && (
               <TextInput
                 style={GS.input}
                 value={String(defaultValue)}
-                placeholder="Default value (leave empty if not needed)"
+                placeholder="Default value"
                 placeholderTextColor="grey"
-                onChangeText={(value) => setDefaultValue(value)}
+                onChangeText={changeDefaultValue}
               />
             )}
           </>
@@ -255,7 +290,13 @@ const AddEditStatType = ({ navigation, route }) => {
         {variant === StatTypeVariant.MULTIPLE_CHOICE &&
           (!choicesAccepted ? (
             <>
-              <MultiValueInput values={choices} setValues={setChoices} placeholder="Option" appendNumber />
+              <MultiValueInput
+                values={choices}
+                setValues={setChoices}
+                placeholder="Option"
+                appendNumber
+                setHasUnsavedChanges={setHasUnsavedChanges}
+              />
               <Button
                 color={isValidChoices() ? 'green' : 'grey'}
                 title="Accept Options"

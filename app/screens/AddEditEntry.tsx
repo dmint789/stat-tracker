@@ -25,6 +25,7 @@ const AddEditEntry = ({ navigation, route }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { statCategory, statTypes } = useSelector((state: RootState) => state.main);
 
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   // Used when editing an entry (note: ids start from 1, so this can only be falsy when set to null)
   const [prevEntryId, setPrevEntryId] = useState<number>(null);
   const [stats, setStats] = useState<IStat[]>([]);
@@ -81,6 +82,25 @@ const AddEditEntry = ({ navigation, route }) => {
       }
     }
   }, [passedData]);
+
+  useEffect(() => {
+    navigation.addListener('beforeRemove', (e) => {
+      // If we don't have unsaved changes, then we don't need to do anything
+      if (!hasUnsavedChanges) return;
+
+      e.preventDefault();
+
+      Alert.alert('Notice', 'You have unsaved data. Are you sure you want to discard it and go back?', [
+        { text: 'Cancel', onPress: () => {} },
+        {
+          text: 'Yes',
+          // If the user confirmed, then we dispatch the action we blocked earlier
+          // This will continue the action that had triggered the removal of the screen
+          onPress: () => navigation.dispatch(e.data.action),
+        },
+      ]);
+    });
+  }, [navigation, hasUnsavedChanges]);
 
   useEffect(() => {
     filterStatTypes();
@@ -273,7 +293,7 @@ const AddEditEntry = ({ navigation, route }) => {
       Alert.alert(mode === 'select' ? 'Warning' : 'Notice', mode === 'select' ? message1 : message2, [
         { text: 'Cancel' },
         {
-          text: 'Ok',
+          text: 'Yes',
           onPress: () => {
             setStatValues(['']);
             setSelectedStatType(statType);
@@ -335,6 +355,13 @@ const AddEditEntry = ({ navigation, route }) => {
     setFilteredStatTypes(newFilteredStatTypes);
   };
 
+  const changeComment = (value: string) => {
+    if (value !== comment) {
+      setComment(value);
+      setHasUnsavedChanges(true);
+    }
+  };
+
   return (
     <View style={GS.scrollContainer}>
       <ScrollView keyboardShouldPersistTaps="always" style={GS.scrollableArea}>
@@ -372,6 +399,7 @@ const AddEditEntry = ({ navigation, route }) => {
               placeholder="Value"
               numeric={selectedStatType?.variant === StatTypeVariant.NUMBER}
               allowMultiple={selectedStatType?.multipleValues}
+              setHasUnsavedChanges={setHasUnsavedChanges}
             />
             <Button color={isValidStat(false) ? 'green' : 'grey'} title="Add Stat" onPress={addStat} />
           </>
@@ -391,7 +419,7 @@ const AddEditEntry = ({ navigation, route }) => {
           placeholderTextColor="grey"
           multiline
           value={comment}
-          onChangeText={(value) => setComment(value)}
+          onChangeText={changeComment}
         />
         {/* Date */}
         <View style={styles.date}>

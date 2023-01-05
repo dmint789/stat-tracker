@@ -48,7 +48,7 @@ const Home = ({ navigation }) => {
           renderItem={({ item }) => (
             <Entry entry={item} onDeleteEntry={onDeleteEntry} onEditEntry={onEditEntry} />
           )}
-          ListFooterComponent={<View style={{ height: 100 }} />}
+          ListFooterComponent={<View style={{ height: 95 }} />}
         />
       ) : (
         <Text style={GS.infoText}>Press + to add a stat entry</Text>
@@ -66,10 +66,10 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    bottom: 25,
+    bottom: 24,
     right: 20,
-    height: 65,
-    width: 65,
+    height: 60,
+    width: 60,
     borderRadius: 50,
     backgroundColor: 'red',
     ...largeShadow,
