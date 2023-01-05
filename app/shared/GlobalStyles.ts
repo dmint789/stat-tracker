@@ -14,13 +14,13 @@ export const mdGap = 16;
 export const lgGap = 20;
 export const xlGap = 30;
 
-const largeShadow = {
+export const largeShadow = {
   shadowColor: 'black',
   shadowOpacity: 0.5,
-  elevation: 16,
+  elevation: 14,
 };
 
-const smallShadow = {
+export const smallShadow = {
   shadowColor: 'black',
   shadowOpacity: 0.5,
   elevation: 5,

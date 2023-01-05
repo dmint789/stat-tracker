@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { deleteEntry } from '../redux/mainSlice';
-import GS from '../shared/GlobalStyles';
+import GS, { largeShadow } from '../shared/GlobalStyles';
 import { IEntry } from '../shared/DataStructure';
 
 import Entry from '../components/Entry';
-import MyButton from '../components/MyButton';
 
 const Home = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,12 +16,6 @@ const Home = ({ navigation }) => {
   useEffect(() => {
     navigation.setOptions({
       title: statCategory.name,
-      // Set the plus button in the header
-      headerRight: () => (
-        <MyButton onPress={() => navigation.navigate('AddEditEntry')}>
-          <Icon name="plus" size={24} color="red" />
-        </MyButton>
-      ),
     });
   }, [navigation]);
 
@@ -55,13 +48,32 @@ const Home = ({ navigation }) => {
           renderItem={({ item }) => (
             <Entry entry={item} onDeleteEntry={onDeleteEntry} onEditEntry={onEditEntry} />
           )}
-          ListFooterComponent={<View style={{ height: 20 }} />}
+          ListFooterComponent={<View style={{ height: 100 }} />}
         />
       ) : (
         <Text style={GS.infoText}>Press + to add a stat entry</Text>
       )}
+      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddEditEntry')}>
+        <Icon name="plus" size={22} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  addButton: {
+    position: 'absolute',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    bottom: 25,
+    right: 20,
+    height: 65,
+    width: 65,
+    borderRadius: 50,
+    backgroundColor: 'red',
+    ...largeShadow,
+  },
+});
 
 export default Home;

@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { xxsGap, xsGap, smGap, mdGap, lgGap, xlGap } from '../shared/GlobalStyles';
 
-const SmallGap: React.FC<{
+const Gap: React.FC<{
   size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }> = ({ size = 'xs' }) => {
   const getGap = (): number => {
@@ -25,4 +25,4 @@ const SmallGap: React.FC<{
   return <View style={{ width: getGap(), height: getGap() }}></View>;
 };
 
-export default SmallGap;
+export default Gap;
