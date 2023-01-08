@@ -15,7 +15,6 @@ const AddEditStatType = ({ navigation, route }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { statCategory, statTypes } = useSelector((state: RootState) => state.main);
 
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [variant, setVariant] = useState<StatTypeVariant>(StatTypeVariant.TEXT);
@@ -30,6 +29,8 @@ const AddEditStatType = ({ navigation, route }) => {
   const [showAvg, setShowAvg] = useState<boolean>(false);
   const [showSum, setShowSum] = useState<boolean>(false);
   const [trackPBs, setTrackPBs] = useState<boolean>(false);
+  const [trackYearPBs, setTrackYearPBs] = useState<boolean>(false);
+  const [trackMonthPBs, setTrackMonthPBs] = useState<boolean>(false);
 
   // If statType is not set, we're adding a new stat type
   const passedData: {
@@ -68,42 +69,28 @@ const AddEditStatType = ({ navigation, route }) => {
       if (statType.showAvg !== undefined) setShowAvg(statType.showAvg);
       if (statType.showSum !== undefined) setShowSum(statType.showSum);
       if (statType.trackPBs !== undefined) setTrackPBs(statType.trackPBs);
+      if (statType.trackYearPBs !== undefined) setTrackYearPBs(statType.trackYearPBs);
+      if (statType.trackMonthPBs !== undefined) setTrackMonthPBs(statType.trackMonthPBs);
     } else {
       navigation.setOptions({ title: 'Add Stat Type' });
     }
   }, [passedData]);
 
-  useEffect(() => {
-    navigation.addListener('beforeRemove', (e) => {
-      if (!hasUnsavedChanges) return;
-
-      e.preventDefault();
-
-      Alert.alert('Notice', 'You have unsaved data. Are you sure you want to discard it and go back?', [
-        { text: 'Cancel', onPress: () => {} },
-        { text: 'Yes', onPress: () => navigation.dispatch(e.data.action) },
-      ]);
-    });
-  }, [navigation, hasUnsavedChanges]);
-
   const changeName = (value: string) => {
     if (value !== name) {
       setName(value);
-      setHasUnsavedChanges(true);
     }
   };
 
   const changeUnit = (value: string) => {
     if (value !== unit) {
       setUnit(value);
-      setHasUnsavedChanges(true);
     }
   };
 
   const changeDefaultValue = (value: string) => {
     if (value !== defaultValue) {
       setDefaultValue(value);
-      setHasUnsavedChanges(true);
     }
   };
 
@@ -210,6 +197,8 @@ const AddEditStatType = ({ navigation, route }) => {
       if (variant === StatTypeVariant.NUMBER) {
         statType.higherIsBetter = higherIsBetter;
         statType.trackPBs = trackPBs;
+        statType.trackYearPBs = trackYearPBs;
+        statType.trackMonthPBs = trackMonthPBs;
       } else if (variant === StatTypeVariant.MULTIPLE_CHOICE) {
         statType.choices = choices.map((val, i) => ({
           id: i + 1,
@@ -290,13 +279,7 @@ const AddEditStatType = ({ navigation, route }) => {
         {variant === StatTypeVariant.MULTIPLE_CHOICE &&
           (!choicesAccepted ? (
             <>
-              <MultiValueInput
-                values={choices}
-                setValues={setChoices}
-                placeholder="Option"
-                appendNumber
-                setHasUnsavedChanges={setHasUnsavedChanges}
-              />
+              <MultiValueInput values={choices} setValues={setChoices} placeholder="Option" appendNumber />
               <Button
                 color={isValidChoices() ? 'green' : 'grey'}
                 title="Accept Options"
@@ -337,9 +320,17 @@ const AddEditStatType = ({ navigation, route }) => {
         )}
         {/* Track PBs{variant === StatTypeVariant.TEXT ? ' (manual)' : ''} */}
         {variant === StatTypeVariant.NUMBER && (
-          <Checkbox checked={trackPBs} onChange={setTrackPBs}>
-            Track PBs
-          </Checkbox>
+          <>
+            <Checkbox checked={trackPBs} onChange={setTrackPBs}>
+              Track PBs
+            </Checkbox>
+            <Checkbox checked={trackYearPBs} onChange={setTrackYearPBs}>
+              Track annual PBs
+            </Checkbox>
+            <Checkbox checked={trackMonthPBs} onChange={setTrackMonthPBs}>
+              Track monthly PBs
+            </Checkbox>
+          </>
         )}
         <Gap size="lg" />
         <Button

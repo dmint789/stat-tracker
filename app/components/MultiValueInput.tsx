@@ -9,16 +9,7 @@ const MultiValueInput: React.FC<{
   numeric?: boolean;
   allowMultiple?: boolean;
   appendNumber?: boolean;
-  setHasUnsavedChanges?: React.Dispatch<SetStateAction<boolean>>;
-}> = ({
-  values,
-  setValues,
-  placeholder,
-  numeric = false,
-  allowMultiple = true,
-  appendNumber = false,
-  setHasUnsavedChanges,
-}) => {
+}> = ({ values, setValues, placeholder, numeric = false, allowMultiple = true, appendNumber = false }) => {
   const updateStatValues = (index: number, value: string) => {
     setValues((prevValues: string[]) => {
       let updated = false;
@@ -45,8 +36,6 @@ const MultiValueInput: React.FC<{
             }
           }
         }
-
-        setHasUnsavedChanges(true);
       }
 
       return newValues;

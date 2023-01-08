@@ -54,15 +54,28 @@ export const formatIDate = (date: IDate, separator = ''): string => {
 
 // Returns true if date1 is more recent or the same as date2
 export const isNewerOrSameDate = (date1: IDate, date2: IDate): boolean => {
-  if (!date1) {
-    return !date2;
-  } else if (!date2) return true;
+  if (!date1) return !date2;
+  else if (!date2) return true;
 
   if (date1.year > date2.year) return true;
   else if (date1.year === date2.year) {
     if (date1.month > date2.month) return true;
     else if (date1.month === date2.month) {
       return date1.day >= date2.day;
+    } else return false;
+  } else return false;
+};
+
+// Returns true if date1 is older or the same as date2
+export const isOlderOrSameDate = (date1: IDate, date2: IDate): boolean => {
+  if (!date1) return true;
+  else if (!date2) return false;
+
+  if (date1.year < date2.year) return true;
+  else if (date1.year === date2.year) {
+    if (date1.month < date2.month) return true;
+    else if (date1.month === date2.month) {
+      return date1.day <= date2.day;
     } else return false;
   } else return false;
 };

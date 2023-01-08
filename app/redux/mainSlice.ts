@@ -126,16 +126,34 @@ const mainSlice = createSlice({
     editStatType: (state, action: PayloadAction<IStatType>) => {
       state.statTypes = state.statTypes.map((el) => {
         if (el.id === action.payload.id) {
-          if (el.trackPBs && !action.payload.trackPBs) {
-            delete action.payload.pbs;
-          } else if (
+          let checkFromScratch = false;
+
+          if (el.trackPBs && !action.payload.trackPBs && action.payload.pbs)
+            delete action.payload.pbs.allTime;
+          else if (
             action.payload.trackPBs &&
             (!el.trackPBs || action.payload.higherIsBetter !== el.higherIsBetter)
-          ) {
-            checkPBFromScratch(state, action.payload);
-          }
+          )
+            checkFromScratch = true;
 
-          SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
+          if (el.trackYearPBs && !action.payload.trackYearPBs && action.payload.pbs)
+            delete action.payload.pbs.year;
+          else if (
+            action.payload.trackYearPBs &&
+            (!el.trackYearPBs || action.payload.higherIsBetter !== el.higherIsBetter)
+          )
+            checkFromScratch = true;
+
+          if (el.trackMonthPBs && !action.payload.trackMonthPBs && action.payload.pbs)
+            delete action.payload.pbs.month;
+          else if (
+            action.payload.trackMonthPBs &&
+            (!el.trackMonthPBs || action.payload.higherIsBetter !== el.higherIsBetter)
+          )
+            checkFromScratch = true;
+
+          if (action.payload.pbs && Object.keys(action.payload.pbs).length === 0) delete action.payload.pbs;
+          if (checkFromScratch) checkPBFromScratch(state, action.payload);
 
           return action.payload;
         } else return el;

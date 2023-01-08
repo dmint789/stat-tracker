@@ -3,7 +3,7 @@ import * as ScopedStorage from 'react-native-scoped-storage';
 import { formatDate } from './GlobalFunctions';
 import { IStatCategory, IBackupData, dataPoints } from './DataStructure';
 
-const verbose: number = __DEV__ ? 0 : 0;
+const verbose: number = __DEV__ ? 2 : 0;
 
 export const getData = async (categoryId: number, request: string) => {
   const key: string = categoryId + '_' + request;
@@ -13,7 +13,7 @@ export const getData = async (categoryId: number, request: string) => {
 
     const data = JSON.parse(await AsyncStorage.getItem(key));
 
-    if (verbose) console.log(JSON.stringify(data, null, 2));
+    if (verbose >= 2) console.log(JSON.stringify(data, null, 2));
 
     if (data) return data;
     else if (verbose) console.log(`No data found for key ${key}`);
@@ -29,8 +29,8 @@ export const setData = async (categoryId: number, request: string, data: any) =>
 
   try {
     if (verbose) {
-      console.log(`Setting data for key ${key}:`);
-      console.log(JSON.stringify(data, null, 2));
+      console.log(`Setting data for key ${key}`);
+      if (verbose >= 2) console.log(JSON.stringify(data, null, 2));
     }
 
     await AsyncStorage.setItem(key, JSON.stringify(data));
@@ -58,7 +58,7 @@ export const getStatCategories = async (): Promise<IStatCategory[]> => {
 
     let data: IStatCategory[] = JSON.parse(await AsyncStorage.getItem('statCategories'));
 
-    if (verbose) console.log(JSON.stringify(data, null, 2));
+    if (verbose >= 2) console.log(JSON.stringify(data, null, 2));
 
     // Check that the data is valid (there is always an id property in every element of the array)
     if (data?.length > 0 && typeof data[0].id === 'number') return data;
@@ -67,6 +67,37 @@ export const getStatCategories = async (): Promise<IStatCategory[]> => {
   }
 
   return null;
+};
+
+export const setStatCategories = async (statCategories: IStatCategory[]) => {
+  try {
+    if (verbose >= 2) {
+      console.log('Setting statCategories to:');
+      console.log(JSON.stringify(statCategories, null, 2));
+    } else if (verbose) {
+      console.log('Setting statCategories');
+    }
+
+    await AsyncStorage.setItem('statCategories', JSON.stringify(statCategories));
+  } catch (err) {
+    console.log(`Error while setting stat categories: ${err}`);
+  }
+};
+
+// Sets the new list of stat categoies after a deletion and deletes all data used for it
+export const deleteStatCategory = async (category: IStatCategory, newStatCategories: IStatCategory[]) => {
+  try {
+    if (verbose) console.log(`Deleting stat category ${category.name}`);
+
+    for (let i of dataPoints) {
+      await deleteData(category.id, i);
+    }
+
+    await setStatCategories(newStatCategories);
+  } catch (err) {
+    console.log(`Error while deleting stat category ${category.name}:`);
+    console.log(err);
+  }
 };
 
 export const getLastCategoryId = async (): Promise<number> => {
@@ -97,35 +128,6 @@ export const setLastCategoryId = async (id: number) => {
     await AsyncStorage.setItem('lastCategoryId', String(id));
   } catch (err) {
     console.error(`Error while incrementing lastCategoryId: ${err}`);
-  }
-};
-
-export const setStatCategories = async (statCategories: IStatCategory[]) => {
-  try {
-    if (verbose === 2) {
-      console.log('Setting statCategories to:');
-      console.log(JSON.stringify(statCategories, null, 2));
-    }
-
-    await AsyncStorage.setItem('statCategories', JSON.stringify(statCategories));
-  } catch (err) {
-    console.log(`Error while setting stat categories: ${err}`);
-  }
-};
-
-// Sets the new list of stat categoies after a deletion and deletes all data used for it
-export const deleteStatCategory = async (category: IStatCategory, newStatCategories: IStatCategory[]) => {
-  try {
-    if (verbose) console.log(`Deleting stat category ${category.name}`);
-
-    for (let i of dataPoints) {
-      await deleteData(category.id, i);
-    }
-
-    await setStatCategories(newStatCategories);
-  } catch (err) {
-    console.log(`Error while deleting stat category ${category.name}:`);
-    console.log(err);
   }
 };
 

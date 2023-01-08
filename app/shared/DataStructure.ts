@@ -35,17 +35,28 @@ export enum StatTypeVariant {
   FORMULA,
 }
 
-export interface IMultiValuePB {
-  best: number;
+export interface IMultiValuePBsWorsts {
+  bestWorst: number; // best for pbs and worst for worsts
   avg?: number;
   sum?: number;
 }
 
-// export interface IMultiValueWorst {
-//   worst: number;
-//   avg?: number;
-//   sum?: number;
-// }
+export interface IPBsWorsts {
+  allTime?: {
+    entryId: IMultiValuePBsWorsts;
+    result: IMultiValuePBsWorsts;
+  };
+  // Only tracks the PB for the most recent year
+  year?: {
+    entryId: IMultiValuePBsWorsts;
+    result: IMultiValuePBsWorsts;
+  };
+  // Only tracks the PB for the most recent month
+  month?: {
+    entryId: IMultiValuePBsWorsts;
+    result: IMultiValuePBsWorsts;
+  };
+}
 
 export interface IChoice {
   id: number;
@@ -69,40 +80,12 @@ export interface IStatType {
   showAvg?: boolean; // NUMBER only
   showSum?: boolean; // NUMBER only
   trackPBs?: boolean; // TEXT (manual) and NUMBER only
+  trackMonthPBs?: boolean; // NUMBER only
+  trackYearPBs?: boolean; // NUMBER only
   // trackWorst?: boolean; // NUMBER only
   // If this is unset and trackPBs is on, that means there aren't any pbs yet for this stat type
-  pbs?: {
-    allTime: {
-      entryId: IMultiValuePB;
-      result: IMultiValuePB;
-    };
-    // Only tracks the PB for the most recent year
-    // year: {
-    //   entryId: IMultiValuePB;
-    //   result: IMultiValuePB;
-    // };
-    // Only tracks the PB for the most recent month
-    // month: {
-    //   entryId: IMultiValuePB;
-    //   result: IMultiValuePB
-    // };
-  };
-  // worsts?: {
-  //   allTime: {
-  //     entryId: IMultiValueWorst;
-  //     result: IMultiValueWorst;
-  //   }
-  //   Only tracks the worst for the most recent year
-  //   year: {
-  //     entryId: IMultiValuePB;
-  //     result: IMultiValuePB;
-  //   };
-  //   Only tracks the worst for the most recent month
-  //   month: {
-  //     entryId: IMultiValuePB;
-  //     result: IMultiValuePB
-  //   };
-  // }
+  pbs?: IPBsWorsts;
+  // worsts?: IPBsWorsts;
 }
 
 export interface IEntry {

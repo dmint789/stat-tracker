@@ -15,22 +15,52 @@ const Entry: React.FC<{
 }> = ({ entry, onDeleteEntry, onEditEntry }) => {
   const { statTypes } = useSelector((state: RootState) => state.main);
 
-  const getIsPBValue = (value: string | number, statType: IStatType): boolean => {
-    if (!statType?.trackPBs) return false;
-    else return statType.pbs?.allTime.entryId.best === entry.id && statType.pbs.allTime.result.best === value;
+  const getValueStyle = (
+    value: string | number,
+    statType: IStatType,
+    pbValueShown: { val: boolean },
+  ): object => {
+    if (pbValueShown.val) return {};
+    else if (
+      statType?.trackPBs &&
+      statType.pbs?.allTime?.entryId.bestWorst === entry.id &&
+      statType.pbs.allTime.result.bestWorst === value
+    )
+      return styles.PBStyle;
+    else if (
+      statType?.trackYearPBs &&
+      statType.pbs?.year?.entryId.bestWorst === entry.id &&
+      statType.pbs.year.result.bestWorst === value
+    )
+      return styles.yearPBStyle;
+    else if (
+      statType?.trackMonthPBs &&
+      statType.pbs?.month?.entryId.bestWorst === entry.id &&
+      statType.pbs.month.result.bestWorst === value
+    )
+      return styles.monthPBStyle;
+    else return {};
   };
 
-  const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
-    const isPB = statType?.trackPBs && statType.pbs?.allTime.entryId[key] === entry.id;
+  const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'bestWorst' | 'avg' | 'sum') => {
+    let style;
     let output: number;
 
-    if (key === 'best') {
+    if (statType?.trackPBs && statType.pbs?.allTime?.entryId[key] === entry.id) {
+      style = styles.PBStyle;
+    } else if (statType?.trackYearPBs && statType.pbs?.year?.entryId[key] === entry.id) {
+      style = styles.yearPBStyle;
+    } else if (statType?.trackMonthPBs && statType.pbs?.month?.entryId[key] === entry.id) {
+      style = styles.monthPBStyle;
+    } else style = {};
+
+    if (key === 'bestWorst') {
       output = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
     } else {
       output = stat.multiValueStats[key];
     }
 
-    return <Text style={isPB ? styles.pbStyle : {}}>{output}</Text>;
+    return <Text style={style}>{output}</Text>;
   };
 
   return (
@@ -46,7 +76,7 @@ const Entry: React.FC<{
           statType?.showSum && (stat.values.length > 1 || statType.pbs?.allTime.entryId.sum === entry.id);
 
         // This is for stats with pb tracking and multiple values
-        let pbValueShown = false;
+        const pbValueShown = { val: false };
 
         return (
           <View key={stat.id}>
@@ -55,9 +85,7 @@ const Entry: React.FC<{
               {stat.values.map((value, i) => (
                 <Text key={i}>
                   {/* Make sure only the first best value in a multivalue stat with ties is highlighted */}
-                  <Text
-                    style={!pbValueShown && (pbValueShown = getIsPBValue(value, statType)) && styles.pbStyle}
-                  >
+                  <Text style={getValueStyle(value, statType, pbValueShown)}>
                     {statType?.variant !== StatTypeVariant.MULTIPLE_CHOICE
                       ? value
                       : statType.choices.find((el) => el.id === value).label}
@@ -70,7 +98,7 @@ const Entry: React.FC<{
             {(showBest || showAvg || showSum) && (
               <Text style={{ ...GS.darkGrayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
                 {/* &#8194; is the En space character */}
-                {showBest && <>Best: {getMultiStatTextElement(stat, statType, 'best')}&#8194;</>}
+                {showBest && <>Best: {getMultiStatTextElement(stat, statType, 'bestWorst')}&#8194;</>}
                 {showAvg && <>Avg: {getMultiStatTextElement(stat, statType, 'avg')}&#8194;</>}
                 {showSum && <>Sum: {getMultiStatTextElement(stat, statType, 'sum')}</>}
               </Text>
@@ -97,8 +125,16 @@ const Entry: React.FC<{
 };
 
 const styles = StyleSheet.create({
-  pbStyle: {
+  PBStyle: {
     color: 'blue',
+    fontWeight: 'bold',
+  },
+  yearPBStyle: {
+    color: 'cyan',
+    fontWeight: 'bold',
+  },
+  monthPBStyle: {
+    color: 'green',
     fontWeight: 'bold',
   },
 });
