@@ -1,4 +1,4 @@
-import { addEditEntry, checkPBFromScratch, updatePBs } from '../app/shared/EntryFunctions';
+import { addEditEntry, updatePBs } from '../app/shared/EntryFunctions';
 import { IEntry, IStatType } from '../app/shared/DataStructure';
 
 /**
@@ -49,6 +49,8 @@ const state = {
       unit: 'kg',
       higherIsBetter: false,
       trackPBs: true,
+      trackYearPBs: false,
+      trackMonthPBs: false,
       multipleValues: false,
     },
     {
@@ -58,6 +60,8 @@ const state = {
       variant: 1,
       higherIsBetter: true,
       trackPBs: true,
+      trackYearPBs: false,
+      trackMonthPBs: false,
       multipleValues: true,
       showBest: true,
       showAvg: true,
@@ -779,23 +783,4 @@ test('add entry for new year and expect month and year PBs to be updated', () =>
   expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(20);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(20);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(20);
-});
-
-test('test the checkPBFromScratch function', () => {
-  expect(checkPBFromScratch(state, state.statTypes[2])).toBe(true);
-
-  delete state.statTypes[2].pbs;
-
-  expect(checkPBFromScratch(state, state.statTypes[2])).toBe(true);
-
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(20);
-  expect(state.statTypes[2].pbs.year.entryId.avg).toBe(20);
-  expect(state.statTypes[2].pbs.year.entryId.sum).toBe(20);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(20);
-  expect(state.statTypes[2].pbs.month.entryId.avg).toBe(20);
-  expect(state.statTypes[2].pbs.month.entryId.sum).toBe(20);
-});
-
-test('test the checkPBFromScratch function with a stat type that has no entries', () => {
-  expect(checkPBFromScratch(state, state.statTypes[3])).toBe(true);
 });

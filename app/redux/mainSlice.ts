@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import * as SM from '../shared/StorageManager';
-import { addEditEntry, updatePBs, checkPBFromScratch } from '../shared/EntryFunctions';
+import { addEditEntry, updatePBs } from '../shared/EntryFunctions';
+import { updateStatType, updateStatTypesOrder } from '../shared/StatTypeFunctions';
 import { IStatCategory, IEntry, IStatType } from '../shared/DataStructure';
 
 const initialState = {
@@ -124,60 +125,11 @@ const mainSlice = createSlice({
       SM.setStatCategories(state.statCategories);
     },
     editStatType: (state, action: PayloadAction<IStatType>) => {
-      state.statTypes = state.statTypes.map((el) => {
-        if (el.id === action.payload.id) {
-          let checkFromScratch = false;
-
-          if (el.trackPBs && !action.payload.trackPBs && action.payload.pbs)
-            delete action.payload.pbs.allTime;
-          else if (
-            action.payload.trackPBs &&
-            (!el.trackPBs || action.payload.higherIsBetter !== el.higherIsBetter)
-          )
-            checkFromScratch = true;
-
-          if (el.trackYearPBs && !action.payload.trackYearPBs && action.payload.pbs)
-            delete action.payload.pbs.year;
-          else if (
-            action.payload.trackYearPBs &&
-            (!el.trackYearPBs || action.payload.higherIsBetter !== el.higherIsBetter)
-          )
-            checkFromScratch = true;
-
-          if (el.trackMonthPBs && !action.payload.trackMonthPBs && action.payload.pbs)
-            delete action.payload.pbs.month;
-          else if (
-            action.payload.trackMonthPBs &&
-            (!el.trackMonthPBs || action.payload.higherIsBetter !== el.higherIsBetter)
-          )
-            checkFromScratch = true;
-
-          if (action.payload.pbs && Object.keys(action.payload.pbs).length === 0) delete action.payload.pbs;
-          if (checkFromScratch) checkPBFromScratch(state, action.payload);
-
-          return action.payload;
-        } else return el;
-      });
-
+      state.statTypes = updateStatType(state, action.payload);
       SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
     },
     reorderStatTypes: (state, action: PayloadAction<{ statType: IStatType; up: boolean }>) => {
-      const { statType, up } = action.payload;
-
-      state.statTypes = state.statTypes
-        .map((el) => {
-          const upCondition = (up && el.id === statType.id) || (!up && el.order === statType.order + 1);
-          const downCondition = (!up && el.id === statType.id) || (up && el.order === statType.order - 1);
-
-          if (upCondition || downCondition) {
-            return {
-              ...el,
-              order: el.order + (upCondition ? -1 : 1),
-            };
-          } else return el;
-        })
-        .sort((a, b) => a.order - b.order);
-
+      state.statTypes = updateStatTypesOrder(state.statTypes, action.payload.statType, action.payload.up);
       SM.setData(state.statCategory.id, 'statTypes', state.statTypes);
     },
     deleteStatType: (state, action: PayloadAction<number>) => {

@@ -159,7 +159,7 @@ export const updateStatTypePB = (
                 fitsTimeFrame = true;
             }
           }
-          console.log(timeKey, fitsTimeFrame);
+
           if (fitsTimeFrame) {
             if (statType.pbs[timeKey].entryId[key] === null) isNewPB = true;
             else if (statType.higherIsBetter && pbs[key] > statType.pbs[timeKey].result[key]) isNewPB = true;
@@ -239,14 +239,14 @@ export const checkPBFromScratch = (state: any, statType: IStatType, prevPBid = n
       if (verbose) console.log('Doing check from scratch');
 
       for (let e of state.entries) {
-        updateStatTypePB(state, tempStatType, e, false);
-
         if (!statType.trackPBs) {
           if (!statType.trackYearPBs) {
             // If we got here, we are only tracking month PBs
             if (e.date.year < newestEntry.date.year || e.date.month < newestEntry.date.month) break;
           } else if (e.date.year < newestEntry.date.year) break;
         }
+
+        updateStatTypePB(state, tempStatType, e, false);
       }
     } else if (verbose) console.log('Not doing check from scratch');
   } else if (verbose) console.log('Not doing check from scratch');
