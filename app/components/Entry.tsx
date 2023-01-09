@@ -23,26 +23,26 @@ const Entry: React.FC<{
     if (pbValueShown.val) return {};
     else if (
       statType?.trackPBs &&
-      statType.pbs?.allTime?.entryId.bestWorst === entry.id &&
-      statType.pbs.allTime.result.bestWorst === value
+      statType.pbs.allTime.entryId.best === entry.id &&
+      statType.pbs.allTime.result.best === value
     )
       return styles.PBStyle;
     else if (
       statType?.trackYearPBs &&
-      statType.pbs?.year?.entryId.bestWorst === entry.id &&
-      statType.pbs.year.result.bestWorst === value
+      statType.pbs.year.entryId.best === entry.id &&
+      statType.pbs.year.result.best === value
     )
       return styles.yearPBStyle;
     else if (
       statType?.trackMonthPBs &&
-      statType.pbs?.month?.entryId.bestWorst === entry.id &&
-      statType.pbs.month.result.bestWorst === value
+      statType.pbs.month.entryId.best === entry.id &&
+      statType.pbs.month.result.best === value
     )
       return styles.monthPBStyle;
     else return {};
   };
 
-  const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'bestWorst' | 'avg' | 'sum') => {
+  const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
     let style;
     let output: number;
 
@@ -54,7 +54,7 @@ const Entry: React.FC<{
       style = styles.monthPBStyle;
     } else style = {};
 
-    if (key === 'bestWorst') {
+    if (key === 'best') {
       output = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
     } else {
       output = stat.multiValueStats[key];
@@ -98,7 +98,7 @@ const Entry: React.FC<{
             {(showBest || showAvg || showSum) && (
               <Text style={{ ...GS.darkGrayText, marginLeft: 14, marginBottom: 8, fontSize: 16 }}>
                 {/* &#8194; is the En space character */}
-                {showBest && <>Best: {getMultiStatTextElement(stat, statType, 'bestWorst')}&#8194;</>}
+                {showBest && <>Best: {getMultiStatTextElement(stat, statType, 'best')}&#8194;</>}
                 {showAvg && <>Avg: {getMultiStatTextElement(stat, statType, 'avg')}&#8194;</>}
                 {showSum && <>Sum: {getMultiStatTextElement(stat, statType, 'sum')}</>}
               </Text>

@@ -36,7 +36,7 @@ export enum StatTypeVariant {
 }
 
 export interface IMultiValuePBsWorsts {
-  bestWorst: number; // best for pbs and worst for worsts
+  best: number; // best for pbs and worst for worsts
   avg?: number;
   sum?: number;
 }

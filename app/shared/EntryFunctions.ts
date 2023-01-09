@@ -121,9 +121,9 @@ export const updateStatTypePB = (
       let pbs = {} as IMultiValuePBsWorsts; // for overwriting the keys of statType.pbs[timeKey].result if PB is better
 
       if (!statType.multipleValues) {
-        pbs.bestWorst = stat.values[0] as number;
+        pbs.best = stat.values[0] as number;
       } else {
-        pbs.bestWorst = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
+        pbs.best = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
         pbs.avg = stat.multiValueStats.avg;
         pbs.sum = stat.multiValueStats.sum;
       }
@@ -133,7 +133,7 @@ export const updateStatTypePB = (
         if (!statType.pbs) statType.pbs = {} as IPBsWorsts;
 
         statType.pbs[timeKey] = {
-          entryId: { bestWorst: entry.id },
+          entryId: { best: entry.id },
           result: pbs,
         };
 
@@ -256,7 +256,7 @@ export const checkPBFromScratch = (state: any, statType: IStatType, prevPBid = n
   if (prevPBid !== null) {
     keys.forEach((key) => {
       // If this or .avg or .sum is null, that means no entries are left with this stat type
-      if (tempStatType.pbs[key].entryId.bestWorst === null) {
+      if (tempStatType.pbs[key].entryId.best === null) {
         if (verbose) console.log(`No entries left for stat type ${statType.name}`);
 
         pbUpdated = true;

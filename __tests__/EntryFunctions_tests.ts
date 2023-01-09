@@ -208,8 +208,8 @@ test('add first entry with PBs', () => {
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
   // Weight PB
-  expect(state.statTypes[0].pbs.allTime.entryId.bestWorst).toBe(9);
-  expect(state.statTypes[0].pbs.allTime.result.bestWorst).toBe(80);
+  expect(state.statTypes[0].pbs.allTime.entryId.best).toBe(9);
+  expect(state.statTypes[0].pbs.allTime.result.best).toBe(80);
   // Push-ups PB
   expect(state.statTypes[1].pbs.allTime.result.avg).toBe(28.67);
   expect(state.statTypes[1].pbs.allTime.result.sum).toBe(86);
@@ -248,11 +248,11 @@ test('add entry with one new PB', () => {
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
   // Expect weight PB to be updated
-  expect(state.statTypes[0].pbs.allTime.entryId.bestWorst).toBe(10);
-  expect(state.statTypes[0].pbs.allTime.result.bestWorst).toBe(79);
+  expect(state.statTypes[0].pbs.allTime.entryId.best).toBe(10);
+  expect(state.statTypes[0].pbs.allTime.result.best).toBe(79);
   // Expect push-ups PB to be the same as before
-  expect(state.statTypes[1].pbs.allTime.entryId.bestWorst).toBe(9);
-  expect(state.statTypes[1].pbs.allTime.result.bestWorst).toBe(34);
+  expect(state.statTypes[1].pbs.allTime.entryId.best).toBe(9);
+  expect(state.statTypes[1].pbs.allTime.result.best).toBe(34);
 });
 
 test('add entry with PBs and another before it with no PBs in the middle of the list', () => {
@@ -319,11 +319,11 @@ test('add entry with PBs and another before it with no PBs in the middle of the 
   expect(updatePBs(state, entry12, 'add')).toBe(false);
 
   // Expect weight PB to be updated
-  expect(state.statTypes[0].pbs.allTime.entryId.bestWorst).toBe(11);
-  expect(state.statTypes[0].pbs.allTime.result.bestWorst).toBe(78);
+  expect(state.statTypes[0].pbs.allTime.entryId.best).toBe(11);
+  expect(state.statTypes[0].pbs.allTime.result.best).toBe(78);
   // Expect push-ups PB best and sum to be updated
-  expect(state.statTypes[1].pbs.allTime.entryId.bestWorst).toBe(11);
-  expect(state.statTypes[1].pbs.allTime.result.bestWorst).toBe(40);
+  expect(state.statTypes[1].pbs.allTime.entryId.best).toBe(11);
+  expect(state.statTypes[1].pbs.allTime.result.best).toBe(40);
   expect(state.statTypes[1].pbs.allTime.entryId.avg).toBe(9);
   expect(state.statTypes[1].pbs.allTime.result.avg).toBe(28.67);
   expect(state.statTypes[1].pbs.allTime.entryId.sum).toBe(11);
@@ -342,8 +342,8 @@ test('edit entry with no PBs', () => {
   expect(updatePBs(state, entry, 'edit')).toBe(true);
 
   // Expect weight PB to be updated
-  expect(state.statTypes[0].pbs.allTime.entryId.bestWorst).toBe(12);
-  expect(state.statTypes[0].pbs.allTime.result.bestWorst).toBe(77);
+  expect(state.statTypes[0].pbs.allTime.entryId.best).toBe(12);
+  expect(state.statTypes[0].pbs.allTime.result.best).toBe(77);
 });
 
 test('delete entry that had PBs', () => {
@@ -360,11 +360,11 @@ test('delete entry that had PBs', () => {
   expect(updatePBs(state, entry, 'delete')).toBe(true);
 
   // Expect weight PB to be the same
-  expect(state.statTypes[0].pbs.allTime.entryId.bestWorst).toBe(12);
-  expect(state.statTypes[0].pbs.allTime.result.bestWorst).toBe(77);
+  expect(state.statTypes[0].pbs.allTime.entryId.best).toBe(12);
+  expect(state.statTypes[0].pbs.allTime.result.best).toBe(77);
   // Expect push-ups PB best and sum to be updated
-  expect(state.statTypes[1].pbs.allTime.entryId.bestWorst).toBe(9);
-  expect(state.statTypes[1].pbs.allTime.result.bestWorst).toBe(34);
+  expect(state.statTypes[1].pbs.allTime.entryId.best).toBe(9);
+  expect(state.statTypes[1].pbs.allTime.result.best).toBe(34);
   expect(state.statTypes[1].pbs.allTime.entryId.sum).toBe(9);
   expect(state.statTypes[1].pbs.allTime.result.sum).toBe(86);
 });
@@ -425,8 +425,8 @@ test('edit the date of an entry that had a PB tie to before the PB entry', () =>
   expect(updatePBs(state, newEntry, 'edit')).toBe(true);
 
   // Expect Push-ups best PB to be updated, but not sum or avg
-  expect(state.statTypes[1].pbs.allTime.entryId.bestWorst).toBe(13);
-  expect(state.statTypes[1].pbs.allTime.result.bestWorst).toBe(34);
+  expect(state.statTypes[1].pbs.allTime.entryId.best).toBe(13);
+  expect(state.statTypes[1].pbs.allTime.result.best).toBe(34);
   expect(state.statTypes[1].pbs.allTime.entryId.avg).toBe(9);
   expect(state.statTypes[1].pbs.allTime.result.avg).toBe(28.67);
   expect(state.statTypes[1].pbs.allTime.entryId.sum).toBe(9);
@@ -500,11 +500,11 @@ test('add entry with PB for stat type that tracks month and year PBs', () => {
 
   // Expect squats all time PB to still not be set and the month and year PBs to be updated
   expect(state.statTypes[2].pbs.allTime).toBe(undefined);
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(14);
-  expect(state.statTypes[2].pbs.year.result.bestWorst).toBe(28);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(14);
+  expect(state.statTypes[2].pbs.year.result.best).toBe(28);
   expect(state.statTypes[2].pbs.year.result.avg).toBe(24);
   expect(state.statTypes[2].pbs.year.result.sum).toBe(72);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(14);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(14);
 });
 
 test('add entry that breaks month and year PBs', () => {
@@ -535,8 +535,8 @@ test('add entry that breaks month and year PBs', () => {
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
   // Expect squats month and year PBs to be updated
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(15);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(15);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(15);
 });
 
 test('add entry that breaks month and year PB in the middle of the list', () => {
@@ -567,10 +567,10 @@ test('add entry that breaks month and year PB in the middle of the list', () => 
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
   // Expect squats month and year PBs to be updated
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(15);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(16);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(15);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(16);
 });
@@ -602,10 +602,10 @@ test('edit entry and turn it into a month PB with one multi value stat year PB',
   state.entries = addEditEntry(state.entries, entry17, true);
   expect(updatePBs(state, entry17, 'add')).toBe(true);
 
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(15);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(16);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(17);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(17);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(17);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(17);
 
@@ -635,7 +635,7 @@ test('edit entry and turn it into a month PB with one multi value stat year PB',
   state.entries = addEditEntry(state.entries, entry18, true);
   expect(updatePBs(state, entry18, 'add')).toBe(true);
 
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(18);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(18);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(18);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(18);
 
@@ -649,10 +649,10 @@ test('edit entry and turn it into a month PB with one multi value stat year PB',
 
   expect(updatePBs(state, entry17, 'add')).toBe(true);
 
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(17);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(17);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(16);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(17);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(17);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(17);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(17);
 });
@@ -669,11 +669,11 @@ test('edit entry that used to have a month PB and make it hold the year PB too',
 
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
-  expect(state.statTypes[2].pbs.year.result.bestWorst).toBe(34);
+  expect(state.statTypes[2].pbs.year.result.best).toBe(34);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(17);
   expect(state.statTypes[2].pbs.year.result.avg).toBe(31.5);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(16);
-  expect(state.statTypes[2].pbs.month.result.bestWorst).toBe(34);
+  expect(state.statTypes[2].pbs.month.result.best).toBe(34);
   expect(state.statTypes[2].pbs.month.result.avg).toBe(31.5);
   expect(state.statTypes[2].pbs.month.result.sum).toBe(81);
 });
@@ -690,10 +690,10 @@ test('delete entry that held year PB', () => {
 
   expect(updatePBs(state, entry, 'delete')).toBe(true);
 
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(15);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(16);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(18);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(18);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(18);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(18);
 });
@@ -710,10 +710,10 @@ test('delete all entries for month and expect month PB to switch to previous mon
 
   expect(updatePBs(state, entry, 'delete')).toBe(true);
 
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(15);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(16);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(15);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(15);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(16);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(16);
 });
@@ -745,7 +745,7 @@ test('add entry for new month that updates month PB only due to being for a newe
   state.entries = addEditEntry(state.entries, entry, true);
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(19);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(19);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(19);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(19);
 });
@@ -777,10 +777,10 @@ test('add entry for new year and expect month and year PBs to be updated', () =>
   state.entries = addEditEntry(state.entries, entry, true);
   expect(updatePBs(state, entry, 'add')).toBe(true);
 
-  expect(state.statTypes[2].pbs.year.entryId.bestWorst).toBe(20);
+  expect(state.statTypes[2].pbs.year.entryId.best).toBe(20);
   expect(state.statTypes[2].pbs.year.entryId.avg).toBe(20);
   expect(state.statTypes[2].pbs.year.entryId.sum).toBe(20);
-  expect(state.statTypes[2].pbs.month.entryId.bestWorst).toBe(20);
+  expect(state.statTypes[2].pbs.month.entryId.best).toBe(20);
   expect(state.statTypes[2].pbs.month.entryId.avg).toBe(20);
   expect(state.statTypes[2].pbs.month.entryId.sum).toBe(20);
 });

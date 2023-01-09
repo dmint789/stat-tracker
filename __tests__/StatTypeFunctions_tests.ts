@@ -99,8 +99,8 @@ test('edit stat type with just month PBs being turned on', () => {
   state.statTypes = updateStatType(state, statType);
   expect(state.statTypes[0].pbs.allTime).toBe(undefined);
   expect(state.statTypes[0].pbs.year).toBe(undefined);
-  expect(state.statTypes[0].pbs.month.entryId.bestWorst).toBe(3);
-  expect(state.statTypes[0].pbs.month.result.bestWorst).toBe(81);
+  expect(state.statTypes[0].pbs.month.entryId.best).toBe(3);
+  expect(state.statTypes[0].pbs.month.result.best).toBe(81);
   expect(state.statTypes[0].pbs.month.entryId.avg).toBe(undefined);
 });
 
@@ -119,10 +119,10 @@ test('edit stat type with month PBs turned off and the others turned on', () => 
   };
 
   state.statTypes = updateStatType(state, statType);
-  expect(state.statTypes[0].pbs.allTime.entryId.bestWorst).toBe(1);
-  expect(state.statTypes[0].pbs.allTime.result.bestWorst).toBe(78);
-  expect(state.statTypes[0].pbs.year.entryId.bestWorst).toBe(2);
-  expect(state.statTypes[0].pbs.year.result.bestWorst).toBe(80);
+  expect(state.statTypes[0].pbs.allTime.entryId.best).toBe(1);
+  expect(state.statTypes[0].pbs.allTime.result.best).toBe(78);
+  expect(state.statTypes[0].pbs.year.entryId.best).toBe(2);
+  expect(state.statTypes[0].pbs.year.result.best).toBe(80);
   expect(state.statTypes[0].pbs.month).toBe(undefined);
 });
 
