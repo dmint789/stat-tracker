@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import GS from '../shared/GlobalStyles';
+import GS, { blue, lightBlue, green } from '../shared/GlobalStyles';
 import { formatIDate, sortStats } from '../shared/GlobalFunctions';
 import { IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructure';
 
@@ -126,15 +126,15 @@ const Entry: React.FC<{
 
 const styles = StyleSheet.create({
   PBStyle: {
-    color: 'blue',
+    color: blue,
     fontWeight: 'bold',
   },
   yearPBStyle: {
-    color: 'cyan',
+    color: lightBlue,
     fontWeight: 'bold',
   },
   monthPBStyle: {
-    color: 'green',
+    color: green,
     fontWeight: 'bold',
   },
 });

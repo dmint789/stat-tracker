@@ -1,9 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
-import { xxsGap, xsGap, smGap, mdGap, lgGap, xlGap } from '../shared/GlobalStyles';
+import { xxsGap, xsGap, smGap, mdGap, lgGap, xlGap, xxlGap } from '../shared/GlobalStyles';
 
 const Gap: React.FC<{
-  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 }> = ({ size = 'xs' }) => {
   const getGap = (): number => {
     switch (size) {
@@ -19,6 +19,10 @@ const Gap: React.FC<{
         return lgGap;
       case 'xl':
         return xlGap;
+      case 'xxl':
+        return xxlGap;
+      default:
+        throw new Error(`Unknown gap size: ${size}`);
     }
   };
 

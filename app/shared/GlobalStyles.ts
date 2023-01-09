@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, FlexAlignType } from 'react-native';
 
 export const xsFontSize = 16;
 export const smFontSize = 17;
@@ -6,6 +6,9 @@ export const mdFontSize = 18;
 export const lgFontSize = 22;
 
 export const darkGray = '#555';
+export const blue = '#00f';
+export const lightBlue = '#0af';
+export const green = '#0c0';
 
 export const xxsGap = 6;
 export const xsGap = 10;
@@ -13,6 +16,7 @@ export const smGap = 12;
 export const mdGap = 16;
 export const lgGap = 20;
 export const xlGap = 30;
+export const xxlGap = 40;
 
 export const largeShadow = {
   shadowColor: 'black',
@@ -24,6 +28,23 @@ export const smallShadow = {
   shadowColor: 'black',
   shadowOpacity: 0.5,
   elevation: 5,
+};
+
+export const rowStyle = {
+  display: 'flex' as 'flex' | 'none',
+  flexDirection: 'row' as 'row' | 'column' | 'row-reverse' | 'column-reverse',
+  alignItems: 'center' as FlexAlignType,
+};
+
+export const justifyRowStyle = {
+  ...rowStyle,
+  justifyContent: 'space-between' as
+    | 'flex-start'
+    | 'flex-end'
+    | 'center'
+    | 'space-between'
+    | 'space-around'
+    | 'space-evenly',
 };
 
 const cardStyle = {
@@ -124,9 +145,7 @@ export default StyleSheet.create({
   },
   smallCard: {
     ...cardStyle,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    ...justifyRowStyle,
     marginBottom: xsGap,
     paddingVertical: xsGap,
     paddingHorizontal: mdGap,
@@ -136,7 +155,7 @@ export default StyleSheet.create({
     margin: xsGap,
   },
   buttonRow: {
-    flexDirection: 'row',
+    ...rowStyle,
     marginTop: lgGap,
   },
   cardButtons: {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, Button, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Button, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { addStatType, editStatType } from '../redux/mainSlice';
-import GS, { lgGap, mdGap } from '../shared/GlobalStyles';
+import GS, { blue, green, lgGap, lightBlue, mdGap, justifyRowStyle } from '../shared/GlobalStyles';
 import { IStatType, ISelectOption, StatTypeVariant } from '../shared/DataStructure';
 
 import Checkbox from '../components/Checkbox';
@@ -321,18 +321,27 @@ const AddEditStatType = ({ navigation, route }) => {
         {/* Track PBs{variant === StatTypeVariant.TEXT ? ' (manual)' : ''} */}
         {variant === StatTypeVariant.NUMBER && (
           <>
-            <Checkbox checked={trackPBs} onChange={setTrackPBs}>
-              Track PBs
-            </Checkbox>
-            <Checkbox checked={trackYearPBs} onChange={setTrackYearPBs}>
-              Track annual PBs
-            </Checkbox>
-            <Checkbox checked={trackMonthPBs} onChange={setTrackMonthPBs}>
-              Track monthly PBs
-            </Checkbox>
+            <View style={{ ...justifyRowStyle }}>
+              <Checkbox checked={trackPBs} onChange={setTrackPBs}>
+                Track PBs
+              </Checkbox>
+              <View style={{ ...styles.colorSquare, backgroundColor: blue }}></View>
+            </View>
+            <View style={{ ...justifyRowStyle }}>
+              <Checkbox checked={trackYearPBs} onChange={setTrackYearPBs}>
+                Track annual PBs
+              </Checkbox>
+              <View style={{ ...styles.colorSquare, backgroundColor: lightBlue }}></View>
+            </View>
+            <View style={{ ...justifyRowStyle }}>
+              <Checkbox checked={trackMonthPBs} onChange={setTrackMonthPBs}>
+                Track monthly PBs
+              </Checkbox>
+              <View style={{ ...styles.colorSquare, backgroundColor: green }}></View>
+            </View>
           </>
         )}
-        <Gap size="lg" />
+        <Gap size="xl" />
         <Button
           onPress={addEditStatType}
           title={passedData?.statType ? 'Edit Stat Type' : 'Add Stat Type'}
@@ -343,5 +352,15 @@ const AddEditStatType = ({ navigation, route }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  colorSquare: {
+    width: 20,
+    height: 20,
+    marginRight: lgGap,
+    marginTop: 20, // THIS SHOULDN'T BE NECESSARY, BUT alignItems: 'center' DOESN'T WORK
+    borderRadius: 5,
+  },
+});
 
 export default AddEditStatType;
