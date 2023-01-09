@@ -25,21 +25,24 @@ const Entry: React.FC<{
       statType?.trackPBs &&
       statType.pbs.allTime.entryId.best === entry.id &&
       statType.pbs.allTime.result.best === value
-    )
+    ) {
+      pbValueShown.val = true;
       return styles.PBStyle;
-    else if (
+    } else if (
       statType?.trackYearPBs &&
       statType.pbs.year.entryId.best === entry.id &&
       statType.pbs.year.result.best === value
-    )
+    ) {
+      pbValueShown.val = true;
       return styles.yearPBStyle;
-    else if (
+    } else if (
       statType?.trackMonthPBs &&
       statType.pbs.month.entryId.best === entry.id &&
       statType.pbs.month.result.best === value
-    )
+    ) {
+      pbValueShown.val = true;
       return styles.monthPBStyle;
-    else return {};
+    } else return {};
   };
 
   const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
