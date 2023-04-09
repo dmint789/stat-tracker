@@ -32,6 +32,7 @@ export enum StatTypeVariant {
   TEXT,
   NUMBER,
   MULTIPLE_CHOICE,
+  TIME,
   FORMULA,
 }
 
@@ -70,15 +71,18 @@ export interface IStatType {
   unit?: string;
   order: number; // goes from 1 to statTypes.length with no gaps
   variant: StatTypeVariant;
-  // for MULTIPLE_CHOICE this is the id of the default choice
+  // for MULTIPLE_CHOICE defaultValue is the id of the default choice, for TIME it's
+  // the number of seconds, but as an integer (decimal point removed), for everything else it's a string
   defaultValue?: string | number;
-  higherIsBetter?: boolean; // NUMBER only
+  higherIsBetter?: boolean; // NUMBER and TIME only
   choices?: IChoice[]; // MULTIPLE_CHOICE only
+  decimals?: number; // TIME only (0 to 6)
   // formula?: string; // FORMULA only
-  multipleValues?: boolean; // TEXT and NUMBER only
-  showBest?: boolean; // NUMBER only
-  showAvg?: boolean; // NUMBER only
-  showSum?: boolean; // NUMBER only
+  multipleValues?: boolean; // TEXT, NUMBER and TIME only
+  showBest?: boolean; // NUMBER and TIME only
+  showAvg?: boolean; // NUMBER and TIME only
+  exclBestWorst?: boolean; // TIME only and only works when more than 3 values are entered
+  showSum?: boolean; // NUMBER and TIME only
   trackPBs?: boolean; // TEXT (manual) and NUMBER only
   trackMonthPBs?: boolean; // NUMBER only
   trackYearPBs?: boolean; // NUMBER only
@@ -105,7 +109,7 @@ export interface IMultiValueStat {
 export interface IStat {
   id: number;
   type: number | null; // ID of stat type or null if not yet chosen
-  values?: string[] | number[]; // unset if stat type is a formula
+  values?: string[] | number[]; // unset if stat type is a formula; for TIME stores number of seconds as number type
   multiValueStats?: IMultiValueStat;
   // hadPB?: boolean;
 }

@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS, { xxsGap, xsGap, mdGap } from '../shared/GlobalStyles';
-import { sortStats } from '../shared/GlobalFunctions';
+import { sortStats, getTimeString, getShowParentheses } from '../shared/GlobalFunctions';
 import { IStat, IStatType, StatTypeVariant } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
@@ -16,15 +16,23 @@ const WorkingEntryList: React.FC<{
 
   const getStatValues = (stat: IStat, statType: IStatType): string => {
     if (statType?.variant !== StatTypeVariant.MULTIPLE_CHOICE) {
+      // Not relevant for TIME stat type variant
       const unit = statType?.unit ? ` ${statType.unit}` : '';
+      // Only relevant for when exclude best and worst values is on
+      const valueFound = { high: false, low: false };
 
-      if (stat.values.length === 1) return String(stat.values[0]) + unit;
-      else {
-        return stat.values
-          .map((val) => val + unit + ', ')
-          .join('')
-          .slice(0, -2);
-      }
+      return stat.values
+        .map((val: string | number) => {
+          let output: string;
+
+          if (statType?.variant !== StatTypeVariant.TIME) output = val + unit;
+          else output = getTimeString(val as number, statType.decimals, true);
+
+          if (getShowParentheses(val, stat, statType, valueFound)) output = `(${output})`;
+
+          return output;
+        })
+        .join(', ');
     } else {
       return statType.choices.find((el) => el.id === stat.values[0]).label;
     }
@@ -34,6 +42,13 @@ const WorkingEntryList: React.FC<{
     <View style={{ marginTop: 6 }}>
       {sortStats(stats, statTypes).map((stat) => {
         const statType = statTypes.find((el) => el.id === stat.type);
+        const getStatistic = (value: number): string => {
+          if (statType?.variant !== StatTypeVariant.TIME) {
+            return String(value);
+          } else {
+            return getTimeString(value, statType.decimals, true);
+          }
+        };
 
         return (
           <View style={styles.stat} key={stat.id}>
@@ -45,11 +60,11 @@ const WorkingEntryList: React.FC<{
               {stat.values.length > 1 && (statType?.showBest || statType?.showAvg || statType?.showSum) && (
                 <Text style={GS.darkGrayText}>
                   {statType.showBest &&
-                    `Best: ${
-                      statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low
-                    }  `}
-                  {statType.showAvg && `Avg: ${stat.multiValueStats.avg}  `}
-                  {statType.showSum && `Sum: ${stat.multiValueStats.sum}`}
+                    `Best: ${getStatistic(
+                      statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low,
+                    )}  `}
+                  {statType.showAvg && `Avg: ${getStatistic(stat.multiValueStats.avg)}  `}
+                  {statType.showSum && `Sum: ${getStatistic(stat.multiValueStats.sum)}`}
                 </Text>
               )}
             </TouchableOpacity>

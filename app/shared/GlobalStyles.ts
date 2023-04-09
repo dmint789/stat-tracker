@@ -3,7 +3,8 @@ import { StyleSheet, FlexAlignType } from 'react-native';
 export const xsFontSize = 16;
 export const smFontSize = 17;
 export const mdFontSize = 18;
-export const lgFontSize = 22;
+export const lgFontSize = 20;
+export const xlFontSize = 22;
 
 export const darkGray = '#555';
 export const blue = '#00f';
@@ -53,6 +54,7 @@ const cardStyle = {
 };
 
 export default StyleSheet.create({
+  /* CONTAINERS */
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -81,12 +83,13 @@ export default StyleSheet.create({
     flex: 1,
     paddingHorizontal: lgGap,
   },
-  textMar: {
-    marginBottom: xxsGap,
+  /* TEXT */
+  text: {
     fontSize: mdFontSize,
     color: 'black',
   },
-  text: {
+  textMar: {
+    marginBottom: xxsGap,
     fontSize: mdFontSize,
     color: 'black',
   },
@@ -108,11 +111,15 @@ export default StyleSheet.create({
     color: 'black',
     marginBottom: lgGap,
   },
+  largeText: {
+    fontSize: lgFontSize,
+    color: 'black',
+  },
   titleText: {
     marginTop: xxsGap,
     marginBottom: mdGap,
     textAlign: 'center',
-    fontSize: lgFontSize,
+    fontSize: xlFontSize,
     fontWeight: 'bold',
     color: 'black',
   },
@@ -126,12 +133,13 @@ export default StyleSheet.create({
     fontSize: mdFontSize,
     color: 'black',
   },
+  /* OTHER */
   input: {
     maxHeight: 130,
     marginBottom: xsGap,
     paddingVertical: xxsGap,
     borderBottomWidth: 1,
-    borderBottomColor: 'lightgray',
+    borderColor: 'lightgray',
     fontSize: mdFontSize,
     color: 'black',
   },

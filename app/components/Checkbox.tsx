@@ -3,14 +3,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/dist/FontAwesome';
 import GS from '../shared/GlobalStyles';
 
-type Props = {
+const Checkbox: React.FC<{
   children: any;
   checked: boolean;
   disabled?: boolean;
+  style?: Object;
   onChange: (value: boolean) => void;
-};
-
-const Checkbox: React.FC<Props> = ({ children, checked, disabled = false, onChange }) => {
+}> = ({ children, checked, disabled = false, style, onChange }) => {
   const onPress = () => {
     if (!disabled) {
       onChange(!checked);
@@ -19,7 +18,11 @@ const Checkbox: React.FC<Props> = ({ children, checked, disabled = false, onChan
 
   return (
     // 0.2 is the default activeOpacity in React Native
-    <TouchableOpacity onPress={onPress} activeOpacity={disabled ? 1 : 0.2} style={styles.checkboxContainer}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={disabled ? 1 : 0.2}
+      style={{ ...style, ...styles.checkboxContainer }}
+    >
       <View style={{ ...styles.checkbox, backgroundColor: disabled ? 'lightgray' : 'pink' }}>
         {checked && <Icon name="check" size={24} color={disabled ? 'gray' : 'red'} />}
       </View>

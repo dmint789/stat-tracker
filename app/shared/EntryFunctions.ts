@@ -1,4 +1,4 @@
-import { isNewerOrSameDate, isOlderOrSameDate } from '../shared/GlobalFunctions';
+import { isNewerOrSameDate, isOlderOrSameDate, getIsNumericVariant } from '../shared/GlobalFunctions';
 import {
   IMultiValuePBsWorsts,
   IEntry,
@@ -292,7 +292,7 @@ export const updatePBs = (state: any, entry: IEntry, mode: 'add' | 'edit' | 'del
   for (let statType of state.statTypes) {
     if (
       (statType.trackPBs || statType.trackMonthPBs || statType.trackYearPBs) &&
-      statType.variant === StatTypeVariant.NUMBER
+      getIsNumericVariant(statType.variant)
     ) {
       if (verbose) console.log(`Updating PB for stat type ${statType.name}`);
 

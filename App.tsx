@@ -39,7 +39,7 @@ const App = () => {
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="AddEditEntry" component={AddEditEntry} />
             <Stack.Screen name="AddEditStatType" component={AddEditStatType} />
-            <Stack.Screen name="ImportExport" component={ImportExport} />
+            <Stack.Screen name="Import/Export" component={ImportExport} />
             <Stack.Screen name="About" component={About} />
           </Stack.Navigator>
         </NavigationContainer>

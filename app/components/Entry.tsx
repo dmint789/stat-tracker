@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import GS, { blue, lightBlue, green } from '../shared/GlobalStyles';
-import { formatIDate, sortStats } from '../shared/GlobalFunctions';
+import { formatIDate, sortStats, getTimeString, getShowParentheses } from '../shared/GlobalFunctions';
 import { IEntry, IStatType, IStat, StatTypeVariant } from '../shared/DataStructure';
 
 import IconButton from './IconButton';
@@ -45,9 +45,29 @@ const Entry: React.FC<{
     } else return {};
   };
 
+  const getMultiValue = (value: string | number, statType: IStatType, showParentheses: boolean): string => {
+    let output: string;
+
+    switch (statType?.variant) {
+      case StatTypeVariant.MULTIPLE_CHOICE:
+        output = statType.choices.find((el) => el.id === value).label;
+        break;
+      case StatTypeVariant.TIME:
+        output = getTimeString(value as number, statType.decimals, true);
+        break;
+      default:
+        output = String(value);
+        break;
+    }
+
+    if (showParentheses) output = `(${output})`;
+
+    return output;
+  };
+
   const getMultiStatTextElement = (stat: IStat, statType: IStatType, key: 'best' | 'avg' | 'sum') => {
     let style;
-    let output: number;
+    let output;
 
     if (statType?.trackPBs && statType.pbs?.allTime?.entryId[key] === entry.id) {
       style = styles.PBStyle;
@@ -61,6 +81,10 @@ const Entry: React.FC<{
       output = statType.higherIsBetter ? stat.multiValueStats.high : stat.multiValueStats.low;
     } else {
       output = stat.multiValueStats[key];
+    }
+
+    if (statType?.variant === StatTypeVariant.TIME) {
+      output = getTimeString(output as number, statType.decimals, true);
     }
 
     return <Text style={style}>{output}</Text>;
@@ -81,17 +105,18 @@ const Entry: React.FC<{
         // This is for stats with pb tracking and multiple values
         const pbValueShown = { val: false };
 
+        // Only relevant for when exclude best and worst values is on
+        const valueFound = { high: false, low: false };
+
         return (
           <View key={stat.id}>
             <Text style={GS.textMar}>
               <Text style={GS.darkGrayText}>{statType?.name || '(Deleted)'}: </Text>
-              {stat.values.map((value, i) => (
+              {stat.values.map((value: string | number, i) => (
                 <Text key={i}>
                   {/* Make sure only the first best value in a multivalue stat with ties is highlighted */}
                   <Text style={getValueStyle(value, statType, pbValueShown)}>
-                    {statType?.variant !== StatTypeVariant.MULTIPLE_CHOICE
-                      ? value
-                      : statType.choices.find((el) => el.id === value).label}
+                    {getMultiValue(value, statType, getShowParentheses(value, stat, statType, valueFound))}
                   </Text>
                   {statType?.unit && ` ${statType?.unit}`}
                   {i !== stat.values.length - 1 && ', '}

@@ -1,17 +1,30 @@
 import React, { SetStateAction } from 'react';
 import { View, TextInput } from 'react-native';
 import GS from '../shared/GlobalStyles';
+import { IStatType, StatTypeVariant } from '../shared/DataStructure';
+import TimeInput from './TimeInput';
 
 const MultiValueInput: React.FC<{
-  values: string[];
-  setValues: React.Dispatch<SetStateAction<string[]>>;
+  values: Array<string | number>;
+  setValues: React.Dispatch<SetStateAction<Array<string | number>>>;
+  statType?: IStatType;
   placeholder: string;
   numeric?: boolean;
   allowMultiple?: boolean;
   appendNumber?: boolean;
-}> = ({ values, setValues, placeholder, numeric = false, allowMultiple = true, appendNumber = false }) => {
-  const updateStatValues = (index: number, value: string) => {
-    setValues((prevValues: string[]) => {
+}> = ({
+  values,
+  setValues,
+  statType,
+  placeholder,
+  numeric = false,
+  allowMultiple = true,
+  appendNumber = false,
+}) => {
+  const emptyValue = statType?.variant !== StatTypeVariant.TIME ? '' : 0;
+
+  const updateStatValues = (index: number, value: string | number) => {
+    setValues((prevValues: Array<string | number>) => {
       let updated = false;
       let newValues = prevValues.map((prevValue, i) => {
         if (i === index) {
@@ -23,14 +36,14 @@ const MultiValueInput: React.FC<{
       });
 
       if (updated) {
-        const emptyValues = newValues.filter((el) => el === '');
+        const emptyValues = newValues.filter((el) => el === emptyValue);
 
         if (allowMultiple) {
           if (emptyValues.length === 0) {
-            newValues.push('');
+            newValues.push(emptyValue);
           } else if (emptyValues.length > 1) {
             for (let i = newValues.length - 1; i >= 0; i--) {
-              if (newValues[i] === '' && newValues[i - 1] === '') {
+              if (newValues[i] === emptyValue && newValues[i - 1] === emptyValue) {
                 newValues.pop();
               } else break;
             }
@@ -44,18 +57,30 @@ const MultiValueInput: React.FC<{
 
   return (
     <View>
-      {values.map((value: string, index: number) => (
-        <TextInput
-          key={String(index)}
-          style={GS.input}
-          placeholder={placeholder + (appendNumber ? ` ${index + 1}` : '')}
-          placeholderTextColor="grey"
-          multiline
-          keyboardType={numeric ? 'numeric' : 'default'}
-          value={value}
-          onChangeText={(val: string) => updateStatValues(index, val)}
-        />
-      ))}
+      {values.map((value: string | number, index: number) =>
+        statType?.variant !== StatTypeVariant.TIME ? (
+          <TextInput
+            key={String(index)}
+            style={GS.input}
+            placeholder={placeholder + (appendNumber ? ` ${index + 1}` : '')}
+            placeholderTextColor="grey"
+            multiline
+            keyboardType={numeric ? 'numeric' : 'default'}
+            value={value as string}
+            onChangeText={(val: string) => updateStatValues(index, val)}
+          />
+        ) : (
+          <TimeInput
+            key={String(index)}
+            value={value as number}
+            decimals={statType.decimals}
+            placeholder="Default time"
+            placeholderTextColor="grey"
+            dontShowTimeWhenZero
+            changeTime={(newValue: number) => updateStatValues(index, newValue)}
+          />
+        ),
+      )}
     </View>
   );
 };
