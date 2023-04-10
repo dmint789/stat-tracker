@@ -1,6 +1,6 @@
 # Stat Tracker
 
-This is a mobile app for tracking various daily statistics and personal bests. You can use it for things like work, education, hobbies, health, or whatever it is you can find it useful for in your personal life. It shows personal bests for numeric stats, has various customization options for stat types, allows setting the date and a comment for each entry and more.
+This is a mobile app for tracking various daily statistics and personal bests. You can use it for things like sports, work, education, hobbies, health, or whatever it is you can find it useful for in your personal life. It shows personal bests for numeric stats, has the option to enter times, has various customization options for stat types, allows setting the date and a comment for each entry and more.
 
 ## Download
 
@@ -14,11 +14,13 @@ If you would like to support this project, feel free to become a patron on [Patr
 
 This is a list of just **some** of the planned features:
 
-1. Tracking PBs for the year/month
-2. Tracking worst results
-3. Showing past PBs
-4. Seeing a history of all PBs
-5. Creating formulae that automatically calculate something based on some of the entered numeric stat types
+1. Adding customization options for stat categories
+2. Add search functionality
+3. Tracking worst results
+4. Showing past PBs
+5. Seeing a history of all PBs
+6. Creating formulae that automatically calculate something based on some of the entered numeric stat types
+7. Display graphs/bar charts showing data from all entries
 
 ## Screenshots
 
@@ -36,21 +38,38 @@ This is a list of just **some** of the planned features:
 
 In order to set up the dev environment to contribute to this project you will need to have Git, Node 14+, Yarn, Android Studio and JDK11 installed. See further instructions on how to set up the development environment for React Native [here](https://reactnative.dev/docs/environment-setup). Clone this repository and run this command in the root directory of this project:
 
-```
+```shell
 yarn install
 ```
 
-Run this command in the same directory to start testing your code:
+Run these commands in the same directory, but in different terminal windows, to start testing your code:
 
+```shell
+yarn emulator
+
+# Once the emulator is running, run this command
+yarn start
+
+# Give the "yarn start" command time until you see "Welcome to Metro"
+yarn android
 ```
-yarn dev
+
+## Automated testing
+
+Use this command to run all automated tests:
+
+```shell
+yarn test
 ```
+
+Please do not submit PRs that break any of the automated tests, unless you believe that there is an issue with one of them or that one of them needs to be updated.
 
 ## Building debug APK
 
 Use these commands to build a debug APK:
 
-```
+```shell
+# This uses the version number found in the package.json file
 yarn rn-new-version
 
 yarn debug-apk

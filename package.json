@@ -1,6 +1,6 @@
 {
   "name": "Stat_Tracker",
-  "version": "0.5.3",
+  "version": "0.6",
   "private": true,
   "scripts": {
     "dev": "kitty yarn emulator & kitty yarn start & sleep 5 && kitty yarn android &",
