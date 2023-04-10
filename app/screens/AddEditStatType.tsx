@@ -303,8 +303,6 @@ const AddEditStatType = ({ navigation, route }) => {
             <TimeInput
               value={defaultValue as number}
               decimals={decimals}
-              placeholder="Default time"
-              placeholderTextColor="grey"
               dontShowTimeWhenZero
               changeTime={changeDefaultValue}
             />

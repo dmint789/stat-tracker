@@ -280,7 +280,7 @@ const AddEditEntry = ({ navigation, route }) => {
 
     if (!unenteredValueExists || isValidStat()) {
       const entry: IEntry = {
-        id: prevEntryId ? prevEntryId : statCategory.lastEntryId + 1,
+        id: prevEntryId || statCategory.lastEntryId + 1, // lastEntryId then gets updated in addEntry if adding
         stats: unenteredValueExists ? getNewStats() : stats, // add last entered stat if needed
         comment,
       };

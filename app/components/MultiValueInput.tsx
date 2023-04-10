@@ -74,8 +74,6 @@ const MultiValueInput: React.FC<{
             key={String(index)}
             value={value as number}
             decimals={statType.decimals}
-            placeholder="Default time"
-            placeholderTextColor="grey"
             dontShowTimeWhenZero
             changeTime={(newValue: number) => updateStatValues(index, newValue)}
           />

@@ -1,13 +1,5 @@
 import { isNewerOrSameDate, isOlderOrSameDate, getIsNumericVariant } from '../shared/GlobalFunctions';
-import {
-  IMultiValuePBsWorsts,
-  IEntry,
-  IStatType,
-  IStat,
-  StatTypeVariant,
-  IPBsWorsts,
-  IDate,
-} from '../shared/DataStructure';
+import { IMultiValuePBsWorsts, IEntry, IStatType, IStat, IPBsWorsts, IDate } from '../shared/DataStructure';
 
 const verbose = __DEV__ ? 2 : 0;
 

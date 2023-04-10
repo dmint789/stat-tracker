@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import '@testing-library/jest-native';
 import { PreloadedState } from '@reduxjs/toolkit';
 import { RootState } from '../app/redux/store';
@@ -37,22 +37,41 @@ const editEntryProps = {
   },
 };
 
-describe('AddEditEntry screen', () => {
+describe('AddEditEntry screen in add mode', () => {
   test('screen renders correctly and with the right data', () => {
     renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
 
     // Expect "Add Entry" text on the main button at the bottom
-    expect(screen.getByText(/Add Entry/)).toBeOnTheScreen();
+    expect(screen.getByText('Add Entry')).toBeOnTheScreen();
     // Expect default country to be selected
-    expect(screen.getByText(/Country: UK/)).toBeOnTheScreen();
+    expect(screen.getByText('Country: UK')).toBeOnTheScreen();
     // Expect "Marathon" stat type to be automatically selected
-    expect(screen.getByText(/Marathon/)).toBeOnTheScreen();
+    expect(screen.getByText('Marathon')).toBeOnTheScreen();
   });
 
+  const enterTimeDigits = (keys: string) => {
+    for (let key of keys) {
+      fireEvent(screen.getByPlaceholderText('(time placeholder for automated tests)'), 'onKeyPress', {
+        nativeEvent: { key },
+      });
+    }
+  };
+
+  test('time input works correctly', () => {
+    renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
+
+    enterTimeDigits('23102997');
+    expect(screen.getByDisplayValue('2:31:02.997')).toBeOnTheScreen();
+    fireEvent.press(screen.getByText('Add Stat'));
+    expect(screen.getByText('Marathon: 2:31:02.997')).toBeOnTheScreen();
+  });
+});
+
+describe('AddEditEntry screen in edit mode', () => {
   test('stats that include a deleted stat type are shown', () => {
     renderWithProvider(<AddEditEntry {...editEntryProps} />, { preloadedState });
-    expect(screen.getByText(/Country: UK/)).toBeOnTheScreen();
-    expect(screen.getByText(/Marathon: 2:19:58\.329/)).toBeOnTheScreen();
-    expect(screen.getByText(/\(Deleted\)/)).toBeOnTheScreen();
+    expect(screen.getByText('Country: UK')).toBeOnTheScreen();
+    expect(screen.getByText('Marathon: 2:19:58.329')).toBeOnTheScreen();
+    expect(screen.getByText('(Deleted): test')).toBeOnTheScreen();
   });
 });

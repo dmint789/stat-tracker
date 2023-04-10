@@ -6,11 +6,9 @@ import { getTimeString } from '../shared/GlobalFunctions';
 const TimeInput: React.FC<{
   value: number; // this is set to -1 if the currently entered time is invalid
   decimals: number;
-  placeholder: string;
-  placeholderTextColor: string;
   dontShowTimeWhenZero?: boolean;
   changeTime: (value: number) => void;
-}> = ({ value, decimals, placeholder, placeholderTextColor, dontShowTimeWhenZero = false, changeTime }) => {
+}> = ({ value, decimals, dontShowTimeWhenZero = false, changeTime }) => {
   const [timeValue, setTimeValue] = useState<string>('');
   const [formattedTime, setFormattedTime] = useState<string>('');
 
@@ -139,8 +137,7 @@ const TimeInput: React.FC<{
     <TextInput
       style={{ ...GS.input, color: value === -1 ? 'red' : GS.input.color }}
       value={formattedTime}
-      placeholder={placeholder}
-      placeholderTextColor={placeholderTextColor}
+      placeholder="(time placeholder for automated tests)"
       keyboardType="numeric"
       contextMenuHidden={true}
       onKeyPress={onChangeTime}
