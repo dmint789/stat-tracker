@@ -5,7 +5,7 @@ import { IStatCategory, IBackupData, dataPoints } from './DataStructure';
 
 const verbose: number = __DEV__ ? 2 : 0;
 
-export const getData = async (categoryId: number, request: string) => {
+export const getData = async (categoryId: number, request: string): Promise<any> => {
   const key: string = categoryId + '_' + request;
 
   try {
