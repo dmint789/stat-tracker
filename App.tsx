@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider } from 'react-redux';
 
-import store from './app/redux/store';
+import setupStore from './app/redux/store';
 import Menu from './app/screens/Menu';
 import Home from './app/screens/Home';
 import AddEditEntry from './app/screens/AddEditEntry';
@@ -13,6 +13,8 @@ import ImportExport from './app/screens/ImportExport';
 import About from './app/screens/About';
 
 const Stack = createNativeStackNavigator();
+// Setup the store
+const store = setupStore();
 
 const App = () => {
   return (

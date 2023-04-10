@@ -1,15 +1,20 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers, PreloadedState } from '@reduxjs/toolkit';
 import mainReducer from './mainSlice';
 import importExportReducer from './importExportSlice';
 
-const store = configureStore({
-  reducer: {
-    main: mainReducer,
-    importExport: importExportReducer,
-  },
+const rootReducer = combineReducers({
+  main: mainReducer,
+  importExport: importExportReducer,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppStore = typeof store; // used in utils/test-utils.tsx
-export type AppDispatch = typeof store.dispatch;
-export default store;
+const setupStore = (preloadedState?: PreloadedState<RootState>) => {
+  return configureStore({
+    reducer: rootReducer,
+    preloadedState,
+  });
+};
+
+export type RootState = ReturnType<typeof rootReducer>;
+export type AppStore = ReturnType<typeof setupStore>; // used in utils/test-utils.tsx
+export type AppDispatch = AppStore['dispatch'];
+export default setupStore;
