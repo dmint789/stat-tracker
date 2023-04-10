@@ -61,7 +61,6 @@ const AddEditEntry = ({ navigation, route }) => {
   const passedData: {
     entry?: IEntry; // if null we're adding a new entry, if set we're editing an entry
     statType?: IStatType; // if set, we're adding or editing a stat type
-    newStatType?: boolean;
   } = route.params;
 
   useEffect(() => {
@@ -93,12 +92,20 @@ const AddEditEntry = ({ navigation, route }) => {
         setDate(null);
       }
     }
-    // If coming from AddEditStatType screen with new/edited stat type and it hasn't been entered yet
-    else if (
-      passedData?.statType?.defaultValue &&
-      !statValues.find((el) => el !== getEmptyValue(passedData.statType))
-    ) {
-      addStatWithDefault(passedData.statType);
+    // If coming from AddEditStatType screen with new/edited stat type
+    else if (passedData?.statType) {
+      // Update selected stat type if it's the one that was just edited
+      if (selectedStatType?.id === passedData.statType.id) {
+        setSelectedStatType(passedData.statType);
+      }
+
+      // If stat type has a default value and the values are empty
+      if (
+        passedData.statType.defaultValue &&
+        !statValues.find((el) => el !== getEmptyValue(passedData.statType))
+      ) {
+        addStatWithDefault(passedData.statType);
+      }
     }
   }, [passedData]);
 
@@ -253,6 +260,7 @@ const AddEditEntry = ({ navigation, route }) => {
       if (edit) {
         let newValues: Array<string | number> = stat.values;
 
+        // Convert values to string if not MULTIPLE_CHOICE or TIME variant
         if (![StatTypeVariant.MULTIPLE_CHOICE, StatTypeVariant.TIME].includes(statType?.variant)) {
           newValues = newValues.map((el) => String(el));
         }
@@ -299,12 +307,12 @@ const AddEditEntry = ({ navigation, route }) => {
 
   // Assumes stat type has no problems with it. newStatValues is for deleteEditStat().
   // When called from deleteEditStat(), it's certain that there are no unentered values.
-  const selectStatType = (statType: IStatType, newStatValues?: Array<string | number>) => {
+  const selectStatType = (newStatType: IStatType, newStatValues?: Array<string | number>) => {
     const updateStatTypeAndValues = () => {
-      if (newStatValues === undefined) setStatValues([getEmptyValue(statType)]);
+      if (newStatValues === undefined) setStatValues([getEmptyValue(newStatType)]);
       else setStatValues(newStatValues);
 
-      setSelectedStatType(statType);
+      setSelectedStatType(newStatType);
     };
 
     const showWarning = (message: string) => {
@@ -314,7 +322,7 @@ const AddEditEntry = ({ navigation, route }) => {
       ]);
     };
 
-    switch (statType.variant) {
+    switch (newStatType.variant) {
       case StatTypeVariant.MULTIPLE_CHOICE:
         // If there are no filled-in values
         if (!statValues.find((el) => el !== getEmptyValue())) {
@@ -330,45 +338,51 @@ const AddEditEntry = ({ navigation, route }) => {
       // case StatTypeVariant.TIME:
       //   break;
       default:
-        // Get non-empty values from the old stat type
-        const nonEmptyValues = statValues.filter((el) => el !== getEmptyValue());
+        // If previous variant was MULTIPLE_CHOICE, then we just need to empty the stat values
+        if (selectedStatType.variant === StatTypeVariant.MULTIPLE_CHOICE) {
+          setStatValues([getEmptyValue(newStatType)]);
+          setSelectedStatType(newStatType);
+        } else {
+          // Get non-empty values from the old stat type
+          const nonEmptyValues = statValues.filter((el) => el !== getEmptyValue());
 
-        if (
-          nonEmptyValues.length > 0 &&
-          selectedStatType.variant !== StatTypeVariant.TIME &&
-          statType.variant === StatTypeVariant.TIME
-        ) {
-          showWarning(
-            'This stat type has the time stat type variant. Do you want to discard the entered values?',
-          );
-        } else if (
-          nonEmptyValues.length > 0 &&
-          selectedStatType.variant === StatTypeVariant.TIME &&
-          statType.variant !== StatTypeVariant.TIME
-        ) {
-          showWarning(
-            'The current stat type has the time stat type variant. Do you want to discard the entered times?',
-          );
-        } else if (nonEmptyValues.length > 1 && !statType.multipleValues) {
-          showWarning(
-            'This stat type does not allow multiple values. Do you want to discard the entered values?',
-          );
-        }
-        // If there are no warning pop-ups
-        else {
-          if (newStatValues === undefined) newStatValues = nonEmptyValues;
-
-          // If there are no filled in values
-          if (nonEmptyValues.length === 0) {
-            newStatValues = [getEmptyValue(statType)];
+          if (
+            nonEmptyValues.length > 0 &&
+            selectedStatType.variant !== StatTypeVariant.TIME &&
+            newStatType.variant === StatTypeVariant.TIME
+          ) {
+            showWarning(
+              'This stat type has the time stat type variant. Do you want to discard the entered values?',
+            );
+          } else if (
+            nonEmptyValues.length > 0 &&
+            selectedStatType.variant === StatTypeVariant.TIME &&
+            newStatType.variant !== StatTypeVariant.TIME
+          ) {
+            showWarning(
+              'The current stat type has the time stat type variant. Do you want to discard the entered times?',
+            );
+          } else if (nonEmptyValues.length > 1 && !newStatType.multipleValues) {
+            showWarning(
+              'This stat type does not allow multiple values. Do you want to discard the entered values?',
+            );
           }
-          // If there are no empty values and we're switching to a stat type that allows multiple values
-          else if (statType.multipleValues && statValues.length === nonEmptyValues.length) {
-            newStatValues = [...newStatValues, getEmptyValue(statType)]; // add empty value
-          }
+          // If there are no warning pop-ups
+          else {
+            // If there are no filled in values
+            if (nonEmptyValues.length === 0) {
+              // Empty the stat values if newStatValues wasn't passed in (e.g. when editing stat)
+              if (newStatValues === undefined) newStatValues = [getEmptyValue(newStatType)];
+            }
+            // If there are no empty values and we're switching to a stat type that allows multiple values
+            else if (newStatType.multipleValues && statValues.length === nonEmptyValues.length) {
+              if (newStatValues === undefined) newStatValues = nonEmptyValues;
+              newStatValues = [...newStatValues, getEmptyValue(newStatType)]; // add empty value
+            }
 
-          setStatValues(newStatValues);
-          setSelectedStatType(statType);
+            setStatValues(newStatValues);
+            setSelectedStatType(newStatType);
+          }
         }
         break;
     }
@@ -475,7 +489,7 @@ const AddEditEntry = ({ navigation, route }) => {
         ) : (
           <Select
             options={getChoicesOptions()}
-            selected={(selectedStatType.defaultValue as number) || 0}
+            selected={(statValues[0] as number) || 0}
             onSelect={selectChoice}
           />
         )}

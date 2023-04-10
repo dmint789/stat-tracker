@@ -11,25 +11,48 @@ jest.mock('../app/shared/StorageManager');
 // Silence the warning https://github.com/facebook/react-native/issues/11094#issuecomment-263240420
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
-const props = {
+const preloadedState: PreloadedState<RootState> = {
+  main: mainSliceMock,
+};
+
+const emptyProps = {
+  navigation: {
+    setOptions() {},
+    goBack() {},
+    navigate() {},
+  },
+  route: { params: {} },
+};
+
+const editEntryProps = {
   navigation: {
     setOptions() {},
     goBack() {},
     navigate() {},
   },
   route: {
-    params: {},
+    params: {
+      entry: preloadedState.main.entries[1],
+    },
   },
 };
 
-const preloadedState: PreloadedState<RootState> = {
-  main: mainSliceMock,
-};
+describe('AddEditEntry screen', () => {
+  test('screen renders correctly and with the right data', () => {
+    renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
 
-test('AddEditEntry screen renders correctly', () => {
-  renderWithProvider(<AddEditEntry {...props} />, { preloadedState });
+    // Expect "Add Entry" text on the main button at the bottom
+    expect(screen.getByText(/Add Entry/)).toBeOnTheScreen();
+    // Expect default country to be selected
+    expect(screen.getByText(/Country: UK/)).toBeOnTheScreen();
+    // Expect "Marathon" stat type to be automatically selected
+    expect(screen.getByText(/Marathon/)).toBeOnTheScreen();
+  });
 
-  expect(screen.getByText(/Add Entry/)).toBeOnTheScreen();
-  // Expect default country to be selected
-  expect(screen.getByText(/Country: UK/)).toBeOnTheScreen();
+  test('stats that include a deleted stat type are shown', () => {
+    renderWithProvider(<AddEditEntry {...editEntryProps} />, { preloadedState });
+    expect(screen.getByText(/Country: UK/)).toBeOnTheScreen();
+    expect(screen.getByText(/Marathon: 2:19:58\.329/)).toBeOnTheScreen();
+    expect(screen.getByText(/\(Deleted\)/)).toBeOnTheScreen();
+  });
 });

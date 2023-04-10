@@ -1,5 +1,8 @@
 import { IStatCategory, IEntry, IStatType } from '../../app/shared/DataStructure';
 
+// Regex for replacing "...": with ...:
+// "([^"*]*)":  to  $1:
+
 export default {
   statCategories: [
     {
@@ -20,6 +23,9 @@ export default {
     totalEntries: 5,
   } as IStatCategory,
   lastCategoryId: 1,
+  /**
+   * Entries
+   */
   entries: [
     {
       id: 2,
@@ -55,6 +61,11 @@ export default {
           type: 2, // Marathon
           values: [8398329], // 2 hours, 19 minutes, 58.329 seconds
         },
+        {
+          id: 3,
+          type: 999, // Deleted stat type
+          values: ['test'],
+        },
       ],
       comment: '',
       date: {
@@ -64,7 +75,9 @@ export default {
       },
     },
   ] as IEntry[],
-  // TEMPORARY REGEX "([^"*]*)":  to  $1:
+  /**
+   * Stat Types
+   */
   statTypes: [
     {
       id: 1,
