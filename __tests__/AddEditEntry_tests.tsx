@@ -65,6 +65,17 @@ describe('AddEditEntry screen in add mode', () => {
     fireEvent.press(screen.getByText('Add Stat'));
     expect(screen.getByText('Marathon: 2:31:02.997')).toBeOnTheScreen();
   });
+
+  describe('enter stat, switching to the next stat type', () => {
+    test('enter multiple choice stat, switching to text stat', () => {
+      renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
+
+      // Edit the multiple choice stat that has already been entered by default
+      fireEvent.press(screen.getByText('Country: UK'));
+      fireEvent.press(screen.getByText('USA')); // select country
+      expect(screen.getByDisplayValue('0:00:00.000')).toBeOnTheScreen(); // expect switch to time stat type
+    });
+  });
 });
 
 describe('AddEditEntry screen in edit mode', () => {

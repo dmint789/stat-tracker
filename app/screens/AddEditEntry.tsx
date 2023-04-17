@@ -306,7 +306,7 @@ const AddEditEntry = ({ navigation, route }) => {
   };
 
   // Assumes stat type has no problems with it. newStatValues is for deleteEditStat().
-  // When called from deleteEditStat(), it's certain that there are no unentered values.
+  // When called from deleteEditStat(), it's certain that there are no non-empty values.
   const selectStatType = (newStatType: IStatType, newStatValues?: Array<string | number>) => {
     const updateStatTypeAndValues = () => {
       if (newStatValues === undefined) setStatValues([getEmptyValue(newStatType)]);
@@ -315,76 +315,70 @@ const AddEditEntry = ({ navigation, route }) => {
       setSelectedStatType(newStatType);
     };
 
-    const showWarning = (message: string) => {
+    const showWarningWithDiscard = (message: string) => {
       Alert.alert('Warning', message, [
         { text: 'Cancel' },
         { text: 'Yes', onPress: updateStatTypeAndValues },
       ]);
     };
 
-    switch (newStatType.variant) {
-      case StatTypeVariant.MULTIPLE_CHOICE:
-        // If there are no filled-in values
-        if (!statValues.find((el) => el !== getEmptyValue())) {
-          updateStatTypeAndValues();
-        } else {
-          const valueWord = statValues.filter((el) => el !== getEmptyValue()).length > 1 ? 'values' : 'value';
+    if (newStatType.variant === StatTypeVariant.MULTIPLE_CHOICE) {
+      // If there are no filled-in values
+      if (!statValues.find((el) => el !== getEmptyValue())) {
+        updateStatTypeAndValues();
+      } else {
+        const valueWord = statValues.filter((el) => el !== getEmptyValue()).length > 1 ? 'values' : 'value';
+        showWarningWithDiscard(
+          `This is a multiple choice stat type. If you proceed, the ${valueWord} you have entered will be lost. Proceed?`,
+        );
+      }
+    } else {
+      // If previous variant was MULTIPLE_CHOICE, then we just need to empty the stat values
+      if (selectedStatType.variant === StatTypeVariant.MULTIPLE_CHOICE) {
+        setStatValues([getEmptyValue(newStatType)]);
+        setSelectedStatType(newStatType);
+      } else {
+        // Get non-empty values from the previous stat type
+        const nonEmptyValues = statValues.filter((el) => el !== getEmptyValue());
 
-          showWarning(
-            `This is a multiple choice stat type. If you proceed, the ${valueWord} you have entered will be lost. Proceed?`,
+        if (
+          nonEmptyValues.length > 0 &&
+          selectedStatType.variant !== StatTypeVariant.TIME &&
+          newStatType.variant === StatTypeVariant.TIME
+        ) {
+          showWarningWithDiscard(
+            'This stat type has the time stat type variant. Do you want to discard the entered values?',
+          );
+        } else if (
+          nonEmptyValues.length > 0 &&
+          selectedStatType.variant === StatTypeVariant.TIME &&
+          newStatType.variant !== StatTypeVariant.TIME
+        ) {
+          showWarningWithDiscard(
+            'The current stat type has the time stat type variant. Do you want to discard the entered times?',
+          );
+        } else if (nonEmptyValues.length > 1 && !newStatType.multipleValues) {
+          showWarningWithDiscard(
+            'This stat type does not allow multiple values. Do you want to discard the entered values?',
           );
         }
-        break;
-      // case StatTypeVariant.TIME:
-      //   break;
-      default:
-        // If previous variant was MULTIPLE_CHOICE, then we just need to empty the stat values
-        if (selectedStatType.variant === StatTypeVariant.MULTIPLE_CHOICE) {
-          setStatValues([getEmptyValue(newStatType)]);
+        // If there are no warning pop-ups
+        else {
+          // If there are no filled in values
+          if (nonEmptyValues.length === 0) {
+            // Empty the stat values if newStatValues wasn't passed in (e.g. when editing stat)
+            if (newStatValues === undefined) newStatValues = [getEmptyValue(newStatType)];
+          }
+          // If there are no empty values and we're switching to a stat type that allows multiple values
+          else if (newStatType.multipleValues && statValues.length === nonEmptyValues.length) {
+            if (newStatValues === undefined) newStatValues = nonEmptyValues;
+            newStatValues = [...newStatValues, getEmptyValue(newStatType)]; // add empty value
+          }
+
+          setStatValues(newStatValues);
           setSelectedStatType(newStatType);
-        } else {
-          // Get non-empty values from the old stat type
-          const nonEmptyValues = statValues.filter((el) => el !== getEmptyValue());
-
-          if (
-            nonEmptyValues.length > 0 &&
-            selectedStatType.variant !== StatTypeVariant.TIME &&
-            newStatType.variant === StatTypeVariant.TIME
-          ) {
-            showWarning(
-              'This stat type has the time stat type variant. Do you want to discard the entered values?',
-            );
-          } else if (
-            nonEmptyValues.length > 0 &&
-            selectedStatType.variant === StatTypeVariant.TIME &&
-            newStatType.variant !== StatTypeVariant.TIME
-          ) {
-            showWarning(
-              'The current stat type has the time stat type variant. Do you want to discard the entered times?',
-            );
-          } else if (nonEmptyValues.length > 1 && !newStatType.multipleValues) {
-            showWarning(
-              'This stat type does not allow multiple values. Do you want to discard the entered values?',
-            );
-          }
-          // If there are no warning pop-ups
-          else {
-            // If there are no filled in values
-            if (nonEmptyValues.length === 0) {
-              // Empty the stat values if newStatValues wasn't passed in (e.g. when editing stat)
-              if (newStatValues === undefined) newStatValues = [getEmptyValue(newStatType)];
-            }
-            // If there are no empty values and we're switching to a stat type that allows multiple values
-            else if (newStatType.multipleValues && statValues.length === nonEmptyValues.length) {
-              if (newStatValues === undefined) newStatValues = nonEmptyValues;
-              newStatValues = [...newStatValues, getEmptyValue(newStatType)]; // add empty value
-            }
-
-            setStatValues(newStatValues);
-            setSelectedStatType(newStatType);
-          }
         }
-        break;
+      }
     }
   };
 
