@@ -352,12 +352,15 @@ const AddEditEntry = ({ navigation, route }) => {
           'This stat type has the time stat type variant. Do you want to discard the entered values?',
         );
       } else if (
-        nonEmptyValues.length > 0 &&
-        selectedStatType.variant === StatTypeVariant.TIME &&
-        newStatType.variant !== StatTypeVariant.TIME
+        (nonEmptyValues.length > 0 &&
+          selectedStatType.variant === StatTypeVariant.TIME &&
+          newStatType.variant !== StatTypeVariant.TIME) ||
+        (nonEmptyValues.length > 0 &&
+          selectedStatType.variant === StatTypeVariant.TEXT &&
+          newStatType.variant !== StatTypeVariant.TEXT)
       ) {
         showWarningWithDiscard(
-          'The current stat type has the time stat type variant. Do you want to discard the entered times?',
+          'The current stat type is not compatible with the selected one. Do you want to discard the entered values?',
         );
       } else if (nonEmptyValues.length > 1 && !newStatType.multipleValues) {
         showWarningWithDiscard(

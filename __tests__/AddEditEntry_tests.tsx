@@ -74,6 +74,21 @@ describe('AddEditEntry screen in add mode', () => {
       fireEvent.press(screen.getByText('USA')); // select country
       expect(screen.getByDisplayValue('0:00:00.000')).toBeOnTheScreen(); // expect switch to time stat type
     });
+
+    test('enter number stat, switching to number stat with multiple values allowed', () => {
+      renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
+      expect(screen.getByText('Marathon'));
+      // Delete all stats entered by default (the character in quotes is the Fontawesome X icon)
+      fireEvent.press(screen.getAllByText('')[0]);
+      fireEvent.press(screen.getAllByText('')[0]);
+      fireEvent.press(screen.getAllByText('')[0]);
+      expect(screen.getByText('Marathon'));
+
+      fireEvent.press(screen.getByText('Change Stat'));
+      fireEvent.press(screen.getByText('Number of competitors'));
+      fireEvent.press(screen.getByText('Add Stat'));
+      expect(screen.getByText('Scores (pts)')).toBeOnTheScreen();
+    });
   });
 });
 
@@ -105,6 +120,33 @@ describe('AddEditEntry screen in edit mode', () => {
       // Expect next stat type to be on screen with its default value
       expect(screen.getByText('Number of competitors')).toBeOnTheScreen();
       expect(screen.getByDisplayValue('0')).toBeOnTheScreen();
+    });
+
+    test('enter number stat, switching to multiple choice stat', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(6)} />, { preloadedState });
+      expect(screen.getByText('Country'));
+      fireEvent.press(screen.getByText('Change Stat'));
+      fireEvent.press(screen.getByText('Number of competitors'));
+      expect(screen.getByDisplayValue('0')).toBeOnTheScreen(); // expect default value
+      fireEvent.press(screen.getByText('Add Stat'));
+      // Expect multiple choice stat type
+      expect(screen.getByText('Country')).toBeOnTheScreen();
+      expect(screen.getByText('Russia')).toBeOnTheScreen();
+    });
+
+    test('enter number stat, switching to text stat', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(5)} />, { preloadedState });
+      expect(screen.getByText('Race name'));
+      // Empty value before changing stat type
+      fireEvent.changeText(screen.getByPlaceholderText('Value'), '');
+      fireEvent.press(screen.getByText('Change Stat'));
+      fireEvent.press(screen.getByText('Number of competitors'));
+      expect(screen.getByDisplayValue('0')).toBeOnTheScreen(); // expect default value
+      fireEvent.changeText(screen.getByPlaceholderText('Value'), '38'); // enter other value
+      fireEvent.press(screen.getByText('Add Stat'));
+      // Expect multiple choice stat type
+      expect(screen.getByText('Race name')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('Default name')).toBeOnTheScreen();
     });
   });
 });
