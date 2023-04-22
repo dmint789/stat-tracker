@@ -244,7 +244,8 @@ const AddEditStatType = ({ navigation, route }) => {
       if (getIsNumericVariant(variant)) {
         statType.decimals = decimals;
       }
-      // If defaultValue is '' or 0 and multipleValues is unset, don't save it
+      // If defaultValue is '' (number or text variant) or 0 (multiple choice variant)
+      // and multipleValues is unset, don't save it
       if (defaultValue && !multipleValues) {
         statType.defaultValue = getIsNumericVariant(variant) ? Number(defaultValue) : defaultValue;
       }

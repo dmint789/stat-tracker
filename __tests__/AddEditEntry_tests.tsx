@@ -24,23 +24,32 @@ const emptyProps = {
   route: { params: {} },
 };
 
-const editEntryProps = {
-  navigation: {
-    setOptions() {},
-    goBack() {},
-    navigate() {},
-  },
-  route: {
-    params: {
-      entry: preloadedState.main.entries[1],
+const getEditEntryProps = (entryId: number) => {
+  return {
+    navigation: {
+      setOptions() {},
+      goBack() {},
+      navigate() {},
     },
-  },
+    route: {
+      params: {
+        entry: preloadedState.main.entries.find((entry) => entry.id === entryId),
+      },
+    },
+  };
+};
+
+const enterTimeDigits = (keys: string) => {
+  for (let key of keys) {
+    fireEvent(screen.getByPlaceholderText('(time placeholder for automated tests)'), 'onKeyPress', {
+      nativeEvent: { key },
+    });
+  }
 };
 
 describe('AddEditEntry screen in add mode', () => {
   test('screen renders correctly and with the right data', () => {
     renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
-
     // Expect "Add Entry" text on the main button at the bottom
     expect(screen.getByText('Add Entry')).toBeOnTheScreen();
     // Expect default country to be selected
@@ -49,17 +58,8 @@ describe('AddEditEntry screen in add mode', () => {
     expect(screen.getByText('Marathon')).toBeOnTheScreen();
   });
 
-  const enterTimeDigits = (keys: string) => {
-    for (let key of keys) {
-      fireEvent(screen.getByPlaceholderText('(time placeholder for automated tests)'), 'onKeyPress', {
-        nativeEvent: { key },
-      });
-    }
-  };
-
   test('time input works correctly', () => {
     renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
-
     enterTimeDigits('23102997');
     expect(screen.getByDisplayValue('2:31:02.997')).toBeOnTheScreen();
     fireEvent.press(screen.getByText('Add Stat'));
@@ -67,9 +67,8 @@ describe('AddEditEntry screen in add mode', () => {
   });
 
   describe('enter stat, switching to the next stat type', () => {
-    test('enter multiple choice stat, switching to text stat', () => {
+    test('enter multiple choice stat, switching to time stat', () => {
       renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
-
       // Edit the multiple choice stat that has already been entered by default
       fireEvent.press(screen.getByText('Country: UK'));
       fireEvent.press(screen.getByText('USA')); // select country
@@ -80,9 +79,32 @@ describe('AddEditEntry screen in add mode', () => {
 
 describe('AddEditEntry screen in edit mode', () => {
   test('stats that include a deleted stat type are shown', () => {
-    renderWithProvider(<AddEditEntry {...editEntryProps} />, { preloadedState });
+    renderWithProvider(<AddEditEntry {...getEditEntryProps(1)} />, { preloadedState });
     expect(screen.getByText('Country: UK')).toBeOnTheScreen();
     expect(screen.getByText('Marathon: 2:19:58.329')).toBeOnTheScreen();
     expect(screen.getByText('(Deleted): test')).toBeOnTheScreen();
+  });
+
+  describe('enter stat, switching to the next stat type', () => {
+    test('enter multiple choice stat, switching to text stat with default value', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(3)} />, { preloadedState });
+      // Expect already entered time to be on screen
+      expect(screen.getByText('Marathon: 2:18:41.371')).toBeOnTheScreen();
+      fireEvent.press(screen.getByText('UK')); // select country
+      // Expect next stat type to be on screen with its default value
+      expect(screen.getByText('Race name')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('Default name')).toBeOnTheScreen();
+    });
+
+    test('enter multiple choice stat, switching to number stat with 0 default value', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(4)} />, { preloadedState });
+      // Expect already entered time and race name to be on screen
+      expect(screen.getByText('Marathon: 2:19:05.942')).toBeOnTheScreen();
+      expect(screen.getByText('Race name: Marathon Open 2023')).toBeOnTheScreen();
+      fireEvent.press(screen.getByText('Japan')); // select country
+      // Expect next stat type to be on screen with its default value
+      expect(screen.getByText('Number of competitors')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('0')).toBeOnTheScreen();
+    });
   });
 });

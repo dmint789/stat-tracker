@@ -72,7 +72,7 @@ const AddEditEntry = ({ navigation, route }) => {
       // Set stats with default values if coming from home screen
       if (!passedData?.statType) {
         statTypes.forEach((statType) => {
-          if (statType.defaultValue) addStatWithDefault(statType);
+          if (statType.defaultValue !== undefined) addStatWithDefault(statType);
         });
       }
     }
@@ -251,7 +251,11 @@ const AddEditEntry = ({ navigation, route }) => {
     const statType = statTypes.find((el) => el.id === stat.type) || null;
 
     // If editing and there is a value that hasn't been entered yet
-    if (edit && !!statValues.find((el) => el !== getEmptyValue())) {
+    if (
+      edit &&
+      !!statValues.find((el) => el !== getEmptyValue()) &&
+      selectedStatType.variant !== StatTypeVariant.MULTIPLE_CHOICE
+    ) {
       Alert.alert('Notice', 'Please enter your current stat or clear it', [{ text: 'Ok' }]);
     } else {
       // Remove stat from working list of stats
@@ -333,52 +337,55 @@ const AddEditEntry = ({ navigation, route }) => {
         );
       }
     } else {
-      // If previous variant was MULTIPLE_CHOICE, then we just need to empty the stat values
-      if (selectedStatType.variant === StatTypeVariant.MULTIPLE_CHOICE) {
-        setStatValues([getEmptyValue(newStatType)]);
-        setSelectedStatType(newStatType);
-      } else {
-        // Get non-empty values from the previous stat type
-        const nonEmptyValues = statValues.filter((el) => el !== getEmptyValue());
+      // Get non-empty values from prev. stat type (only if prev. stat type was not multiple choice)
+      const nonEmptyValues =
+        selectedStatType.variant !== StatTypeVariant.MULTIPLE_CHOICE
+          ? statValues.filter((el) => el !== getEmptyValue())
+          : [];
 
-        if (
-          nonEmptyValues.length > 0 &&
-          selectedStatType.variant !== StatTypeVariant.TIME &&
-          newStatType.variant === StatTypeVariant.TIME
-        ) {
-          showWarningWithDiscard(
-            'This stat type has the time stat type variant. Do you want to discard the entered values?',
-          );
-        } else if (
-          nonEmptyValues.length > 0 &&
-          selectedStatType.variant === StatTypeVariant.TIME &&
-          newStatType.variant !== StatTypeVariant.TIME
-        ) {
-          showWarningWithDiscard(
-            'The current stat type has the time stat type variant. Do you want to discard the entered times?',
-          );
-        } else if (nonEmptyValues.length > 1 && !newStatType.multipleValues) {
-          showWarningWithDiscard(
-            'This stat type does not allow multiple values. Do you want to discard the entered values?',
-          );
-        }
-        // If there are no warning pop-ups
-        else {
-          // If there are no filled in values
-          if (nonEmptyValues.length === 0) {
-            // Empty the stat values if newStatValues wasn't passed in (e.g. when editing stat)
-            if (newStatValues === undefined) newStatValues = [getEmptyValue(newStatType)];
-          }
-          // If there are no empty values and we're switching to a stat type that allows multiple values
-          else if (newStatType.multipleValues && statValues.length === nonEmptyValues.length) {
-            if (newStatValues === undefined) newStatValues = nonEmptyValues;
-            newStatValues = [...newStatValues, getEmptyValue(newStatType)]; // add empty value
-          }
-
-          setStatValues(newStatValues);
-          setSelectedStatType(newStatType);
-        }
+      if (
+        nonEmptyValues.length > 0 &&
+        selectedStatType.variant !== StatTypeVariant.TIME &&
+        newStatType.variant === StatTypeVariant.TIME
+      ) {
+        showWarningWithDiscard(
+          'This stat type has the time stat type variant. Do you want to discard the entered values?',
+        );
+      } else if (
+        nonEmptyValues.length > 0 &&
+        selectedStatType.variant === StatTypeVariant.TIME &&
+        newStatType.variant !== StatTypeVariant.TIME
+      ) {
+        showWarningWithDiscard(
+          'The current stat type has the time stat type variant. Do you want to discard the entered times?',
+        );
+      } else if (nonEmptyValues.length > 1 && !newStatType.multipleValues) {
+        showWarningWithDiscard(
+          'This stat type does not allow multiple values. Do you want to discard the entered values?',
+        );
       }
+      // If there are no warning pop-ups
+      else {
+        if (nonEmptyValues.length === 0) {
+          // Reset the stat values if newStatValues wasn't passed in (e.g. when editing stat)
+          if (newStatValues === undefined) {
+            if (newStatType.defaultValue !== undefined) {
+              newStatValues = [String(newStatType.defaultValue)];
+            } else {
+              newStatValues = [getEmptyValue(newStatType)];
+            }
+          }
+        }
+        // If there are no empty values and we're switching to a stat type that allows multiple values
+        else if (newStatType.multipleValues && statValues.length === nonEmptyValues.length) {
+          if (newStatValues === undefined) newStatValues = nonEmptyValues;
+          newStatValues = [...newStatValues, getEmptyValue(newStatType)]; // add empty value
+        }
+
+        setStatValues(newStatValues);
+        setSelectedStatType(newStatType);
+      }
+      // }
     }
   };
 

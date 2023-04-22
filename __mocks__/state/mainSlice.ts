@@ -28,6 +28,43 @@ export default {
    */
   entries: [
     {
+      id: 4,
+      stats: [
+        {
+          id: 2,
+          type: 2, // Marathon
+          values: [8345942], // 2 hours, 19 minutes, 5.942 seconds
+        },
+        {
+          id: 3,
+          type: 3, // Race name
+          values: ['Marathon Open 2023'],
+        },
+      ],
+      comment: '',
+      date: {
+        day: 10,
+        month: 2,
+        year: 2023,
+      },
+    },
+    {
+      id: 3,
+      stats: [
+        {
+          id: 2,
+          type: 2, // Marathon
+          values: [8321371], // 2 hours, 18 minutes, 41.371 seconds
+        },
+      ],
+      comment: '',
+      date: {
+        day: 4,
+        month: 2,
+        year: 2023,
+      },
+    },
+    {
       id: 2,
       stats: [
         {
@@ -114,6 +151,26 @@ export default {
       trackYearPBs: true,
       trackMonthPBs: true,
       decimals: 3,
+      multipleValues: false,
+    },
+    {
+      id: 3,
+      name: 'Race name',
+      order: 3,
+      variant: 0,
+      defaultValue: 'Default name',
+      multipleValues: false,
+    },
+    {
+      id: 4,
+      name: 'Number of competitors',
+      order: 4,
+      variant: 1,
+      higherIsBetter: false,
+      trackPBs: false,
+      trackYearPBs: false,
+      trackMonthPBs: true,
+      defaultValue: 0,
       multipleValues: false,
     },
   ] as IStatType[],

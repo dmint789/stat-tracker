@@ -76,7 +76,7 @@ export interface IStatType {
   defaultValue?: string | number;
   higherIsBetter?: boolean; // NUMBER and TIME only
   choices?: IChoice[]; // MULTIPLE_CHOICE only
-  decimals?: number; // TIME only (0 to 6)
+  decimals?: number; // TIME and NUMBER only (0 to 6); for NUMBER it's only used for averages
   // formula?: string; // FORMULA only
   multipleValues?: boolean; // TEXT, NUMBER and TIME only
   showBest?: boolean; // NUMBER and TIME only
