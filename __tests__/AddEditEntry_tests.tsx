@@ -112,6 +112,31 @@ describe('AddEditEntry screen in add mode', () => {
       expect(screen.getAllByPlaceholderText('Value').length).toBe(1);
     });
   });
+
+  describe('change stat type while value inputs are not empty', () => {
+    // Okay, sure, multiple choice doesn't have value inputs, but it's still going in this group
+    test('from multiple choice to time', () => {
+      renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
+      // Edit Country stat
+      fireEvent.press(screen.getByText('Country: UK'));
+      expect(screen.getByText('Country')).toBeOnTheScreen();
+      // Change stat to Marathon
+      fireEvent.press(screen.getByText('Change Stat'));
+      fireEvent.press(screen.getByText('Marathon'));
+      expect(screen.getByText('Marathon')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('0:00:00.000')).toBeOnTheScreen();
+    });
+
+    test('from multiple choice to multi-time', () => {
+      renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
+      // Edit Country stat
+      fireEvent.press(screen.getByText('Country: UK'));
+      fireEvent.press(screen.getByText('Change Stat'));
+      fireEvent.press(screen.getByText('Time splits'));
+      expect(screen.getByText('Time splits')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('0:00:00.00')).toBeOnTheScreen();
+    });
+  });
 });
 
 describe('AddEditEntry screen in edit mode', () => {
@@ -206,6 +231,15 @@ describe('AddEditEntry screen in edit mode', () => {
       expect(screen.getByText('USA')).toBeOnTheScreen();
       // Expect default country to be highlighted
       expect(screen.getByText('UK').parent.parent.props.style.backgroundColor).toBe('red');
+    });
+
+    test('enter last stat, not switching to another one', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(7)} />, { preloadedState });
+
+      fireEvent.press(screen.getAllByText('')[5]); // delete Time splits stat
+      enterTimeDigits('2203178');
+      fireEvent.press(screen.getByText('Add Stat'));
+      expect(screen.getByText('Stat')).toBeOnTheScreen();
     });
   });
 });
