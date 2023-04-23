@@ -39,11 +39,15 @@ const getEditEntryProps = (entryId: number) => {
   };
 };
 
-const enterTimeDigits = (keys: string) => {
+const enterTimeDigits = (keys: string, inputIndex = 0) => {
   for (let key of keys) {
-    fireEvent(screen.getByPlaceholderText('(time placeholder for automated tests)'), 'onKeyPress', {
-      nativeEvent: { key },
-    });
+    fireEvent(
+      screen.getAllByPlaceholderText('(time placeholder for automated tests)')[inputIndex],
+      'onKeyPress',
+      {
+        nativeEvent: { key },
+      },
+    );
   }
 };
 
@@ -75,19 +79,37 @@ describe('AddEditEntry screen in add mode', () => {
       expect(screen.getByDisplayValue('0:00:00.000')).toBeOnTheScreen(); // expect switch to time stat type
     });
 
-    test('enter number stat, switching to number stat with multiple values allowed', () => {
+    test('enter number stat, switching to multi-number stat', () => {
       renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
-      expect(screen.getByText('Marathon'));
+      expect(screen.getByText('Marathon')).toBeOnTheScreen();
       // Delete all stats entered by default (the character in quotes is the Fontawesome X icon)
       fireEvent.press(screen.getAllByText('')[0]);
       fireEvent.press(screen.getAllByText('')[0]);
       fireEvent.press(screen.getAllByText('')[0]);
-      expect(screen.getByText('Marathon'));
+      expect(screen.getByText('Marathon')).toBeOnTheScreen();
 
       fireEvent.press(screen.getByText('Change Stat'));
       fireEvent.press(screen.getByText('Number of competitors'));
       fireEvent.press(screen.getByText('Add Stat'));
       expect(screen.getByText('Scores (pts)')).toBeOnTheScreen();
+    });
+
+    test('enter multi-time stat, switching to multi-text stat', () => {
+      renderWithProvider(<AddEditEntry {...emptyProps} />, { preloadedState });
+      expect(screen.getByText('Marathon')).toBeOnTheScreen();
+      fireEvent.press(screen.getByText('Change Stat'));
+      fireEvent.press(screen.getByText('Time splits'));
+
+      enterTimeDigits('1224391', 0);
+      expect(screen.getByDisplayValue('1:22:43.91')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('(time placeholder for automated tests)').length).toBe(2);
+      enterTimeDigits('321944', 1);
+      expect(screen.getByDisplayValue('0:32:19.44')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('(time placeholder for automated tests)').length).toBe(3);
+      fireEvent.press(screen.getByText('Add Stat'));
+
+      expect(screen.getByText('Checkpoints')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('Value').length).toBe(1);
     });
   });
 });
@@ -124,7 +146,7 @@ describe('AddEditEntry screen in edit mode', () => {
 
     test('enter number stat, switching to multiple choice stat', () => {
       renderWithProvider(<AddEditEntry {...getEditEntryProps(6)} />, { preloadedState });
-      expect(screen.getByText('Country'));
+      expect(screen.getByText('Country')).toBeOnTheScreen();
       fireEvent.press(screen.getByText('Change Stat'));
       fireEvent.press(screen.getByText('Number of competitors'));
       expect(screen.getByDisplayValue('0')).toBeOnTheScreen(); // expect default value
@@ -136,7 +158,7 @@ describe('AddEditEntry screen in edit mode', () => {
 
     test('enter number stat, switching to text stat', () => {
       renderWithProvider(<AddEditEntry {...getEditEntryProps(5)} />, { preloadedState });
-      expect(screen.getByText('Race name'));
+      expect(screen.getByText('Race name')).toBeOnTheScreen();
       // Empty value before changing stat type
       fireEvent.changeText(screen.getByPlaceholderText('Value'), '');
       fireEvent.press(screen.getByText('Change Stat'));
@@ -147,6 +169,43 @@ describe('AddEditEntry screen in edit mode', () => {
       // Expect multiple choice stat type
       expect(screen.getByText('Race name')).toBeOnTheScreen();
       expect(screen.getByDisplayValue('Default name')).toBeOnTheScreen();
+    });
+
+    test('enter multi-time stat, switching to number stat', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(7)} />, { preloadedState });
+      // Make sure multi-number stat is displayed correctly (unrelated to the aim of this test)
+      expect(screen.getByText('Scores: 10 pts, 10 pts, 10 pts')).toBeOnTheScreen();
+
+      expect(screen.getByText('Stat')).toBeOnTheScreen();
+      fireEvent.press(screen.getAllByText('')[5]); // delete Time splits stat
+      fireEvent.press(screen.getAllByText('')[3]); // delete Number of competitors stat
+      expect(screen.getByText('Time splits')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('(time placeholder for automated tests)').length).toBe(1);
+      enterTimeDigits('2203178');
+      expect(screen.getByDisplayValue('2:20:31.78')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('(time placeholder for automated tests)').length).toBe(2);
+      fireEvent.press(screen.getByText('Add Stat'));
+
+      expect(screen.getByText('Number of competitors')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('Value').length).toBe(1);
+    });
+
+    test('enter multi-time stat, switching to multiple choice stat', () => {
+      renderWithProvider(<AddEditEntry {...getEditEntryProps(7)} />, { preloadedState });
+
+      fireEvent.press(screen.getAllByText('')[5]); // delete Time splits stat
+      fireEvent.press(screen.getAllByText('')[0]); // delete Country stat
+      expect(screen.getByText('Time splits')).toBeOnTheScreen();
+      expect(screen.getAllByPlaceholderText('(time placeholder for automated tests)').length).toBe(1);
+      enterTimeDigits('2203178');
+      expect(screen.getByDisplayValue('2:20:31.78')).toBeOnTheScreen();
+      fireEvent.press(screen.getByText('Add Stat'));
+      expect(screen.getByText('Time splits: 2:20:31.78')).toBeOnTheScreen();
+
+      expect(screen.getByText('Country')).toBeOnTheScreen();
+      expect(screen.getByText('USA')).toBeOnTheScreen();
+      // Expect default country to be highlighted
+      expect(screen.getByText('UK').parent.parent.props.style.backgroundColor).toBe('red');
     });
   });
 });

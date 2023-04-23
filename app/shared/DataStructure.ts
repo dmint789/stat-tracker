@@ -114,6 +114,8 @@ export interface IStat {
   // hadPB?: boolean;
 }
 
+export type StatValues = Array<string | number>;
+
 export interface IDate {
   day: number;
   month: number; // 1 - 12

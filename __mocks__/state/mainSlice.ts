@@ -3,42 +3,81 @@ import { IStatCategory, IEntry, IStatType } from '../../app/shared/DataStructure
 // Regex for replacing "...": with ...:
 // "([^"*]*)":  to  $1:
 
+const statCategory = {
+  id: 1,
+  name: 'Test',
+  note: '',
+  lastEntryId: 7,
+  lastStatTypeId: 7,
+  totalEntries: 7,
+} as IStatCategory;
+
 export default {
-  statCategories: [
-    {
-      id: 1,
-      name: 'Test',
-      note: '',
-      lastEntryId: 10,
-      lastStatTypeId: 7,
-      totalEntries: 5,
-    },
-  ] as IStatCategory[],
-  statCategory: {
-    id: 1,
-    name: 'Test',
-    note: '',
-    lastEntryId: 10,
-    lastStatTypeId: 7,
-    totalEntries: 5,
-  } as IStatCategory,
+  statCategories: [statCategory],
+  statCategory,
   lastCategoryId: 1,
   /**
    * Entries
    */
   entries: [
     {
+      id: 7, // all stat types entered
+      stats: [
+        {
+          id: 1,
+          type: 1, // Country
+          values: [3], // USA
+        },
+        {
+          id: 2,
+          type: 2, // Marathon
+          values: [8315754], // 2 hours, 18 minutes, 35.754 seconds
+        },
+        {
+          id: 3,
+          type: 3, // Race name
+          values: ['Marathon Open 2023'],
+        },
+        {
+          id: 4,
+          type: 4, // Number of competitors
+          values: [52],
+        },
+        {
+          id: 5,
+          type: 5, // Scores
+          values: [10, 10, 10],
+        },
+        {
+          id: 6,
+          type: 6, // Time splits
+          values: [100, 101],
+        },
+        {
+          id: 7,
+          type: 7, // Checkpoints
+          values: ['Start', 'Forest', 'Hill', 'Finish'],
+        },
+      ],
+      comment: '',
+      date: {
+        day: 5,
+        month: 4,
+        year: 2023,
+      },
+    },
+    {
       id: 6,
       stats: [
         {
           id: 5,
-          type: 5, // Time splits
-          values: [100, 101],
+          type: 5, // Scores
+          values: [10, 10, 10],
         },
         {
           id: 6,
-          type: 6, // Scores
-          values: [10, 10, 10],
+          type: 6, // Time splits
+          values: [100, 101],
         },
         {
           id: 7,
@@ -68,13 +107,13 @@ export default {
         },
         {
           id: 5,
-          type: 5, // Time splits
-          values: [513279, 221400, 96896], // 1:25:32.79, 36:54.00, 16:08.96
+          type: 5, // Scores
+          values: [8, 7, 9],
         },
         {
           id: 6,
-          type: 6, // Scores
-          values: [8, 7, 9],
+          type: 6, // Time splits
+          values: [513279, 221400, 96896], // 1:25:32.79, 36:54.00, 16:08.96
         },
         {
           id: 7,
@@ -201,7 +240,7 @@ export default {
           label: 'Japan',
         },
       ],
-      defaultValue: 2,
+      defaultValue: 2, // UK
     },
     {
       id: 2,

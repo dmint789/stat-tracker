@@ -66,7 +66,7 @@ const MultiValueInput: React.FC<{
             placeholderTextColor="grey"
             multiline
             keyboardType={numeric ? 'numeric' : 'default'}
-            value={value as string}
+            value={String(value)}
             onChangeText={(val: string) => updateStatValues(index, val)}
           />
         ) : (
